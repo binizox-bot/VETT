@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vett.r28.human_kit.annotation.schema.v1",
+  "title": "R28 human annotation rows (DERIVED + VERIFY)",
+  "description": "One JSON object per line. DERIVED rows are locked before gold is revealed; VERIFY rows reference the locked DERIVED row by derived_sha256. Field names of the value dimension are frozen to the 12 decision_record_flat fields.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["schema", "kind", "annotator_id", "item_id", "derived", "derived_sha256"],
+      "properties": {
+        "schema": {"const": "vett.r28.human_kit.annotation.v1"},
+        "kind": {"const": "DERIVED"},
+        "annotator_id": {"type": "string", "minLength": 1},
+        "item_id": {"type": "string"},
+        "public_bundle_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "derived_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "locked_at_utc": {"type": "string"},
+        "derived": {
+          "type": "object",
+          "required": ["record", "scope", "rule_version", "proof"],
+          "properties": {
+            "record": {
+              "type": "object",
+              "required": ["batter_runs", "bowler_runs", "counts_in_over", "delivery_status", "dismissal", "ledger.BATTER", "ledger.BYE", "ledger.LEG_BYE", "ledger.NO_BALL_EXTRA", "ledger.PENALTY", "ledger.WIDE_EXTRA", "total_runs"],
+              "additionalProperties": false
+            },
+            "scope": {
+              "type": "object",
+              "required": ["source_document_id", "source_span_id", "in_scope_document_ids", "conflict_resolution", "masked_cells"],
+              "properties": {
+                "source_document_id": {"type": "string"},
+                "source_span_id": {"type": "string"},
+                "in_scope_document_ids": {"type": "array", "items": {"type": "string"}},
+                "conflict_resolution": {"type": "array"},
+                "masked_cells": {"type": "array"}
+              }
+            },
+            "rule_version": {
+              "type": "object",
+              "required": ["ruleset_title", "effective_date", "selected_revision"],
+              "properties": {
+                "ruleset_title": {"type": "string"},
+                "effective_date": {"type": "string"},
+                "selected_revision": {"type": "string"}
+              }
+            },
+            "proof": {
+              "type": "object",
+              "required": ["span_ids"],
+              "properties": {
+                "span_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+                "rule_path_ids": {"type": "array", "items": {"type": "string"}},
+                "revision_chain_ids": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["schema", "kind", "annotator_id", "item_id", "labels", "derived_sha256", "gold_record_sha256"],
+      "properties": {
+        "schema": {"const": "vett.r28.human_kit.annotation.v1"},
+        "kind": {"const": "VERIFY"},
+        "annotator_id": {"type": "string", "minLength": 1},
+        "item_id": {"type": "string"},
+        "public_bundle_sha256": {"type": ["string", "null"]},
+        "gold_bundle_sha256": {"type": ["string", "null"]},
+        "derived_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "derived_record_sha256": {"type": "string"},
+        "gold_record_sha256": {"type": "string"},
+        "gold_revealed": {"const": true},
+        "labels": {
+          "type": "object",
+          "required": ["value", "scope", "rule_version", "proof"],
+          "properties": {
+            "value": {
+              "type": "object",
+              "required": ["fields", "verdict"],
+              "properties": {
+                "fields": {
+                  "type": "object",
+                  "required": ["batter_runs", "bowler_runs", "counts_in_over", "delivery_status", "dismissal", "ledger.BATTER", "ledger.BYE", "ledger.LEG_BYE", "ledger.NO_BALL_EXTRA", "ledger.PENALTY", "ledger.WIDE_EXTRA", "total_runs"],
+                  "additionalProperties": {"enum": ["MATCH", "MISMATCH", "UNDECIDABLE"]}
+                },
+                "verdict": {"enum": ["MATCH", "MISMATCH", "UNDECIDABLE"]}
+              }
+            },
+            "scope": {"type": "object", "required": ["verdict"], "properties": {"verdict": {"enum": ["CONFIRMED", "SCOPE_ERROR", "UNDECIDABLE"]}}},
+            "rule_version": {"type": "object", "required": ["verdict"], "properties": {"verdict": {"enum": ["CONFIRMED", "VERSION_ERROR", "UNDECIDABLE"]}}},
+            "proof": {"type": "object", "required": ["verdict"], "properties": {"verdict": {"enum": ["CONFIRMED", "NOT_MINIMAL", "INSUFFICIENT", "FABRICATED", "UNDECIDABLE"]}}}
+          }
+        }
+      }
+    }
+  ]
+}

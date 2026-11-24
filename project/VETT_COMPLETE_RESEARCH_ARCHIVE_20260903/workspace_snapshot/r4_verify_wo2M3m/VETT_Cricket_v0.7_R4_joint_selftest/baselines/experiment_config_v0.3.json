@@ -1,0 +1,90 @@
+{
+  "experiment_id": "vett_cricket_v0.3_dev_baseline",
+  "dataset_version": "0.3-high-audit-candidate",
+  "split": "dev",
+  "temperature": 0,
+  "repetitions": 1,
+  "methods": [
+    {
+      "method_id": "direct_no_cot",
+      "family": "direct",
+      "stages": ["text_to_table"],
+      "paper_style": true
+    },
+    {
+      "method_id": "direct_cot",
+      "family": "direct_cot",
+      "stages": ["reason_then_text_to_table"],
+      "paper_style": true
+    },
+    {
+      "method_id": "t3_paper_direct_integration_variant",
+      "family": "t3",
+      "stages": ["text_to_tuple", "tuple_integration", "tuple_to_table"],
+      "paper_style": true,
+      "tuple_fields": ["entity", "team_or_innings", "event_or_attribute", "value"]
+    },
+    {
+      "method_id": "t3_provenance_enhanced",
+      "family": "t3",
+      "stages": ["text_to_tuple", "tuple_integration", "tuple_to_table"],
+      "paper_style": false,
+      "tuple_fields": [
+        "document_id",
+        "evidence_quote",
+        "source_tier",
+        "innings",
+        "entity",
+        "attribute",
+        "value",
+        "arrival_index",
+        "version",
+        "claim_status"
+      ]
+    },
+    {
+      "method_id": "mapmake_paper_style",
+      "family": "mapmake",
+      "stages": ["atomization", "schema_extraction", "iterative_table_generation"],
+      "paper_style": true
+    },
+    {
+      "method_id": "mapmake_scope_version_enhanced",
+      "family": "mapmake",
+      "stages": ["atomization", "schema_extraction", "iterative_table_generation"],
+      "paper_style": false
+    }
+  ],
+  "blocked_methods": [
+    {
+      "method_id": "t3_paper_code_integration_main",
+      "reason": "Generated Python requires a separately reviewed execution sandbox; it must not be silently replaced by direct integration."
+    }
+  ],
+  "method_sources": {
+    "t3": {
+      "paper": "Text-Tuple-Table: Towards Information Integration in Text-to-Table Generation via Global Tuple Extraction",
+      "checked_sections": ["Appendix B.2", "Appendix B.3", "Appendix B.4", "Appendix C.4"],
+      "pdf_pages_checked": [15, 16]
+    },
+    "mapmake": {
+      "paper": "Map&Make: Schema Guided Text to Table Generation",
+      "checked_sections": ["Appendix E.4.1", "Appendix E.4.2", "Appendix E.4.3"],
+      "pdf_pages_checked": [34, 35, 36]
+    }
+  },
+  "primary_metrics": [
+    "cell_error_rate",
+    "table_exact_rate",
+    "omission_rate",
+    "hallucination_rate"
+  ],
+  "required_slices": [
+    "view",
+    "difficulty_tier",
+    "direct_vs_derived",
+    "revision",
+    "target_scope"
+  ],
+  "claim_guardrail": "Do not tune difficulty on test results and do not treat mechanism diagnostics as method measurements."
+}

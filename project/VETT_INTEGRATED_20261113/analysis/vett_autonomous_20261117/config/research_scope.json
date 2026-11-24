@@ -1,0 +1,158 @@
+{
+  "project": "VETT autonomous local experiment workflow",
+  "method_version": "wf-20261117-v1",
+  "goal": "Localize small-model errors in the 220-match published VETT corpus by running controlled batches against local Ollama models, scoring against original scorecards, and auto-selecting the next batch from prior results. External API must remain 0.",
+  "data": {
+    "dataset": "Self-cricket-clean_text_scorecard_v1_220_matches",
+    "matches": 220,
+    "parsed_positions": 437,
+    "r28_dir": "VETT_R28_DIFFICULTY_20261112",
+    "scorecard_fields_43": "match.result/toss/pom + per innings (team,total_runs,total_wickets,overs,byes,leg_byes,no_balls,wides) + per innings top3 batter name/runs + per innings top2 bowler name/wickets/runs = 43",
+    "evidence_index": "VETT_INTEGRATED_20261113/analysis/vett_evidence_upgrade_20261115/EVIDENCE_INDEX.jsonl",
+    "u_full_results": "VETT_INTEGRATED_20261113/analysis/vett_overnight_20261114/runs/u_full.jsonl",
+    "a_dev_results": "VETT_INTEGRATED_20261113/analysis/vett_multidimensional_20261116/RUNS/a_dev.jsonl",
+    "b_min_results": "VETT_INTEGRATED_20261113/analysis/vett_multidimensional_20261116/RUNS/b_min.jsonl"
+  },
+  "models": [
+    "qwen2.5:7b-instruct-q4_K_M",
+    "llama3.1:8b",
+    "gemma2:9b"
+  ],
+  "ollama": {
+    "url": "http://127.0.0.1:11434/api/generate",
+    "num_ctx": 8192,
+    "num_predict": 300,
+    "temperature": 0,
+    "seed": 42,
+    "max_retries": 2,
+    "timeout_seconds": 900
+  },
+  "target_fields": [
+    "total_runs",
+    "total_wickets"
+  ],
+  "pools": {
+    "dev": [
+      "match_0066",
+      "match_0085",
+      "match_0087",
+      "match_0096",
+      "match_0165",
+      "match_0021",
+      "match_0183",
+      "match_0184"
+    ],
+    "hard": [
+      {
+        "match": "match_0002",
+        "innings": 2
+      },
+      {
+        "match": "match_0003",
+        "innings": 2
+      },
+      {
+        "match": "match_0008",
+        "innings": 2
+      },
+      {
+        "match": "match_0009",
+        "innings": 2
+      },
+      {
+        "match": "match_0010",
+        "innings": 2
+      },
+      {
+        "match": "match_0011",
+        "innings": 2
+      },
+      {
+        "match": "match_0013",
+        "innings": 2
+      },
+      {
+        "match": "match_0015",
+        "innings": 2
+      }
+    ]
+  },
+  "split": {
+    "heldout_match_range": [
+      121,
+      160
+    ],
+    "rule": "Any root in the held-out range is refused by the planner. Method development uses pools.dev and pools.hard only. Held-out evaluation is a separate phase and must not share roots with these batches."
+  },
+  "limits": {
+    "roots_per_batch": 2,
+    "max_text_chars": 24000,
+    "max_attempts": 3
+  },
+  "timers": {
+    "status_interval_seconds": 900,
+    "snapshot_interval_seconds": 3600,
+    "claim_timeout_seconds": 300,
+    "worker_poll_seconds": 2,
+    "supervisor_poll_seconds": 2
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "when": "baseline O accuracy >= 0.90",
+      "action": "escalate to hard roots with evidence excerpt E",
+      "template": "T2_hard_excerpt"
+    },
+    {
+      "id": "R2",
+      "when": "baseline O accuracy < 0.90",
+      "action": "drill down with matched deletion controls O/WI/OI on the failing root",
+      "template": "T3_matched_deletion"
+    },
+    {
+      "id": "R3",
+      "when": "hard-root excerpt accuracy >= 0.90",
+      "action": "run full 43-field table on the excerpt to test collateral field loss",
+      "template": "T4_full_table"
+    },
+    {
+      "id": "R4",
+      "when": "hard-root excerpt accuracy < 0.90",
+      "action": "matched deletion controls on the failing hard root",
+      "template": "T3_matched_deletion"
+    },
+    {
+      "id": "R5",
+      "when": "WI accuracy < OI accuracy in T3",
+      "action": "full 43-field table on the original text",
+      "template": "T4_full_table"
+    },
+    {
+      "id": "R6",
+      "when": "WI accuracy >= OI accuracy in T3",
+      "action": "expand hard-root excerpt batch on the next unused hard roots",
+      "template": "T2_hard_excerpt"
+    },
+    {
+      "id": "R7",
+      "when": "no eligible template or roots remain",
+      "action": "run coverage audit and record genuine exhaustion",
+      "template": "COVERAGE"
+    }
+  ],
+  "coverage_baseline": {
+    "u_responses": 1311,
+    "u_json_scorable": 1304,
+    "u_positions": 437,
+    "u_missing_positions": 3,
+    "evidence_entries": 96,
+    "human_confirmed": 0,
+    "heldout_roots": 40,
+    "legacy_43field_accuracy": "79/258 heuristic, separate from this workflow"
+  },
+  "external_api_allowed": 0,
+  "cost_model": {
+    "estimate_seconds_per_request": 35,
+    "note": "one GPU worker, sequential requests; build/score/report run on CPU concurrently"
+  }
+}

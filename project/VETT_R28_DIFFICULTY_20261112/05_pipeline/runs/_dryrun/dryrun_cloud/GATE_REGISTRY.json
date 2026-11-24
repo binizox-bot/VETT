@@ -1,0 +1,195 @@
+{
+  "gate_count": 21,
+  "gates": [
+    {
+      "blocking": true,
+      "description": "cache keys follow the v2 recipe (input + params + template + model digest)",
+      "exit_code": 3,
+      "gate_id": "G_ANNOTATION_CACHE_KEY",
+      "predicate": "vett_r28.pipeline.gates.g_annotation_cache_key",
+      "repair_id": null,
+      "stage": "annotate"
+    },
+    {
+      "blocking": false,
+      "description": "share of successful (non-DEGRADED) annotations reaches the configured floor",
+      "exit_code": 3,
+      "gate_id": "G_ANNOTATION_COVERAGE",
+      "predicate": "vett_r28.pipeline.gates.g_annotation_coverage",
+      "repair_id": "retry_annotation",
+      "stage": "annotate"
+    },
+    {
+      "blocking": true,
+      "description": "ARTIFACT_HASHES matches the files on disk and a replay reproduces every hash",
+      "exit_code": 3,
+      "gate_id": "G_ARTIFACTS_DETERMINISTIC",
+      "predicate": "vett_r28.pipeline.gates.g_artifacts_deterministic",
+      "repair_id": "rewrite_artifact_hashes",
+      "stage": "report"
+    },
+    {
+      "blocking": true,
+      "description": "budget caps are sane and the paid-cloud path is disabled",
+      "exit_code": 3,
+      "gate_id": "G_BUDGET_CONFIG",
+      "predicate": "vett_r28.pipeline.gates.g_budget_config",
+      "repair_id": null,
+      "stage": "bootstrap"
+    },
+    {
+      "blocking": true,
+      "description": "cumulative spend and cloud call count stay under the hard caps",
+      "exit_code": 3,
+      "gate_id": "G_BUDGET_WITHIN_CAP",
+      "predicate": "vett_r28.pipeline.gates.g_budget_within_cap",
+      "repair_id": null,
+      "stage": "aggregate"
+    },
+    {
+      "blocking": true,
+      "description": "build config validates and matches the frozen build config file",
+      "exit_code": 3,
+      "gate_id": "G_CONFIG_VALID",
+      "predicate": "vett_r28.pipeline.gates.g_config_valid",
+      "repair_id": null,
+      "stage": "generate"
+    },
+    {
+      "blocking": true,
+      "description": "r28_contract.json + R28_CONTRACT.md match contract_freeze.json",
+      "exit_code": 4,
+      "gate_id": "G_CONTRACT_FROZEN",
+      "predicate": "vett_r28.pipeline.gates.g_contract_frozen",
+      "repair_id": null,
+      "stage": "bootstrap"
+    },
+    {
+      "blocking": true,
+      "description": "built instance counts match the configured N (dry-run: synthetic count)",
+      "exit_code": 3,
+      "gate_id": "G_DATASET_COUNTS",
+      "predicate": "vett_r28.pipeline.gates.g_dataset_counts",
+      "repair_id": null,
+      "stage": "generate"
+    },
+    {
+      "blocking": true,
+      "description": "rebuilt sample of instances is byte-identical to the first build",
+      "exit_code": 3,
+      "gate_id": "G_DATASET_DETERMINISM",
+      "predicate": "vett_r28.pipeline.gates.g_dataset_determinism",
+      "repair_id": null,
+      "stage": "generate"
+    },
+    {
+      "blocking": true,
+      "description": "records are distinct, no constant field, twins share facts, prompt budget respected",
+      "exit_code": 3,
+      "gate_id": "G_DATASET_INTEGRITY",
+      "predicate": "vett_r28.pipeline.gates.g_dataset_integrity",
+      "repair_id": null,
+      "stage": "generate"
+    },
+    {
+      "blocking": true,
+      "description": "no endpoint is claimed: paired_accuracy_drop stays NOT_RUN without model answers",
+      "exit_code": 3,
+      "gate_id": "G_ENDPOINT_UNSCORED",
+      "predicate": "vett_r28.pipeline.gates.g_endpoint_unscored",
+      "repair_id": null,
+      "stage": "judge"
+    },
+    {
+      "blocking": false,
+      "description": "mechanical references exist for comparable tasks and metrics are recomputable",
+      "exit_code": 3,
+      "gate_id": "G_JUDGE_COMPARABILITY",
+      "predicate": "vett_r28.pipeline.gates.g_judge_comparability",
+      "repair_id": "rescore_judge",
+      "stage": "judge"
+    },
+    {
+      "blocking": true,
+      "description": "every annotation record has a valid envelope schema and status",
+      "exit_code": 3,
+      "gate_id": "G_JUDGE_SCHEMA",
+      "predicate": "vett_r28.pipeline.gates.g_judge_schema",
+      "repair_id": null,
+      "stage": "judge"
+    },
+    {
+      "blocking": true,
+      "description": "zero cloud calls and no cloud route for any local-first task",
+      "exit_code": 4,
+      "gate_id": "G_LOCAL_FIRST",
+      "predicate": "vett_r28.pipeline.gates.g_local_first",
+      "repair_id": null,
+      "stage": "annotate"
+    },
+    {
+      "blocking": true,
+      "description": "each requested judge task is ALLOW on the frozen routing card (fail-safe DENY)",
+      "exit_code": 4,
+      "gate_id": "G_LOCAL_ROUTE",
+      "predicate": "vett_r28.pipeline.gates.g_local_route",
+      "repair_id": null,
+      "stage": "annotate"
+    },
+    {
+      "blocking": true,
+      "description": "preregistration.json + PREREGISTRATION.md match prereg_freeze.json",
+      "exit_code": 4,
+      "gate_id": "G_PREREG_FROZEN",
+      "predicate": "vett_r28.pipeline.gates.g_prereg_frozen",
+      "repair_id": null,
+      "stage": "bootstrap"
+    },
+    {
+      "blocking": true,
+      "description": "all 338 protected files and their tree aggregate still match PROTECTED_PATHS.json",
+      "exit_code": 4,
+      "gate_id": "G_PROTECTED_PATHS",
+      "predicate": "vett_r28.pipeline.gates.g_protected_paths",
+      "repair_id": null,
+      "stage": "bootstrap"
+    },
+    {
+      "blocking": true,
+      "description": "judge protocol artefacts match protocol_freeze.json",
+      "exit_code": 4,
+      "gate_id": "G_PROTOCOL_FROZEN",
+      "predicate": "vett_r28.pipeline.gates.g_protocol_frozen",
+      "repair_id": null,
+      "stage": "bootstrap"
+    },
+    {
+      "blocking": true,
+      "description": "live R26.15 candidate is byte-identical to the t1 frozen copy (165 files / 93,346,177 B)",
+      "exit_code": 4,
+      "gate_id": "G_R26_15_ZERO_DRIFT",
+      "predicate": "vett_r28.pipeline.gates.g_r26_15_zero_drift",
+      "repair_id": null,
+      "stage": "bootstrap"
+    },
+    {
+      "blocking": true,
+      "description": "REPORT.md carries every mandatory section and no endpoint claim",
+      "exit_code": 3,
+      "gate_id": "G_REPORT_COMPLETE",
+      "predicate": "vett_r28.pipeline.gates.g_report_complete",
+      "repair_id": "rebuild_report",
+      "stage": "report"
+    },
+    {
+      "blocking": true,
+      "description": "frozen vett_r25 solver + scenarios still match their pinned sha256",
+      "exit_code": 4,
+      "gate_id": "G_SOLVER_PIN",
+      "predicate": "vett_r28.pipeline.gates.g_solver_pin",
+      "repair_id": null,
+      "stage": "bootstrap"
+    }
+  ],
+  "schema": "vett-r28-pipeline-gate-registry/v1"
+}

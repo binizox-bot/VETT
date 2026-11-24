@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "VETT-R26-HUMAN-ANNOTATION-RECORD-1",
+  "title": "VETT-Cricket human annotation and adjudication record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "candidate",
+    "candidate_sha256",
+    "match_id",
+    "question_id",
+    "annotator_id",
+    "annotator_role",
+    "blinding_confirmed",
+    "core_dimensions",
+    "critical_defect",
+    "source_references",
+    "submitted_at"
+  ],
+  "properties": {
+    "record_id": {"type": "string", "minLength": 1},
+    "candidate": {"type": "string", "minLength": 1},
+    "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "match_id": {"type": "string", "pattern": "^match_[0-9]{4}$"},
+    "question_id": {"type": "string", "minLength": 1},
+    "annotator_id": {"type": "string", "minLength": 1},
+    "annotator_role": {"enum": ["A_RULES", "B_STRUCTURE", "C_ADJUDICATOR"]},
+    "blinding_confirmed": {"const": true},
+    "core_dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "scope", "rule_version", "minimal_proof"],
+      "properties": {
+        "value": {"$ref": "#/$defs/judgement"},
+        "scope": {"$ref": "#/$defs/judgement"},
+        "rule_version": {"$ref": "#/$defs/judgement"},
+        "minimal_proof": {"$ref": "#/$defs/judgement"}
+      }
+    },
+    "field_checks": {"type": "object"},
+    "positive_evidence_spans": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "rejected_evidence_spans": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "typed_edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}, "uniqueItems": true},
+    "content_dependency_edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}, "uniqueItems": true},
+    "naturalness_defects": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "leakage_suspected": {"type": "boolean", "default": false},
+    "critical_defect": {"type": "boolean"},
+    "defect_class": {"enum": ["NONE", "CRITICAL", "MAJOR", "MINOR", "EDITORIAL"]},
+    "source_references": {"type": "array", "minItems": 1, "items": {"type": "string"}, "uniqueItems": true},
+    "submitted_at": {"type": "string", "format": "date-time"},
+    "adjudication": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["NOT_REQUIRED", "PENDING", "RESOLVED"]},
+        "adjudicator_id": {"type": "string"},
+        "resolution": {"type": "string"},
+        "source_basis": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "requires_new_candidate": {"type": "boolean"},
+        "resolved_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  },
+  "$defs": {
+    "judgement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "reason"],
+      "properties": {
+        "verdict": {"enum": ["PASS", "FAIL", "UNCERTAIN"]},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "relation", "target"],
+      "properties": {
+        "source": {"type": "string"},
+        "relation": {"type": "string"},
+        "target": {"type": "string"}
+      }
+    }
+  }
+}

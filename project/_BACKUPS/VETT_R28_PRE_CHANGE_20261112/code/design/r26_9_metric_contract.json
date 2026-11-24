@@ -1,0 +1,74 @@
+{
+  "contract_version": "VETT-R26-METRICS-1.0-FROZEN",
+  "status": "FROZEN_BEFORE_STRONG_MODEL_CALIBRATION",
+  "release_scope": "VETT-Cricket-v0.36.7-R26.7-authority-binding-pilot",
+  "freeze_date": "2026-10-19",
+  "anti_contamination_rules": {
+    "diagnostic_scores_may_trigger_dataset_changes": false,
+    "free_4b_scores_may_calibrate_strong_model_difficulty": false,
+    "invalid_protocol_outputs_count_as_factual_errors": false,
+    "metric_thresholds_may_change_after_viewing_gate3_results": false,
+    "single_match_scores_may_establish_level_ordering": false
+  },
+  "eligibility": {
+    "official_scoring_requires": [
+      "all requested matches returned",
+      "all requested targets returned",
+      "every batch status is OK",
+      "no provider truncation",
+      "no JSON parse repair",
+      "all local schema and graph checks pass"
+    ],
+    "protocol_invalid_treatment": "EXCLUDE_FROM_OFFICIAL_SEMANTIC_SCORES",
+    "availability_reporting": "REPORT_SEPARATELY"
+  },
+  "primary_difficulty_metric": {
+    "name": "decision_field_level_macro_accuracy",
+    "definition": "For each question, score the 12 normalized factual decision-record fields. Average within each private level, then average the five level values with equal level weight.",
+    "strong_model_target_interval": [0.45, 0.65],
+    "rationale": "Equal level and field payloads make this stable and interpretable; full-record exact is too coarse for five-level calibration."
+  },
+  "difficulty_curve": {
+    "level_order": ["L1", "L2", "L3", "L4", "L5"],
+    "l1_minimum_accuracy": 0.60,
+    "target_adjacent_drop": 0.08,
+    "sentinel5_screen": {
+      "minimum_positive_adjacent_drops": 3,
+      "minimum_mean_adjacent_drop": 0.08,
+      "status": "SCREEN_ONLY_NOT_PAPER_ESTIMATE"
+    },
+    "pilot20_acceptance": {
+      "all_four_point_estimate_drops_at_least": 0.08,
+      "bootstrap_resamples": 10000,
+      "bootstrap_seed": 26091,
+      "bootstrap_unit": "match block with all five levels retained",
+      "confidence_interval": "two-sided percentile 95%",
+      "percentile_method": "linear interpolation at index (n-1)*p",
+      "minimum_adjacent_pairs_with_positive_95pct_lower_bound": 3
+    }
+  },
+  "secondary_metrics": [
+    {"name": "factual_full_record_exact", "role": "strict_descriptive", "gate": false},
+    {"name": "counterfactual_field_level_macro_accuracy", "role": "reasoning", "gate": false},
+    {"name": "positive_evidence_span_micro_f1", "role": "retrieval", "gate": false},
+    {"name": "rejected_evidence_span_micro_f1", "role": "conflict_rejection", "gate": false},
+    {"name": "typed_evidence_edge_micro_f1", "role": "proof_graph", "gate": false},
+    {"name": "evidence_chain_joint_exact", "role": "strict_proof", "gate": false},
+    {"name": "factual_evidence_chain_joint_exact", "role": "highest_rigor", "gate": false},
+    {"name": "paired_factual_counterfactual_exact", "role": "intervention_consistency", "gate": false},
+    {"name": "confidence_brier_score", "role": "calibration", "gate": false}
+  ],
+  "stage_decisions": {
+    "single_protocol_gate": "Only protocol eligibility is evaluated; no difficulty conclusion is permitted.",
+    "sentinel5": "Screen target range and directionality; diagnose errors before changing data.",
+    "pilot20": "Estimate the frozen primary metric, level curve and bootstrap uncertainty.",
+    "pre_220_freeze": "Require a valid pilot20 run from two distinct strong-model families before expansion."
+  },
+  "dataset_change_policy": {
+    "primary_above_0_65": "Increase only mechanisms associated with correctly answered items.",
+    "primary_between_0_45_and_0_65_with_curve_pass": "Freeze difficulty and proceed to cross-family verification.",
+    "primary_below_0_35_or_l1_below_0_60": "Floor effect: do not add difficulty; reduce one burden dimension in L1/L2 or diagnose protocol.",
+    "curve_inversion": "Modify only inverted adjacent levels after error-taxonomy review.",
+    "protocol_failure": "Modify evaluation protocol only; do not change dataset difficulty."
+  }
+}

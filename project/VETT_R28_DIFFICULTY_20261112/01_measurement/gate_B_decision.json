@@ -1,0 +1,170 @@
+{
+  "artifacts": {
+    "b1_recheck": "01_measurement/B1_RECHECK.json",
+    "hypothesis_registry": "01_measurement/HYPOTHESIS_REGISTRY.md",
+    "measurement_note_a": "01_measurement/MEASUREMENT_VALIDITY_NOTE.md",
+    "mechanism_registry": "01_measurement/MECHANISM_REGISTRY.json"
+  },
+  "auditor": "measurement_auditor",
+  "b1_composite": {
+    "statement": "描述性一半 PASS；预测性一半 UNTESTED，B1 整体未通过。按 §9，B1 不通过 → 难度不可归因的结论只能作为'未验证'处理，不得据此重设计等级；转入机制剂量实验。",
+    "status": "NOT_MET_PENDING_PREDICTIVE"
+  },
+  "b1_descriptive": {
+    "caveat": "25 题、19 个测试、25 个不同族；这是横断面相关，不是剂量/因果证据，不能用于重设计等级。",
+    "criterion": "特征模型至少 1 个因子效应 95% CI 不含 0",
+    "evidence": {
+      "features_with_ci_excluding_zero": [
+        "counterfactual_path_length",
+        "derivation_depth",
+        "evidence_position_mean",
+        "evidence_span_count",
+        "lexical_bridge_depth",
+        "operator_cost_max",
+        "operator_cost_sum",
+        "operator_count",
+        "operator_interaction_count",
+        "rule_count"
+      ],
+      "n_families": 25,
+      "n_questions": 25,
+      "operator_cost_max": {
+        "ci95_bootstrap": [
+          -0.863269,
+          -0.31678
+        ],
+        "ci95_fisher": [
+          -0.840525,
+          -0.368956
+        ],
+        "p_holm_independent": 0.0076,
+        "p_holm_reproduced": 0.010449,
+        "p_permutation_independent": 0.0004,
+        "rho": -0.666871
+      }
+    },
+    "status": "PASS"
+  },
+  "b1_predictive": {
+    "criterion": "样本外预测优于常数",
+    "evidence": {
+      "b2_frozen_predictions": 75,
+      "b2_frozen_sha256": "e1f997b8dbc463239fe27d07a23868bdf1f11290231ecba6cf84b1a93c2e6a63",
+      "exploratory_zero_cost_proxy": {
+        "label": "非预注册、不同模型、n 太小 —— 不得用作 B1 预测性判定",
+        "model": "qwen2.5:7b-instruct-q4_K_M (40K 条件)",
+        "n_overlap_questions": 15,
+        "spearman_rho": 0.3759458271018408
+      },
+      "scored_outcomes_for_unseen_questions": 0
+    },
+    "reason": "75 道未见题没有任何模型的评分结果；无付费 pilot，预注册的 B2 评分无法执行。",
+    "status": "UNTESTED"
+  },
+  "can_redesign_levels_from_25_questions": false,
+  "conditions_to_proceed": [
+    "t4 合同：加难机制只允许 D1-D4（alias_hops / temporal_joins / scope_decisions / isomorphic_distractors），且必须配同金标双渲染；REJECTED 清单（文档数/分散度/上下文长度/bridge depth）写成禁止项。",
+    "HYP-R28-DOSE 作为唯一剂量假设预注册：拒绝条件为 非单调 / 反向 / 效应 <10pp / CI 含 0；测试在 E2（96 题剂量阶梯）上执行。",
+    "B1 预测性必须先用零成本本地面板在 75 题上取得评分（不得复用 25 题），再按冻结的 B2 规则计算样本外 rho；在此之前 B1 整体不得标记为通过。",
+    "不得据 25 题重设计等级；等级只保留为描述性标签（每级 n=5，SE≈22pp）。",
+    "修正 factor_attribution 的特征抽取：纳入 difficulty_graph 与顶层 semantic_bridge_depth，并报告族聚类 n_eff。",
+    "推导深度/算子数从 REJECTED 改为 UNTESTED，t5 做可行性验证后再定。"
+  ],
+  "date": "2026-11-12",
+  "findings": [
+    {
+      "finding": "factor_attribution 的 rho/置换 p/Holm 可逐位复现：19 个测试，max|Δrho|=4.3e-7，max|Δp|=0，max|Δp_holm|=4.8e-7；已知三值 (rho, p_holm) 全部核对通过。",
+      "id": "B1-F1",
+      "implication": "B1 描述性结果可信，可作为机制登记的证据底座。",
+      "severity": "high"
+    },
+    {
+      "finding": "B1 预测性无数据：B2 已冻结 75 题的预测与其 sha256，但 75 题无任何模型评分；零付费约束下无法执行预注册的样本外检验。",
+      "id": "B1-F2",
+      "implication": "B1 整体 NOT MET；只能走机制剂量实验，且必须先用零成本本地面板把 75 题补成可评分集（不得复用 25 题）。",
+      "severity": "high"
+    },
+    {
+      "finding": "AUDIT/PROPOSAL 声称'6 组同事实跨族已证明呈现剂量是真实杠杆（63.3/60.0/51.7）'不成立：63.3/60.0/51.7 是整级宏准确率；真正的 10 对同金标配对是 5 降 / 4 升 / 1 平，均值 -3.3pp，符号检验 p=0.50。",
+      "id": "B1-F3",
+      "implication": "把'剂量杠杆已验证'降级为 UNTESTED；R28 必须自己做剂量实验。",
+      "severity": "high"
+    },
+    {
+      "finding": "factor_attribution 只读了 difficulty_vector，漏掉 difficulty_graph 的 D1-D4 与 answer 顶层的 semantic_bridge_depth（被静默当成常数）。补齐后：alias_hops rho=-0.520（p_holm=0.064）、isomorphic_distractors rho=-0.524（p_holm=0.064）、temporal_joins/scope_decisions 不显著。",
+      "id": "B1-F4",
+      "implication": "机制登记必须基于补齐后的证据；D1/D4 是弱正面线索但仍 UNTESTED。",
+      "severity": "medium"
+    },
+    {
+      "finding": "PROPOSAL 对'推导深度/算子数'的 REJECTED 理由被实测推翻：同事实组内 rule_operators 由 1→2、2→3、3→4 变化而金标相同。",
+      "id": "B1-F5",
+      "implication": "该机制改判 UNTESTED；t5 应验证同一 solver_facts + 不同算子数能否产出同一金标。",
+      "severity": "medium"
+    },
+    {
+      "finding": "已有唯一完成的剂量实测是否证性的：2→6→13 文档，信息字段 4.033→4.200→4.552（上升），速度 71.9→65.4→33.0 t/s（腰斩）；配对 80K−15K=+0.552（29 题）。",
+      "id": "B1-F6",
+      "implication": "文档数/分散度/上下文长度必须写入 t4 的禁止项；不得作为 R28 加难机制。",
+      "severity": "high"
+    }
+  ],
+  "hypothesis_status_summary": {
+    "H1": "UNTESTED",
+    "H2": "UNTESTED",
+    "H3": "UNTESTED",
+    "H4": "UNTESTED",
+    "H5": "UNTESTED",
+    "H6": "UNTESTED",
+    "HYP-R28-DOSE": "UNTESTED"
+  },
+  "inputs": {
+    "b1_recheck": "01_measurement/B1_RECHECK.json",
+    "factor_attribution_frozen_sha256": "e1f997b8dbc463239fe27d07a23868bdf1f11290231ecba6cf84b1a93c2e6a63",
+    "factor_attribution_sha256": "3aca712c7148dd2c848f39f3c7f581f8d1341138309ed06393be76f0713183a3"
+  },
+  "mechanism_status_summary": {
+    "REJECTED": [
+      "M-M6",
+      "M-M7",
+      "M-M9"
+    ],
+    "UNTESTED": [
+      "M-D1",
+      "M-D2",
+      "M-D3",
+      "M-D4",
+      "M-M5",
+      "M-M8"
+    ],
+    "VERIFIED": [],
+    "counts": {
+      "REJECTED": 3,
+      "UNTESTED": 6,
+      "VERIFIED": 0
+    },
+    "total": 9
+  },
+  "name": "factor_attribution_gate_B1",
+  "proceed": {
+    "reasons": [
+      "25 题 = 25 族 × 1 题；25 个不同族但只有 16 个不同金标记录；每级 n=5。",
+      "记录 exact 7/25 的 95% CI = [14.3%, 47.6%]；L1 全对是平凡结果。",
+      "逐级先验非单调（L3 0.7111 > L1 0.5556），等级阶梯不能作为难度标尺。",
+      "B1 预测性未测；预测性没有通过之前，任何'更难'的等级结论都不可识别。"
+    ],
+    "to": "机制剂量实验（R28 E1–E6 / t19），而不是等级重设计"
+  },
+  "reproduction": {
+    "commands": [
+      "python 01_measurement/scripts/recompute_b1.py",
+      "python 01_measurement/scripts/compose_gate_b.py"
+    ],
+    "network_calls": 0,
+    "paid_api_calls": 0
+  },
+  "schema": "vett-r28-gate-B-1",
+  "stage": "B",
+  "team": "vett-r27-opt",
+  "verdict": "B1_DESCRIPTIVE_PASS__PREDICTIVE_UNTESTED"
+}

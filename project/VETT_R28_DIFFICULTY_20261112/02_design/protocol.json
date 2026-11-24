@@ -1,0 +1,1970 @@
+{
+  "schema_version": "vett-judge-protocol/v1",
+  "protocol_id": "VETT-R28-JUDGE-PROTOCOL-20261112-v1",
+  "version": "1.0.0",
+  "status": "frozen",
+  "frozen_at_utc": "2026-11-12T11:39:37Z",
+  "task": "t12 冻结评测协议：本地/云端双标尺分层 + 盲包 + 缓存 + 可信度底线",
+  "purpose": "把 t18 实测出来的能力边界与工作负载分解写成代码可执行的分层规则：谁能判什么（双标尺）、能看什么（盲包）、怎么记账（缓存/重放）、什么才算数（可信度底线/三基线/有效 n），以及失败时怎么留痕（DEGRADED）。",
+  "workspace_root": "D:/Download/VETT_Cricket_Complete_Delivery_R19_20261017",
+  "run_root": "D:/Download/VETT_Cricket_Complete_Delivery_R19_20261017/VETT_R28_DIFFICULTY_20261112",
+  "design_root": "D:/Download/VETT_Cricket_Complete_Delivery_R19_20261017/VETT_R28_DIFFICULTY_20261112/02_design",
+  "supersedes": [
+    "TEAM_ROLES_AND_AUTOMATION_PLAN.md §4.2（可读性 ALLOW / 160 题 的陈旧表述）",
+    "AUDIT_GOAL_AND_DESIGN_20261112.md 的 63.3/60.0/51.7 剂量结论"
+  ],
+  "authority": {
+    "precedence": [
+      "mechanical_truth（确定性 solver / 确定性代码）",
+      "预注册 v1.1.0（端点、阈值、停止规则）",
+      "合同 v1.1.0（HA1–HA18、配额、prompt 预算）",
+      "本协议（谁可以判、怎么判、怎么记账）",
+      "routing_card.json（本地能力的唯一白名单来源）"
+    ],
+    "nothing_in_this_protocol_may_override": [
+      "预注册的端点与停止规则",
+      "机械真值的判定结果",
+      "合同的硬验收项"
+    ]
+  },
+  "rulers": {
+    "mechanical": {
+      "definition": "确定性 solver / 确定性代码的输出；对 12 字段记录、被改字段、删除测试最小性具有最终权威。",
+      "anchors": [
+        "decision_record_flat（12 字段，solver 重推 100%）",
+        "solver_facts（canonical JSON 字节）",
+        "certificates（minimum_evidence_spans / rule_path / authority_decision / revision_chain / why_not_distractor / derivation_check）",
+        "delivery_status / dismissal / run_ledger 枚举合法性"
+      ],
+      "computed_by": "确定性代码（无模型参与）",
+      "forbidden_substitution": [
+        "本地 7B 输出",
+        "云端模型输出",
+        "人工口述（未落盘、未双标）",
+        "任何事后拟合的阈值"
+      ],
+      "rule_ids": [
+        "R-M1",
+        "R-M2",
+        "R-M3"
+      ]
+    },
+    "local": {
+      "definition": "本地 Qwen2.5-7B（Ollama，100% GPU）= 标注劳动力，只做封闭式判断。",
+      "authority_source": "routing_card.json（verdict）+ capability_matrix.json（measurements）",
+      "gate": {
+        "metric": "agreement_with_mechanical_truth",
+        "threshold": 0.85,
+        "samples_per_task_min": 30,
+        "unmeasured": "DENY (fail-safe)",
+        "below_threshold": "DENY",
+        "interval_caveat": "0.85 是对单次测量的点估计判定；n=30 时 0.933 的 Wilson 95% CI 下界约 0.79，因此 ALLOW 是'目前不劣于门槛'，不是'已证明稳定优于门槛'。"
+      },
+      "hard_limits": {
+        "max_input_tokens": 8192,
+        "over_limit_behaviour": "raise InputCapExceeded / DEGRADED; never truncate",
+        "temperature": 0.0,
+        "seed": 20261112,
+        "model_tag": "qwen2.5:7b-instruct-q4_K_M",
+        "model_digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+      },
+      "allow": [
+        {
+          "task": "C1_cert_sentence_consistency",
+          "verdict": "ALLOW",
+          "ruler": "local",
+          "purpose": "证书逐句与 decision_record_flat / solver 事实是否一致",
+          "measured": {
+            "agreement": 1.0,
+            "n": 30,
+            "threshold": 0.85,
+            "gate_metric": "agreement_with_mechanical_truth",
+            "parse_failure_rate": 0.0,
+            "matrix_generated_at": "2026-11-12T10:33:43Z"
+          },
+          "input_cap_tokens": 2000,
+          "input_cap_basis": "conservative estimate: utf8_bytes/3",
+          "expected_seconds": {
+            "design_value": 2.0,
+            "mean": 0.218,
+            "p50": 0.216,
+            "p95": 0.236,
+            "source": "measured"
+          },
+          "template_version": "C1.cert_sentence_consistency.v1",
+          "validator": "mechanical_truth",
+          "fallback_used": "deterministic_solver_certificate",
+          "downstream": [
+            "t21"
+          ],
+          "sample_fields": [
+            "sentence",
+            "record"
+          ],
+          "call_budget": 3200,
+          "call_budget_basis": "每题 ≤10 条证书句 × 320（协议自设上限，非实测）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-B5"
+          ],
+          "matrix_checks": {
+            "agreement_ge_threshold": true,
+            "ledger_fields_complete": true,
+            "samples_ge_30": true
+          },
+          "matrix_breakdown": {
+            "CONSISTENT": {
+              "agreement": 1.0,
+              "n": 15
+            },
+            "INCONSISTENT": {
+              "agreement": 1.0,
+              "n": 15
+            }
+          },
+          "matrix_extra": {},
+          "citation": [
+            "routing_card.json#/tasks/C1_cert_sentence_consistency",
+            "capability_matrix.json#/tasks/C1_cert_sentence_consistency"
+          ]
+        },
+        {
+          "task": "S1_span_topic",
+          "verdict": "ALLOW",
+          "ruler": "local",
+          "purpose": "单 span 主题四分类（BOWLING/DISMISSAL/IDENTITY/RUNS）",
+          "measured": {
+            "agreement": 1.0,
+            "n": 32,
+            "threshold": 0.85,
+            "gate_metric": "agreement_with_mechanical_truth",
+            "parse_failure_rate": 0.0,
+            "matrix_generated_at": "2026-11-12T10:33:43Z"
+          },
+          "input_cap_tokens": 1000,
+          "input_cap_basis": "conservative estimate: utf8_bytes/3",
+          "expected_seconds": {
+            "design_value": 2.2,
+            "mean": 0.146,
+            "p50": 0.146,
+            "p95": 0.164,
+            "source": "measured"
+          },
+          "template_version": "S1.span_topic.v4",
+          "validator": "mechanical_truth",
+          "fallback_used": "mechanical_lexicon_rule",
+          "downstream": [
+            "t14"
+          ],
+          "sample_fields": [
+            "span_text"
+          ],
+          "call_budget": 2560,
+          "call_budget_basis": "每题 ≤8 条 minimum_evidence_spans × 320（协议自设上限，非实测）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-L4"
+          ],
+          "matrix_checks": {
+            "agreement_ge_threshold": true,
+            "ledger_fields_complete": true,
+            "samples_ge_30": true
+          },
+          "matrix_breakdown": {
+            "BOWLING": {
+              "agreement": 1.0,
+              "n": 8
+            },
+            "DISMISSAL": {
+              "agreement": 1.0,
+              "n": 8
+            },
+            "IDENTITY": {
+              "agreement": 1.0,
+              "n": 8
+            },
+            "RUNS": {
+              "agreement": 1.0,
+              "n": 8
+            }
+          },
+          "matrix_extra": {},
+          "citation": [
+            "routing_card.json#/tasks/S1_span_topic",
+            "capability_matrix.json#/tasks/S1_span_topic"
+          ]
+        },
+        {
+          "task": "T1_factor_visibility",
+          "verdict": "ALLOW",
+          "ruler": "local",
+          "purpose": "证据 span 是否支持给定声明（因子/剂量可见性筛查）",
+          "measured": {
+            "agreement": 0.9333,
+            "n": 30,
+            "threshold": 0.85,
+            "gate_metric": "agreement_with_mechanical_truth",
+            "parse_failure_rate": 0.0,
+            "matrix_generated_at": "2026-11-12T10:33:43Z"
+          },
+          "input_cap_tokens": 3000,
+          "input_cap_basis": "conservative estimate: utf8_bytes/3",
+          "expected_seconds": {
+            "design_value": 2.5,
+            "mean": 0.312,
+            "p50": 0.191,
+            "p95": 0.889,
+            "source": "measured"
+          },
+          "template_version": "T1.factor_visibility.v1",
+          "validator": "mechanical_truth",
+          "fallback_used": "mechanical_lexicon_rule",
+          "downstream": [
+            "t14"
+          ],
+          "sample_fields": [
+            "passage"
+          ],
+          "call_budget": 320,
+          "call_budget_basis": "发布集 320 题 × 1 次（每题一条决定性 span）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-L4"
+          ],
+          "matrix_checks": {
+            "agreement_ge_threshold": true,
+            "ledger_fields_complete": true,
+            "samples_ge_30": true
+          },
+          "matrix_breakdown": {
+            "NEG_PLAIN": {
+              "agreement": 1.0,
+              "n": 10
+            },
+            "NEG_PROVENANCE_ADJACENT": {
+              "agreement": 1.0,
+              "n": 10
+            },
+            "POS_OVERRIDE": {
+              "agreement": 0.8,
+              "n": 10
+            }
+          },
+          "matrix_extra": {},
+          "citation": [
+            "routing_card.json#/tasks/T1_factor_visibility",
+            "capability_matrix.json#/tasks/T1_factor_visibility"
+          ]
+        },
+        {
+          "task": "T2_naturalness",
+          "verdict": "ALLOW",
+          "ruler": "local",
+          "purpose": "配对自然度：干净渲染应比机械损坏渲染得分高",
+          "measured": {
+            "agreement": 1.0,
+            "n": 30,
+            "threshold": 0.85,
+            "gate_metric": "pairwise_order_agreement_with_mechanical_truth",
+            "parse_failure_rate": 0.0,
+            "matrix_generated_at": "2026-11-12T10:33:43Z"
+          },
+          "input_cap_tokens": 2000,
+          "input_cap_basis": "conservative estimate: utf8_bytes/3",
+          "expected_seconds": {
+            "design_value": 3.0,
+            "mean": 0.218,
+            "p50": 0.212,
+            "p95": 0.244,
+            "source": "measured"
+          },
+          "template_version": "T2.naturalness_pair.v1",
+          "validator": "retest_consistency+mechanical_truth",
+          "fallback_used": "mechanical_corruption_proxy",
+          "downstream": [
+            "t14"
+          ],
+          "sample_fields": [
+            "natural_text",
+            "degraded_text",
+            "clean_position"
+          ],
+          "call_budget": 320,
+          "call_budget_basis": "发布集 320 题 × 1 个配对（1 次调用比较两段）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-L4",
+            "R-Q5"
+          ],
+          "matrix_checks": {
+            "agreement_ge_threshold": true,
+            "ledger_fields_complete": true,
+            "retest_repeat_ge_0.85": true,
+            "samples_ge_30": true
+          },
+          "matrix_breakdown": {
+            "duplicate_tokens": {
+              "agreement": 1.0,
+              "n": 8
+            },
+            "function_word_swap": {
+              "agreement": 1.0,
+              "n": 7
+            },
+            "half_splice": {
+              "agreement": 1.0,
+              "n": 7
+            },
+            "shuffle_middle": {
+              "agreement": 1.0,
+              "n": 8
+            }
+          },
+          "matrix_extra": {
+            "retest": {
+              "exact_repeat_rate": 1.0,
+              "pairs": 10
+            }
+          },
+          "citation": [
+            "routing_card.json#/tasks/T2_naturalness",
+            "capability_matrix.json#/tasks/T2_naturalness"
+          ]
+        }
+      ],
+      "deny": [
+        {
+          "task": "D1_12_field_record_derivation",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "MEASURED_BELOW_PRIOR",
+          "deny_reason": "Local 7B must not derive the 12-field decision record: on 40K-char dossiers it scores 4.20/9 informative fields, BELOW the constant prior 4.77/9, and 80K input raises that only to 4.55/9 at 17.7 s/answer. It extracts signal but is not a solver.",
+          "measured_evidence": {
+            "constant_prior_40k": "4.77/9",
+            "fields_40k": "4.20/9",
+            "fields_80k": "4.55/9",
+            "latency_80k_s": 17.7
+          },
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": null,
+          "fallback_used": "deterministic solver / private gold",
+          "validator": "none",
+          "rule_ids": [
+            "R-M1",
+            "R-M2",
+            "R-S1"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/D1_12_field_record_derivation"
+          ]
+        },
+        {
+          "task": "D2_confidence_output",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "UNUSABLE_OUTPUT",
+          "deny_reason": "Confidence output is unusable: the local model emitted a mean of 60.53 on a scale that should be 0-1. Any confidence produced by this model is discarded and never enters calibration, risk-coverage or statistics.",
+          "measured_evidence": {
+            "confidence_expected_range": "0-1",
+            "confidence_mean": 60.53
+          },
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": null,
+          "fallback_used": "discard confidence; calibrate mechanically if needed",
+          "validator": "none",
+          "rule_ids": [
+            "R-L5",
+            "R-S2"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/D2_confidence_output"
+          ]
+        },
+        {
+          "task": "D3_kappa_arbitration",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "ROLE_ISOLATION",
+          "deny_reason": "Cross-model kappa arbitration is statistical inference and is owned by judge_architect/measurement_auditor; the local model is an annotation labourer, never an arbiter. Also excluded by the confidence prohibition.",
+          "measured_evidence": {
+            "confidence_mean": 60.53
+          },
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": null,
+          "fallback_used": "judge_architect / measurement_auditor",
+          "validator": "none",
+          "rule_ids": [
+            "R-S2",
+            "R-M3"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/D3_kappa_arbitration"
+          ]
+        },
+        {
+          "task": "D4_statistical_inference",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "NOT_A_MODEL_TASK",
+          "deny_reason": "No statistical inference (priors, Brier, slopes, CIs, p-values) is ever delegated to the local model; those are computed by deterministic code.",
+          "measured_evidence": {
+            "fields_40k": "4.20/9"
+          },
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": null,
+          "fallback_used": "deterministic statistics code",
+          "validator": "none",
+          "rule_ids": [
+            "R-M3"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/D4_statistical_inference"
+          ]
+        },
+        {
+          "task": "D5_contract_or_code_design",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "POLICY",
+          "reason_code": "ROLE_ISOLATION",
+          "deny_reason": "Contracts, pre-registration, code and gates are design artefacts; the local model is not allowed to author or modify them.",
+          "measured_evidence": {},
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": null,
+          "fallback_used": "data_designer / data_engineer / pipeline_engineer",
+          "validator": "none",
+          "rule_ids": [
+            "R-S3",
+            "R-S4"
+          ],
+          "evidence_status": "POLICY_NO_MEASUREMENT",
+          "citation": [
+            "routing_card.json#/tasks/D5_contract_or_code_design"
+          ]
+        },
+        {
+          "task": "D6_input_over_8k_tokens",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "HARD_INPUT_CAP",
+          "deny_reason": "Any input above 8K tokens is DENY: 80K-character dossiers take 17.7 s and do not improve accuracy (4.55/9 vs 4.20/9 at 40K), so the extra context is pure cost. Over-limit inputs are refused, never silently truncated.",
+          "measured_evidence": {
+            "fields_80k": "4.55/9",
+            "hard_input_cap_tokens": 8192,
+            "latency_80k_s": 17.7
+          },
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": 8192,
+          "fallback_used": "reject with InputCapExceeded / DEGRADED",
+          "validator": "hard refusal (no silent truncation)",
+          "rule_ids": [
+            "R-L4",
+            "R-Q4"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/D6_input_over_8k_tokens"
+          ]
+        },
+        {
+          "task": "D7_draft_without_solver_check",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "UNVERIFIED_GENERATION",
+          "deny_reason": "Candidate drafts may be generated locally only as inputs to the deterministic solver; no locally generated draft may be published or scored as an answer without solver verification.",
+          "measured_evidence": {
+            "fields_40k": "4.20/9"
+          },
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": 8192,
+          "fallback_used": "solver check; reject unverified drafts",
+          "validator": "deterministic solver must verify every draft",
+          "rule_ids": [
+            "R-M1",
+            "R-M2"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/D7_draft_without_solver_check"
+          ]
+        },
+        {
+          "task": "D8_T3_adjudication",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "POLICY",
+          "reason_code": "ROLE_ISOLATION",
+          "deny_reason": "T3 adjudication needs a deep cloud model; the local 7B has no measured capability for adjudication and is not allowed to arbitrate.",
+          "measured_evidence": {},
+          "measured_evidence_supplement": {},
+          "measured": {
+            "agreement": null,
+            "n": null,
+            "threshold": null,
+            "gate_metric": null,
+            "parse_failure_rate": null,
+            "matrix_generated_at": null
+          },
+          "input_cap_tokens": null,
+          "fallback_used": "annotator_alpha (cloud, sampled)",
+          "validator": "cloud annotator + judge",
+          "rule_ids": [
+            "R-C1",
+            "R-C4"
+          ],
+          "evidence_status": "POLICY_NO_MEASUREMENT",
+          "citation": [
+            "routing_card.json#/tasks/D8_T3_adjudication"
+          ]
+        },
+        {
+          "task": "R1_readability",
+          "verdict": "DENY",
+          "ruler": "local",
+          "rationale_class": "MEASURED",
+          "reason_code": "CAPABILITY_BELOW_THRESHOLD",
+          "deny_reason": "agreement 0.667 on n=30 (threshold 0.85); discrimination_ok=False rho=-0.1672; failed checks: agreement_ge_threshold, discrimination_ok",
+          "measured_evidence": {},
+          "measured_evidence_supplement": {
+            "source": "capability_matrix.json#/tasks/R1_readability",
+            "agreement": 0.6667,
+            "n_scored": 30,
+            "threshold": 0.85,
+            "gate_metric": "ordinal_agreement_within_1_with_FRE",
+            "gate_checks": {
+              "agreement_ge_threshold": false,
+              "discrimination_ok": false,
+              "ledger_fields_complete": true,
+              "samples_ge_30": true
+            },
+            "extra": {
+              "discrimination_ok": false,
+              "distinct_predicted_scores": 3,
+              "exact_agreement": 0.2333,
+              "mean_predicted_by_truth_band": {
+                "1": 3.167,
+                "2": 3.3,
+                "3": 3.1,
+                "4": 2.75
+              },
+              "monotone_band_ordering": false,
+              "spearman_rho": -0.1672,
+              "tolerance": 1
+            }
+          },
+          "measured": {
+            "agreement": 0.6667,
+            "n": 30,
+            "threshold": 0.85,
+            "gate_metric": "ordinal_agreement_within_1_with_FRE",
+            "parse_failure_rate": 0.0,
+            "matrix_generated_at": "2026-11-12T10:33:43Z"
+          },
+          "input_cap_tokens": 2000,
+          "fallback_used": "flesch_reading_ease_band",
+          "validator": "mechanical_truth+retest",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-Q2"
+          ],
+          "evidence_status": "MEASURED",
+          "citation": [
+            "routing_card.json#/tasks/R1_readability",
+            "capability_matrix.json#/tasks/R1_readability"
+          ]
+        }
+      ],
+      "counts": {
+        "allow": 4,
+        "deny": 9,
+        "total": 13
+      },
+      "policy_deny_tasks": [
+        "D5_contract_or_code_design",
+        "D8_T3_adjudication"
+      ]
+    },
+    "cloud": {
+      "definition": "本会话模型（in-session）= 参考标尺，做深度裁定与抽样对照；禁止外部 provider。",
+      "tasks": {
+        "T3_adjudication": {
+          "sampling": "FULL",
+          "call_cap": 12,
+          "call_cap_basis": "t16 范围：12 条提报，T3 集合内不抽样",
+          "purpose": "按 metric contract 判定字段/span/edge/abstain/conformance",
+          "rule_ids": [
+            "R-C1",
+            "R-C3",
+            "R-C4",
+            "R-C5"
+          ]
+        },
+        "T1_cross_check": {
+          "sampling": "STRATIFIED",
+          "call_cap": 24,
+          "call_cap_basis": "t16 范围：分层抽 24 题（每机制/等级 ≥2）",
+          "purpose": "与本地 T1 形成跨模型对照并出分歧清单",
+          "rule_ids": [
+            "R-C2",
+            "R-C3"
+          ]
+        },
+        "T2_cross_check": {
+          "sampling": "STRATIFIED",
+          "call_cap": 16,
+          "call_cap_basis": "t16 范围：抽 16 题配对",
+          "purpose": "与本地 T2 形成跨模型对照并出分歧清单",
+          "rule_ids": [
+            "R-C2",
+            "R-C3"
+          ]
+        }
+      },
+      "total_call_cap": 80,
+      "allowed_providers": [
+        "in_session"
+      ],
+      "paid_provider_markers": [
+        "openai",
+        "anthropic",
+        "gemini",
+        "azure",
+        "bedrock",
+        "vertex",
+        "deepseek-api",
+        "moonshot",
+        "qwen-api",
+        "dashscope",
+        "openrouter",
+        "http"
+      ],
+      "thresholds": {
+        "agreement_with_mechanical_truth": 0.9,
+        "self_consistency_repeat_fraction": 0.1,
+        "self_consistency_floor": 0.9,
+        "adversarial_floor": 0.9,
+        "n_min_for_capability_claim": 30
+      },
+      "role": "T3 全量裁定 + T1/T2 抽样对照 + 最终参考（不覆盖机械真值）",
+      "cost": {
+        "paid_inference_api": 0.0,
+        "cloud_sampling_soft": 3.0,
+        "total_hard": 100.0
+      }
+    }
+  },
+  "blind_packet": {
+    "principle": "只给该任务需要的最小字段；不进入包 = 不进入，不做'打码'式脱敏。",
+    "envelope_keys": [
+      "schema_version",
+      "packet_id",
+      "item_handle",
+      "task",
+      "ruler",
+      "prompt_template_version",
+      "token_estimate",
+      "contains_answer",
+      "payload"
+    ],
+    "payload_whitelist": {
+      "T1_factor_visibility": [
+        "passage"
+      ],
+      "T2_naturalness": [
+        "natural_text",
+        "degraded_text",
+        "clean_position"
+      ],
+      "S1_span_topic": [
+        "span_text"
+      ],
+      "C1_cert_sentence_consistency": [
+        "sentence",
+        "record"
+      ]
+    },
+    "forbidden_keys": [
+      "private_gold",
+      "private_evidence",
+      "public_instance",
+      "gold",
+      "golden",
+      "decision_answers",
+      "answers",
+      "answer",
+      "expected",
+      "reference",
+      "truth",
+      "truth_band",
+      "label",
+      "labels",
+      "difficulty",
+      "difficulty_vector",
+      "difficulty_graph",
+      "level",
+      "level_label",
+      "levels",
+      "scenario_family",
+      "family",
+      "family_id",
+      "dose",
+      "doses",
+      "dose_manifest",
+      "mechanism",
+      "mechanism_id",
+      "certificate",
+      "certificates",
+      "rule_path",
+      "minimum_evidence_spans",
+      "why_not_distractor",
+      "revision_chain",
+      "authority_decision",
+      "derivation_check",
+      "match_id",
+      "instance_id",
+      "path",
+      "file_path",
+      "source_path",
+      "dataset_path",
+      "private_path"
+    ],
+    "forbidden_patterns": [
+      {
+        "id": "BP-MATCH-ID",
+        "regex": "\\bmatch[_-]?\\d{3,}\\b",
+        "description": "match 标识"
+      },
+      {
+        "id": "BP-FAMILY",
+        "regex": "\\bL[1-5]_[A-Z0-9_]+\\b",
+        "description": "scenario_family 形态字符串"
+      },
+      {
+        "id": "BP-LEVEL",
+        "regex": "(?<![A-Za-z0-9])L[1-5](?![A-Za-z0-9_])",
+        "description": "独立等级词 L1–L5"
+      },
+      {
+        "id": "BP-DIFFICULTY-WORD",
+        "regex": "(?i)\\b(difficulty|difficult|harder|hardest|dose|dosage|mechanism|scenario[ _]family)\\b",
+        "description": "难度/剂量/机制词"
+      },
+      {
+        "id": "BP-WINPATH",
+        "regex": "(?i)(?:[A-Za-z]:\\\\|\\\\\\\\[A-Za-z0-9_.-]+\\\\)",
+        "description": "Windows 绝对路径"
+      },
+      {
+        "id": "BP-INNERFILE",
+        "regex": "(?i)\\b(private_gold|private_evidence|public_instance|r28_contract|preregistration)\\.(json|md|jsonl)\\b",
+        "description": "数据集/合同内部文件名"
+      },
+      {
+        "id": "BP-DATASETPATH",
+        "regex": "(?i)(?:^|[\\\\/])(?:VETT_Cricket_v|VETT_R28|r26_15_)",
+        "description": "项目/数据集目录名"
+      },
+      {
+        "id": "BP-R28-ID",
+        "regex": "(?i)\\br28[a-z0-9]+[-_][0-9a-z_-]{2,}\\b",
+        "description": "R28 id 形态（r28q_/r28h_/r28fact_/r28rule_/r28bind_/r28conflict_/r28revpolicy_/r28masked_/r28authpolicy_/r28shadow_/r28scope_ 等任意 r28 前缀 token）"
+      },
+      {
+        "id": "BP-R28-HELDOUT-ITEM",
+        "regex": "\\br28h_[0-9a-f]{4,}\\b",
+        "description": "R28 held-out 题号（r28h_####）—— 单独保留以便区分严重度"
+      },
+      {
+        "id": "BP-R28-FAMILY",
+        "regex": "\\brfam_[0-9a-f]{12}\\b",
+        "description": "R28 族标识（rfam_<12 hex>）"
+      }
+    ],
+    "id_scheme": {
+      "schema": "vett-blind-id/v1",
+      "handle": "sha256('vett-blind-id/v1|salt|instance_id')[:16]",
+      "salt_policy": "每轮 32 字节随机 salt（≥16 字符），只存放在私有 run 配置中，绝不进入任何包或公开产物；同轮内 salt 固定以保证 handle 稳定可复算，跨轮必须更换。",
+      "salt_min_chars": 16
+    },
+    "canonicalisation": {
+      "record": "exactly the 12 frozen fields, keys sorted, numeric strings narrowed to int",
+      "serialisation": "canonical JSON (sort_keys, no whitespace) — removes field-order clues",
+      "text": "verbatim: never rewrite the dossier text (a rewrite would be a new stimulus)"
+    },
+    "contains_answer": {
+      "C1_cert_sentence_consistency": true
+    },
+    "contains_answer_policy": "C1 的包内含 12 字段 record（即答案），必须声明 contains_answer=true；此类包只能用于逐句一致性判定，禁止复用于任何'整理出记录'的统计，也不得作为 D1 的替代。",
+    "audit": {
+      "function": "audit_packet(packet) -> violations[]",
+      "blocking": "violations 非空 → 该题不投喂并写 DEGRADED(BLIND_PACKET_VIOLATION)",
+      "checks": [
+        "信封键 ⊆ envelope_keys",
+        "payload 键 == 白名单",
+        "递归禁用键（大小写不敏感）",
+        "record 子键必须 ∈ 12 字段",
+        "禁用内容模式（match id / 族名 / 等级词 / 难度词 / 路径 / 内部文件名）",
+        "item_handle 必须是 16 位小写 hex",
+        "contains_answer 与任务一致"
+      ]
+    },
+    "residual_risks": [
+      "C1 包必然包含答案记录（任务定义要求），属受控披露，已用 contains_answer 标记隔离用途。",
+      "正则扫描不能覆盖改写的难度词或跨包组合推断；第二道门是 t17 J7 与 t8 泄漏扫描。",
+      "若卷宗文本本身泄露答案，那是数据侧问题（HA11），不是本协议能拦的。"
+    ],
+    "rule_ids": [
+      "R-B1",
+      "R-B2",
+      "R-B3",
+      "R-B4",
+      "R-B5",
+      "R-B6",
+      "R-C3"
+    ]
+  },
+  "cache_and_replay": {
+    "cache_schema": "vett-judge-cache/v1",
+    "legacy_cache_schema": "vett-local-cache/v1",
+    "key": {
+      "formula": "sha256(canonical_json{input_sha256, params, prompt_template_version, model_digest})",
+      "required_params": [
+        "temperature",
+        "seed",
+        "num_ctx",
+        "num_predict"
+      ],
+      "why_digest": "t18 的 v1 键用 model_tag；同一 tag 可能被重新拉取/重新量化。判分级缓存必须绑 model_digest，否则模型换了而键不变。",
+      "migration": "v1 键继续用于重放 t18 的能力矩阵；本协议管辖的判分调用一律用 v2。"
+    },
+    "raw_output": {
+      "storage": "verbatim (byte-exact) in the ledger; never strip/normalise/reorder",
+      "required_ledger_fields": [
+        "input_sha256",
+        "prompt_template_version",
+        "temperature",
+        "seed",
+        "model_tag",
+        "raw_output",
+        "parsed_output",
+        "wall_clock"
+      ],
+      "missing_field_behaviour": "该条输出不得进入统计（excluded_from_stats）"
+    },
+    "replay": {
+      "operation": "recompute_score_from_stored_raw_output",
+      "regenerates_model_output": false,
+      "may_call_model": false,
+      "deterministic": true,
+      "requires": [
+        "input_sha256",
+        "prompt_template_version",
+        "temperature",
+        "seed",
+        "model_tag",
+        "raw_output",
+        "parsed_output",
+        "wall_clock"
+      ],
+      "failure_mode": "REPLAY_UNAVAILABLE (never re-generate to 'fix' a missing raw_output)",
+      "nondeterminism_evidence": {
+        "source": "03_build/local/runs/repro/nondeterminism_evidence.json",
+        "samples_compared": 152,
+        "prediction_diffs": 1,
+        "detail": "R1-53fd65f10741：5 分制可读性分数跨运行移动 1 分（两次都判对）；所有任务一致率与判定不变。",
+        "temperature": 0.0,
+        "seed": 20261112
+      }
+    },
+    "replicate_policy": {
+      "rule": "再次生成 = 新 replicate（repeat_of / repeat_index），不得覆盖原记录",
+      "must_report": "跨 replicate 的解析差异与评分差异",
+      "measured": {
+        "source": "03_build/local/runs/repro/nondeterminism_evidence.json",
+        "samples_compared": 152,
+        "prediction_diffs": 1,
+        "detail": "R1-53fd65f10741：5 分制可读性分数跨运行移动 1 分（两次都判对）；所有任务一致率与判定不变。",
+        "temperature": 0.0,
+        "seed": 20261112
+      }
+    },
+    "parser_version_policy": {
+      "current": {
+        "T1_factor_visibility": "T1.factor_visibility.v1",
+        "T2_naturalness": "T2.naturalness_pair.v1",
+        "S1_span_topic": "S1.span_topic.v4",
+        "C1_cert_sentence_consistency": "C1.cert_sentence_consistency.v1",
+        "R1_readability": "R1.readability.v1"
+      },
+      "replay_compatible_older": {
+        "S1_span_topic": [
+          "S1.span_topic.v3",
+          "S1.span_topic.v4"
+        ]
+      },
+      "parser_incompatible_legacy": {
+        "S1_span_topic": {
+          "S1.span_topic.v1": "topic enum included PROVENANCE; removed in v3",
+          "S1.span_topic.v2": "topic enum included PROVENANCE; removed in v3"
+        }
+      },
+      "rule": "重放必须用条目自身 prompt_template_version 对应的解析器；旧版本条目只作历史证据，不进判分统计（R-R7）。",
+      "measured_ledger_evidence": {
+        "ledger": "03_build/local/cost_ledger.jsonl",
+        "entries": 457,
+        "replayable_current_parser_entries": 417,
+        "replayable_current_parser_matches": 417,
+        "legacy_template_entries": 40,
+        "legacy_by_version": {
+          "S1.span_topic.v1": 5,
+          "S1.span_topic.v2": 35
+        },
+        "legacy_actual_mismatches": 25,
+        "legacy_mismatches_by_version": {
+          "S1.span_topic.v1": 3,
+          "S1.span_topic.v2": 22
+        },
+        "conclusion": "当前在用的解析器（T1v1 / T2v1 / S1v4 / C1v1 / R1v1）加仍兼容的 S1v3，覆盖 457 条中的 417 条，重放 417/417 逐值一致；剩余 40 条来自已废弃的 S1 v1/v2（topic 枚举含 PROVENANCE，v3 起移除），其中 25 条用当前解析器重算必然失配。因此'重放=重算评分'必须绑定解析器版本，旧条目只能作历史证据、不得进入判分统计。"
+      }
+    },
+    "cache_hit_accounting": "命中仍记账（cache_hit=true、cost=0、wall_clock 可空）；损坏条目重算",
+    "rule_ids": [
+      "R-R1",
+      "R-R2",
+      "R-R3",
+      "R-R4",
+      "R-R5",
+      "R-R6"
+    ]
+  },
+  "confidence_floor": {
+    "n_min": 30,
+    "threshold_local": 0.85,
+    "threshold_cloud": 0.9,
+    "unmeasured_behaviour": "DENY",
+    "over_cap_behaviour": "raise InputCapExceeded / DEGRADED; never truncate",
+    "hard_input_cap_tokens": 8192,
+    "prompt_budget_tokens": 7000,
+    "self_consistency": {
+      "cloud": {
+        "repeat_fraction": 0.1,
+        "floor": 0.9
+      },
+      "local": {
+        "repeat_fraction": 0.1,
+        "floor": 0.85
+      }
+    },
+    "below_n_min_label": "DESCRIPTIVE_ONLY",
+    "rule_ids": [
+      "R-Q1",
+      "R-Q2",
+      "R-Q3",
+      "R-Q4",
+      "R-Q5"
+    ]
+  },
+  "baselines": {
+    "gate": "G1 / G1r（预注册 v1.1.0）",
+    "trio": [
+      {
+        "id": "constant_prior",
+        "name": "常数先验（逐字段众数）",
+        "reference_rate": 0.5288888888888889,
+        "display": "52.89%",
+        "source": "01_measurement/BASELINES.json#/baselines/constant_75_to_25/field_accuracy_informative/rate",
+        "definition": "逐字段众数预测，75 训练 25 应用（R26.15 参考值）",
+        "same_set_remeasure": "R28 320 题按族 leave-one-family-out 逐字段众数，同一 9 信息字段口径"
+      },
+      {
+        "id": "question_text_tfidf_logreg",
+        "name": "只看题面 TF-IDF + 逻辑回归",
+        "reference_rate": 0.5422222222222223,
+        "display": "54.22%",
+        "source": "01_measurement/BASELINES.json#/baselines/tfidf_logreg_question_text_75_to_25/field_accuracy_informative/rate",
+        "definition": "只用 answer-free 题面文本 TF-IDF + 逐字段多项逻辑回归，75 训练 25 应用",
+        "same_set_remeasure": "R28 320 题按族分组 5 折 OOF（fold = int(sha256(family)[0:8],16) mod 5）"
+      },
+      {
+        "id": "anchor_mode",
+        "name": "anchor 众数（只用 anchor 族先验）",
+        "reference_rate": 0.7333333333333333,
+        "display": "73.33%",
+        "source": "01_measurement/BASELINES.json#/baselines/anchor_classifier_75_to_25/field_accuracy_informative/rate",
+        "definition": "cross_level_anchor_family → 该族众数记录，75 训练 25 应用",
+        "same_set_remeasure": "R28 320 题同 anchor 规则 leave-one-family-out"
+      }
+    ],
+    "record_exact": {
+      "id": "anchor_record_exact",
+      "name": "anchor 众数记录 exact",
+      "reference_rate": 0.32,
+      "display": "32%",
+      "source": "01_measurement/BASELINES.json#/baselines/anchor_classifier_75_to_25/record_exact/rate",
+      "same_set_remeasure": "R28 320 题 anchor LOFO 的记录级 exact 准确率"
+    },
+    "rule": "acc(发布版, 9 信息字段) 必须严格小于 min(冻结参考值, R28 同集重测值) 对三条基线同时成立；record exact 同样对 32% 与 anchor 同集值取小。",
+    "direction": "'更难' = 准确率更低；报告里必须写方向，不得只写'显著'。",
+    "single_baseline_forbidden": "只越过常数先验不算成立；只报 anchor 不报题面基线同样不算。",
+    "fail_safe": "任一同集基线不可测 → UNTESTED，不得声称更难，并写 DEGRADED。",
+    "forbidden_reporting": [
+      "Brier 禁止 'vs 0.25'；必须四项并列（含气候学 0.2016 / 0.2956 / 0.3927）",
+      "边指标禁止只报 as-coded 0.7696；必须五分列（0.299264 / 0.4886 / 0.3857 / 0.325284 / 0.092308），0.7696 只能作 legacy 混合条件脚注"
+    ],
+    "rule_ids": [
+      "R-BL1",
+      "R-BL2",
+      "R-BL3",
+      "R-BL4"
+    ]
+  },
+  "effective_n": {
+    "statement": "统计单位是题（一题一族），不是字段；任何按字段独立计算的 CI 都作废。",
+    "rules": [
+      {
+        "id": "EN1",
+        "rule": "发布集每族至多 1 题，且一题一记录（distinct_record_ratio = 1.0）。"
+      },
+      {
+        "id": "EN2",
+        "rule": "R28 有效 n = 320 题 / 320 族 / 320 互异记录；任何分析必须同时打印 n_items、n_families、n_distinct_records。"
+      },
+      {
+        "id": "EN3",
+        "rule": "与 R26.15 的任何比较必须按族聚类：n_eff 上限 25 族（仅 16 个互异记录），用按族 bootstrap（25 cluster）或按族置换检验；禁止把 100 题当 100 个独立样本。"
+      },
+      {
+        "id": "EN4",
+        "rule": "禁止同族跨 split；所有基线拟合使用按族分组 5 折或 leave-one-family-out。"
+      },
+      {
+        "id": "EN5",
+        "rule": "对照版是同一实例的配对渲染，不增加有效 n；不得把 640 次推理当 640 个独立样本。"
+      },
+      {
+        "id": "EN6",
+        "rule": "R28 vs R26.15 的跨数据集比较不是确认性端点，只能作探索性描述，且必须同时报两边 n_eff 与聚类方式。"
+      }
+    ],
+    "r26_15_reference": {
+      "n_questions": 100,
+      "n_families": 25,
+      "n_distinct_records": 16,
+      "per_level_n": 20,
+      "family_classifier_field_accuracy": 1.0,
+      "record_exact_ci_wilson": [
+        0.143,
+        0.476
+      ],
+      "source": "01_measurement/BASELINES.json + MEASUREMENT_VALIDITY_NOTE.md"
+    },
+    "rule_ids": [
+      "R-N1",
+      "R-N2",
+      "R-N3",
+      "R-N4",
+      "R-N5"
+    ]
+  },
+  "degraded": {
+    "schema_version": "vett-judge-degraded-event/v1",
+    "accepted_legacy_schemas": [
+      "vett-degraded-event/v1"
+    ],
+    "required_fields": [
+      "schema_version",
+      "timestamp_utc",
+      "task",
+      "status",
+      "scope",
+      "reason_code",
+      "fallback_used",
+      "affected_items",
+      "source"
+    ],
+    "consumer": "t13（唯一消费者：写 gate_ledger / 覆盖率报告 / 熔断判断）",
+    "reason_codes": [
+      "TASK_DENIED",
+      "CAPABILITY_BELOW_THRESHOLD",
+      "CAPABILITY_UNMEASURED",
+      "INPUT_CAP_EXCEEDED",
+      "SERVICE_UNAVAILABLE",
+      "MODEL_MISMATCH",
+      "PARSE_FAILURE",
+      "NO_INPUT",
+      "MEASURED_BELOW_PRIOR",
+      "UNUSABLE_OUTPUT",
+      "ROLE_ISOLATION",
+      "NOT_A_MODEL_TASK",
+      "HARD_INPUT_CAP",
+      "UNVERIFIED_GENERATION",
+      "REPLAY_UNAVAILABLE",
+      "BLIND_PACKET_VIOLATION",
+      "BASELINE_TRIO_MISSING",
+      "EFFECTIVE_N_VIOLATION",
+      "CLOUD_BUDGET_EXCEEDED",
+      "CLOUD_BLIND_VIOLATION",
+      "HUMAN_GATE_REQUIRED",
+      "SCORE_RECOMPUTE_MISMATCH",
+      "PROTOCOL_DRIFT"
+    ],
+    "reason_code_origin": {
+      "inherited_from_t18": [
+        "TASK_DENIED",
+        "CAPABILITY_BELOW_THRESHOLD",
+        "CAPABILITY_UNMEASURED",
+        "INPUT_CAP_EXCEEDED",
+        "SERVICE_UNAVAILABLE",
+        "MODEL_MISMATCH",
+        "PARSE_FAILURE",
+        "NO_INPUT",
+        "MEASURED_BELOW_PRIOR",
+        "UNUSABLE_OUTPUT",
+        "ROLE_ISOLATION",
+        "NOT_A_MODEL_TASK",
+        "HARD_INPUT_CAP",
+        "UNVERIFIED_GENERATION"
+      ],
+      "added_by_protocol": [
+        "REPLAY_UNAVAILABLE",
+        "BLIND_PACKET_VIOLATION",
+        "BASELINE_TRIO_MISSING",
+        "EFFECTIVE_N_VIOLATION",
+        "CLOUD_BUDGET_EXCEEDED",
+        "CLOUD_BLIND_VIOLATION",
+        "HUMAN_GATE_REQUIRED",
+        "SCORE_RECOMPUTE_MISMATCH",
+        "PROTOCOL_DRIFT"
+      ]
+    },
+    "scopes": [
+      "local",
+      "cloud",
+      "mechanical",
+      "pipeline",
+      "judge"
+    ],
+    "coverage_rule": "每个事件都要能在覆盖率里定位到 affected_items；不得静默丢弃样本",
+    "example": {
+      "schema_version": "vett-judge-degraded-event/v1",
+      "timestamp_utc": "2026-11-12T00:00:00Z",
+      "task": "R1_readability",
+      "status": "DEGRADED",
+      "scope": "local",
+      "reason_code": "CAPABILITY_BELOW_THRESHOLD",
+      "reason": "agreement 0.6667 on n=30 (threshold 0.85); discrimination_ok=False rho=-0.1672",
+      "fallback_used": "flesch_reading_ease_band",
+      "affected_items": [
+        "R1-53fd65f10741"
+      ],
+      "source": "t17",
+      "evidence": {
+        "measured": {
+          "agreement": 0.6667,
+          "n": 30,
+          "threshold": 0.85
+        }
+      },
+      "coverage_impact": {
+        "attempted": 320,
+        "affected": 320,
+        "rate": 1.0
+      }
+    },
+    "rule_ids": [
+      "R-D1",
+      "R-D2",
+      "R-D3",
+      "R-D4"
+    ]
+  },
+  "separation": {
+    "roles": [
+      {
+        "role": "judge_architect",
+        "owns": "评测协议、双标尺仲裁、J 门",
+        "must_not": "标注被自己判分的样本；看 gold 后调协议",
+        "rule_ids": [
+          "R-S1",
+          "R-S4"
+        ]
+      },
+      {
+        "role": "local_operator",
+        "owns": "本地服务与能力守门",
+        "must_not": "把本地输出当金标；仲裁；写证书",
+        "rule_ids": [
+          "R-L6",
+          "R-S2"
+        ]
+      },
+      {
+        "role": "annotator_alpha",
+        "owns": "云端深度标注（抽样）",
+        "must_not": "看 private gold / level / family / dose；裁定自己的输出",
+        "rule_ids": [
+          "R-C3",
+          "R-C5"
+        ]
+      },
+      {
+        "role": "data_engineer",
+        "owns": "生成器与构建",
+        "must_not": "自称验证通过（t8 独立复跑）",
+        "rule_ids": [
+          "R-S3"
+        ]
+      },
+      {
+        "role": "verifier",
+        "owns": "独立验证与学术包",
+        "must_not": "复用被验证方的审计代码",
+        "rule_ids": [
+          "R-S3"
+        ]
+      },
+      {
+        "role": "pipeline_engineer",
+        "owns": "闭环流水线与熔断",
+        "must_not": "绕过费率/预算/人工门",
+        "rule_ids": [
+          "R-S4",
+          "R-D4"
+        ]
+      }
+    ],
+    "kappa_policy": {
+      "computed_by": "确定性代码（t17 J3）",
+      "inputs": "本地与云端的配对标签",
+      "requirements": [
+        "≥30 个配对项",
+        "按族 bootstrap CI",
+        "报 kappa + n + 聚类方式"
+      ],
+      "no_pass_threshold": "只报数并解释方向；不得设通过线，也不得由模型自评"
+    },
+    "rule_ids": [
+      "R-S1",
+      "R-S2",
+      "R-S3",
+      "R-S4"
+    ]
+  },
+  "workload_split": {
+    "local": {
+      "tasks": {
+        "T1_factor_visibility": {
+          "calls": 320,
+          "basis": "发布集 320 题 × 1 次（每题一条决定性 span）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-L4"
+          ]
+        },
+        "T2_naturalness": {
+          "calls": 320,
+          "basis": "发布集 320 题 × 1 个配对（1 次调用比较两段）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-L4",
+            "R-Q5"
+          ]
+        },
+        "S1_span_topic": {
+          "calls": 2560,
+          "basis": "每题 ≤8 条 minimum_evidence_spans × 320（协议自设上限，非实测）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-L4"
+          ]
+        },
+        "C1_cert_sentence_consistency": {
+          "calls": 3200,
+          "basis": "每题 ≤10 条证书句 × 320（协议自设上限，非实测）",
+          "rule_ids": [
+            "R-L1",
+            "R-L2",
+            "R-B5"
+          ]
+        }
+      },
+      "calls_total": 6400,
+      "cost_cny": 0.0,
+      "role": "广度：全量预标注（每任务封闭式、单次 <1s 量级）"
+    },
+    "cloud": {
+      "tasks": {
+        "T3_adjudication": {
+          "calls": 12,
+          "sampling": "FULL",
+          "basis": "t16 范围：12 条提报，T3 集合内不抽样"
+        },
+        "T1_cross_check": {
+          "calls": 24,
+          "sampling": "STRATIFIED",
+          "basis": "t16 范围：分层抽 24 题（每机制/等级 ≥2）"
+        },
+        "T2_cross_check": {
+          "calls": 16,
+          "sampling": "STRATIFIED",
+          "basis": "t16 范围：抽 16 题配对"
+        }
+      },
+      "calls_total": 52,
+      "calls_cap": 80,
+      "cost_cny_soft_cap": 3.0,
+      "role": "深度：T3 全量裁定 + T1/T2 抽样对照 + 最终参考"
+    },
+    "ratio": {
+      "local_per_cloud": 123.08
+    },
+    "slack": 28,
+    "rule_ids": [
+      "R-C1",
+      "R-C2"
+    ]
+  },
+  "rules": [
+    {
+      "id": "R-L1",
+      "section": "local",
+      "level": "MUST",
+      "text": "本地尺 ALLOW 集合只有 routing_card 判为 ALLOW 的四项：T1 因子可见性、T2 自然度、S1 span 主题、C1 证书逐句一致性。协议不得自行扩大/缩小；任何第 5 项 ALLOW 即为违规。",
+      "enforces": "assert_local_allowed / local_route_at_judge_time"
+    },
+    {
+      "id": "R-L2",
+      "section": "local",
+      "level": "MUST",
+      "text": "本地任务在**判分时**（t17 J 门）必须重新读取 capability_matrix.json 复核 agreement≥0.85 且 n≥30；文件缺失、任务缺失或低于门槛一律 DENY（fail-safe），并写 DEGRADED(CAPABILITY_UNMEASURED/CAPABILITY_BELOW_THRESHOLD)。",
+      "enforces": "local_route_at_judge_time / assert_local_allowed"
+    },
+    {
+      "id": "R-L3",
+      "section": "local",
+      "level": "MUST_NOT",
+      "text": "routing_card 判为 DENY 的九条路由（D1–D8 + R1）任何情况下不得由本地模型执行，调用必须抛 TaskDenied 并写 DEGRADED；不得以'试一下'为名绕过。",
+      "enforces": "assert_local_allowed"
+    },
+    {
+      "id": "R-L4",
+      "section": "local",
+      "level": "MUST",
+      "text": "输入严格按任务上限（T1 3000 / T2 2000 / S1 1000 / C1 2000 token，UTF-8 字节/3 保守估计）且受 8192 硬顶约束；超限拒绝（InputCapExceeded + DEGRADED），**不得截断**。",
+      "enforces": "assert_local_allowed"
+    },
+    {
+      "id": "R-L5",
+      "section": "local",
+      "level": "MUST_NOT",
+      "text": "本地模型不得输出置信度/概率/仲裁结论。R1 实测置信度均值 60.53（应在 0–1）证明其标度不可用：本地任何 confidence 字段必须丢弃、不得进入校准、风险-覆盖或统计。",
+      "enforces": "local_route_at_judge_time（D2_confidence_output DENY）"
+    },
+    {
+      "id": "R-L6",
+      "section": "local",
+      "level": "MUST_NOT",
+      "text": "本地标注不得当作金标。ALLOW 只表示'与该任务机械真值的逐样本一致率≥0.85'，仍需 t17 J 门与云端抽样复核；本地标签只能是候选。",
+      "enforces": "PROTOCOL.md §3.4 / t17"
+    },
+    {
+      "id": "R-C1",
+      "section": "cloud",
+      "level": "MUST",
+      "text": "T3 提报裁定由云端全量执行（T3 集合内不抽样），本地 D8 永久 DENY。",
+      "enforces": "assert_cloud_allowed"
+    },
+    {
+      "id": "R-C2",
+      "section": "cloud",
+      "level": "MUST",
+      "text": "T1/T2 云端只做分层抽样对照（T1 ≤24、T2 ≤16），云端总调用 ≤80 次；超限抛 CloudBudgetExceeded，不得'顺手多跑几条'。",
+      "enforces": "assert_cloud_allowed"
+    },
+    {
+      "id": "R-C3",
+      "section": "cloud",
+      "level": "MUST_NOT",
+      "text": "云端标注员同样不得看到 private_gold / difficulty_vector / level / scenario_family / dose；适用与本地相同的字段白名单与内容扫描。",
+      "enforces": "build_blind_packet / audit_packet"
+    },
+    {
+      "id": "R-C4",
+      "section": "cloud",
+      "level": "MUST",
+      "text": "云端 T3 当前只有 12 条提报（<30）。因此任何云端的 T3 一致率都只能标 DESCRIPTIVE_ONLY，不得作为通过门、不得写进门的 PASS 证据；要成为门必须 ≥30 个已判题。",
+      "enforces": "gate_capability（n<30 → DENY）"
+    },
+    {
+      "id": "R-C5",
+      "section": "cloud",
+      "level": "MUST_NOT",
+      "text": "云端是参考标尺，不是真值。任何云端判定与机械真值冲突时以机械真值为准；云端不得覆盖、修改或'修正' solver 输出。",
+      "enforces": "PROTOCOL.md §5 / t17"
+    },
+    {
+      "id": "R-C6",
+      "section": "cloud",
+      "level": "MUST_NOT",
+      "text": "零付费推理 API：云端调用只允许本会话模型（in-session），任何外部 provider/SDK/联网调用即违规，assert_no_paid_provider 直接抛 PaidProviderForbidden。",
+      "enforces": "assert_no_paid_provider"
+    },
+    {
+      "id": "R-M1",
+      "section": "mechanical",
+      "level": "MUST",
+      "text": "机械真值是唯一正确性锚点：12 字段记录、被改字段、删除测试最小性一律以 solver 为真值；模型判定只能作为对照，不得替代。",
+      "enforces": "PROTOCOL.md §5 / t17 J1"
+    },
+    {
+      "id": "R-M2",
+      "section": "mechanical",
+      "level": "MUST_NOT",
+      "text": "禁止用模型输出定义金标、补全金标或修改 private_gold；证书必须由确定性 solver 生成。",
+      "enforces": "PROTOCOL.md §5.2"
+    },
+    {
+      "id": "R-M3",
+      "section": "mechanical",
+      "level": "MUST",
+      "text": "所有统计量（准确率、Brier、斜率、CI、p 值、kappa）由确定性代码计算；模型不得参与任何统计推断（D4 DENY）。",
+      "enforces": "local_route_at_judge_time / PROTOCOL.md §12.2"
+    },
+    {
+      "id": "R-B1",
+      "section": "blind",
+      "level": "MUST",
+      "text": "投喂给任何标注员的包必须按任务字段白名单构造：只允许该任务声明的最小字段集，其余一律丢弃（不是遮蔽、不是脱敏，是不进入包）。",
+      "enforces": "build_blind_packet"
+    },
+    {
+      "id": "R-B2",
+      "section": "blind",
+      "level": "MUST_NOT",
+      "text": "包内不得出现 private_gold / gold / decision_answers / difficulty_vector / level / scenario_family / dose / mechanism / match_id / 文件路径 等键（递归检查，大小写不敏感）。",
+      "enforces": "audit_packet"
+    },
+    {
+      "id": "R-B3",
+      "section": "blind",
+      "level": "MUST_NOT",
+      "text": "包内序列化文本不得命中禁内容模式：match_ 编号、族名（L#_FAMILY 与 R28 的 rfam_<12hex>）、任何 R28 id 形态（r28 前缀 + 分隔符：r28q_/r28h_/r28fact_/r28rule_/r28bind_/r28conflict_/r28revpolicy_/r28masked_/r28authpolicy_/r28shadow_/r28scope_ 等；见 PAMEND-003/004 的形状规则）、独立等级词、难度/剂量/机制词、文件路径、数据集内部文件名。",
+      "enforces": "audit_packet"
+    },
+    {
+      "id": "R-B4",
+      "section": "blind",
+      "level": "MUST",
+      "text": "题目标识必须是不透明 handle = sha256('vett-blind-id/v1|salt|instance_id')[:16]，记录必须 canonical 化（键排序、类型归一）以消除字段顺序线索；salt 每轮随机且不进包。",
+      "enforces": "build_blind_packet / canonical_record"
+    },
+    {
+      "id": "R-B5",
+      "section": "blind",
+      "level": "MUST",
+      "text": "C1 的包内含 12 字段 record（即答案），必须显式声明 contains_answer=true；此类包只能用于逐句一致性判定，禁止复用于任何'整理出记录'的统计。",
+      "enforces": "build_blind_packet"
+    },
+    {
+      "id": "R-B6",
+      "section": "blind",
+      "level": "MUST",
+      "text": "盲包审计失败即阻断：不得'先投喂再修'。审计结果必须逐条落盘（violations 非空 → 该题不投喂）。",
+      "enforces": "build_blind_packet / audit_packet"
+    },
+    {
+      "id": "R-R1",
+      "section": "cache",
+      "level": "MUST",
+      "text": "缓存键 = sha256(canonical_json{input_sha256, params(temperature/seed/num_ctx/num_predict), prompt_template_version, model_digest})；缺任一参数视为不可缓存（抛错）。t18 的 v1 键用 model_tag 而非 model_digest，判分级缓存一律用 v2（含 digest）。",
+      "enforces": "cache_key"
+    },
+    {
+      "id": "R-R2",
+      "section": "cache",
+      "level": "MUST",
+      "text": "raw_output 必须逐字（byte-exact）落盘，不得 strip/规范化/重排；账本缺 raw_output/prompt_template_version/temperature/seed/model_tag/parsed_output/wall_clock 任一项的输出不得进入统计。",
+      "enforces": "assert_replayable"
+    },
+    {
+      "id": "R-R3",
+      "section": "cache",
+      "level": "MUST",
+      "text": "**重放 = 重算评分，不是重生成输出**：replay 只允许读 raw_output 重新解析与打分，禁止在 replay 路径上调用模型。",
+      "enforces": "replay_score"
+    },
+    {
+      "id": "R-R4",
+      "section": "cache",
+      "level": "MUST",
+      "text": "同一 (input, params) 的再次生成属于**新 replicate**，不得覆盖原记录；必须报告跨 replicate 差异（实测 152 样本中 1 个 5 分制分数移动 1 分）。",
+      "enforces": "PROTOCOL.md §7.4"
+    },
+    {
+      "id": "R-R5",
+      "section": "cache",
+      "level": "MUST_NOT",
+      "text": "禁止声称 temperature=0 + 固定 seed 可逐位复现模型输出。可复现的只有：评分重算、缓存键、数据构建（MANIFEST tree aggregate）。",
+      "enforces": "PROTOCOL.md §7.5"
+    },
+    {
+      "id": "R-R6",
+      "section": "cache",
+      "level": "MUST",
+      "text": "缓存命中仍须记账（cache_hit=true，成本 0）；缓存校验失败 → 重算，不得静默使用损坏条目。",
+      "enforces": "PROTOCOL.md §7.6"
+    },
+    {
+      "id": "R-R7",
+      "section": "cache",
+      "level": "MUST",
+      "text": "重放必须绑定**解析器版本**：按条目自身的 prompt_template_version 用对应解析器重算。模板升级会改解析口径（实测：S1 v1/v2 的 PROVENANCE 分类在 v3/v4 被移除，25/457 条旧条目用当前解析器重算必然失配）。旧版本条目只能作历史证据，不得进入判分统计。",
+      "enforces": "replay_score / V10"
+    },
+    {
+      "id": "R-Q1",
+      "section": "confidence",
+      "level": "MUST",
+      "text": "任何'该标尺能胜任该任务'的结论都要求 n≥30 个已评分样本（本地与云端同标准）；n<30 只能标 DESCRIPTIVE_ONLY。",
+      "enforces": "gate_capability"
+    },
+    {
+      "id": "R-Q2",
+      "section": "confidence",
+      "level": "MUST",
+      "text": "门槛：本地 0.85（routing_card.gate.threshold）；云端作为参考标尺用更严的 0.90。",
+      "enforces": "gate_capability"
+    },
+    {
+      "id": "R-Q3",
+      "section": "confidence",
+      "level": "MUST",
+      "text": "未测量即 DENY（fail-safe）：矩阵/路由卡缺失、任务未知、样本不足、指标缺失，一律 DENY 并写 DEGRADED，不得默认放行。",
+      "enforces": "local_route_at_judge_time / gate_capability"
+    },
+    {
+      "id": "R-Q4",
+      "section": "confidence",
+      "level": "MUST",
+      "text": "超 8192 token 输入硬拒绝，不截断、不摘要、不分块绕过；契约 prompt 预算 7000 token 同为硬指标（超限判不合格）。",
+      "enforces": "assert_local_allowed"
+    },
+    {
+      "id": "R-Q5",
+      "section": "confidence",
+      "level": "MUST",
+      "text": "自一致：云端 10% 重复 ≥0.90，本地 10% 重跑 ≥0.85；未做自一致的任务只能报'未验证'。",
+      "enforces": "gate_capability"
+    },
+    {
+      "id": "R-BL1",
+      "section": "baselines",
+      "level": "MUST",
+      "text": "任何准确率报告必须与三条基线并列：常数先验 52.89%、只看题面 TF-IDF+LR 54.22%、anchor 众数 73.33%，另加 anchor 记录 exact 32%。缺任一条即拒绝出报告。",
+      "enforces": "require_baseline_trio"
+    },
+    {
+      "id": "R-BL2",
+      "section": "baselines",
+      "level": "MUST",
+      "text": "判定用双阈值：acc(发布版) 必须严格小于 min(冻结参考值, R28 同集重测值)；任一侧无法测 → UNTESTED，不得声称更难。",
+      "enforces": "require_baseline_trio"
+    },
+    {
+      "id": "R-BL3",
+      "section": "baselines",
+      "level": "MUST_NOT",
+      "text": "禁止单基线结论：'只赢过常数先验'不算通过；只报 anchor 不报题面基线同样不算。",
+      "enforces": "require_baseline_trio"
+    },
+    {
+      "id": "R-BL4",
+      "section": "baselines",
+      "level": "MUST",
+      "text": "AS-Coded 边指标 0.7696 只能作为 legacy 混合条件脚注；Brier 必须四项并列并禁止 'vs 0.25'。",
+      "enforces": "PROTOCOL.md §9.4"
+    },
+    {
+      "id": "R-N1",
+      "section": "effective_n",
+      "level": "MUST",
+      "text": "每族至多 1 题、一题一记录（distinct_record_ratio=1.0）；统计单位是题，不是字段。",
+      "enforces": "check_effective_n"
+    },
+    {
+      "id": "R-N2",
+      "section": "effective_n",
+      "level": "MUST",
+      "text": "任何分析必须同时打印 n_items、n_families、n_distinct_records 三个数。",
+      "enforces": "check_effective_n"
+    },
+    {
+      "id": "R-N3",
+      "section": "effective_n",
+      "level": "MUST",
+      "text": "与 R26.15 比较必须按族聚类：n_eff 上限 25 族（仅 16 个互异记录），用按族 bootstrap 或按族置换检验；禁止把 100 题当 100 个独立样本。",
+      "enforces": "check_effective_n"
+    },
+    {
+      "id": "R-N4",
+      "section": "effective_n",
+      "level": "MUST_NOT",
+      "text": "双渲染/配对不增加有效 n：320 对配对实验是 320 个统计单位、640 次推理，禁止把 640 当 640 个独立样本。",
+      "enforces": "check_effective_n"
+    },
+    {
+      "id": "R-N5",
+      "section": "effective_n",
+      "level": "MUST",
+      "text": "禁止同族跨 split；基线拟合一律按族分组 5 折或 leave-one-family-out。",
+      "enforces": "check_effective_n"
+    },
+    {
+      "id": "R-D1",
+      "section": "degraded",
+      "level": "MUST",
+      "text": "降级事件必须含 task、reason_code、fallback_used、affected_items 四个字段（另加 schema_version/timestamp_utc/status/source/scope）；affected_items 非空。",
+      "enforces": "make_degraded / validate_degraded"
+    },
+    {
+      "id": "R-D2",
+      "section": "degraded",
+      "level": "MUST",
+      "text": "reason_code 取封闭集合；未知码直接 ValueError，不得自创。",
+      "enforces": "make_degraded"
+    },
+    {
+      "id": "R-D3",
+      "section": "degraded",
+      "level": "MUST",
+      "text": "t18 的 vett-degraded-event/v1 必须能被无损归一化（fallback→fallback_used，affected_items 由 input_sha256 或 '*' 补齐），供 t13 单一消费者处理。",
+      "enforces": "normalize_degraded"
+    },
+    {
+      "id": "R-D4",
+      "section": "degraded",
+      "level": "MUST",
+      "text": "每个 DEGRADED 必须在报告里体现为覆盖率缺口；不得静默丢弃样本，也不得伪造标注。",
+      "enforces": "PROTOCOL.md §11.4 / t13"
+    },
+    {
+      "id": "R-S1",
+      "section": "separation",
+      "level": "MUST_NOT",
+      "text": "判分者不得标注：judge_architect 不产出任何被自己判分的标注。",
+      "enforces": "PROTOCOL.md §12.1"
+    },
+    {
+      "id": "R-S2",
+      "section": "separation",
+      "level": "MUST_NOT",
+      "text": "本地模型不得仲裁（D3 DENY）；跨模型 kappa 由确定性代码计算，judge 只解释方向。",
+      "enforces": "local_route_at_judge_time / PROTOCOL.md §12.2"
+    },
+    {
+      "id": "R-S3",
+      "section": "separation",
+      "level": "MUST",
+      "text": "实现与验证隔离：生成器代码不得被自己的验证脚本复用（t8 独立复跑）。",
+      "enforces": "PROTOCOL.md §12.3"
+    },
+    {
+      "id": "R-S4",
+      "section": "separation",
+      "level": "MUST",
+      "text": "端点修改、发布决定、触碰 R26.15 字节必须在人工门内执行；无人值守路径一律抛异常。",
+      "enforces": "PROTOCOL.md §12.4"
+    }
+  ],
+  "verification": {
+    "checklist": [
+      {
+        "id": "V1",
+        "kind": "authority",
+        "description": "protocol 的任务集合 == routing_card 任务集合（13）"
+      },
+      {
+        "id": "V2",
+        "kind": "authority",
+        "description": "ALLOW 恰为四项，且与 capability_matrix 的 verdict 一致"
+      },
+      {
+        "id": "V3",
+        "kind": "measurement",
+        "description": "每个 ALLOW 的 agreement/n/threshold 与 card+matrix 逐值相等且 ≥0.85、n≥30"
+      },
+      {
+        "id": "V4",
+        "kind": "measurement",
+        "description": "每个 DENY 的 reason_code/deny_reason/measured_evidence 与 card 逐值相等"
+      },
+      {
+        "id": "V5",
+        "kind": "measurement",
+        "description": "DENY 依据分级：MEASURED 7 条须有非空 measured_evidence，POLICY 2 条不得伪造数字"
+      },
+      {
+        "id": "V6",
+        "kind": "measurement",
+        "description": "R1 证据完整（0.6667 / n=30 / ρ=-0.1672 / discrimination_ok=false / fallback=FRE）"
+      },
+      {
+        "id": "V7",
+        "kind": "authority",
+        "description": "硬上限 8192 与 card 一致；行为字符串含 never truncate"
+      },
+      {
+        "id": "V8",
+        "kind": "cache",
+        "description": "缓存键确定性 + 对 input/params/template/model_digest 各自敏感"
+      },
+      {
+        "id": "V9",
+        "kind": "cache",
+        "description": "v2 键含 model_digest 且与 t18 v1 键不同（迁移证据）"
+      },
+      {
+        "id": "V10",
+        "kind": "cache",
+        "description": "replay 语义：只重算不重生成；真实账本 raw_output 重放解析 100% 一致"
+      },
+      {
+        "id": "V11",
+        "kind": "blind",
+        "description": "白名单执行：干净 item 通过，注入禁用键/模式/越界记录字段一律阻断"
+      },
+      {
+        "id": "V12",
+        "kind": "blind",
+        "description": "C1 contains_answer=true，其余任务=false；记录 canonical 化消除字段顺序"
+      },
+      {
+        "id": "V13",
+        "kind": "confidence",
+        "description": "n<30 / 未测 / 低于阈值 → DENY（fail-safe）"
+      },
+      {
+        "id": "V14",
+        "kind": "confidence",
+        "description": "输入超任务上限与超 8192 硬顶均抛 InputCapExceeded，不截断"
+      },
+      {
+        "id": "V15",
+        "kind": "baselines",
+        "description": "三基线缺失（含单基线）即拒绝；完整报告给出 PASS/FAIL/UNTESTED"
+      },
+      {
+        "id": "V16",
+        "kind": "baselines",
+        "description": "三条基线的参考值与 BASELINES.json 逐值相等（52.89/54.22/73.33/32）"
+      },
+      {
+        "id": "V17",
+        "kind": "effective_n",
+        "description": "320/320/320 通过；字段级 CI、640 独立、跨族 split、R26.15 非按族 一律违规"
+      },
+      {
+        "id": "V18",
+        "kind": "degraded",
+        "description": "DEGRADED 必填四字段 + 封闭原因码；未知码拒绝"
+      },
+      {
+        "id": "V19",
+        "kind": "degraded",
+        "description": "t18 真事件可无损归一化（selftest DEGRADED_EVENTS.jsonl）"
+      },
+      {
+        "id": "V20",
+        "kind": "cloud",
+        "description": "云端抽样上限 24/16/12 与总 80；外部 provider 一律拒绝"
+      },
+      {
+        "id": "V21",
+        "kind": "consistency",
+        "description": "PROTOCOL.md 与 protocol.json 的 rule id 集合完全一致"
+      },
+      {
+        "id": "V22",
+        "kind": "drift",
+        "description": "绑定文件 digest 未变，且 R26.15 聚合 == 343afde4…51bd（165 文件/93,346,177 字节）"
+      }
+    ],
+    "commands": [
+      "python scripts/build_protocol.py",
+      "python scripts/protocol_verify.py --freeze",
+      "python scripts/protocol_verify.py --check",
+      "python -m unittest discover -s tests"
+    ],
+    "artifacts": [
+      "protocol.json",
+      "PROTOCOL.md",
+      "protocol_freeze.json",
+      "PROTOCOL.sha256",
+      "protocol_verify_result.json",
+      "evidence/routing_evidence_snapshot.json"
+    ]
+  },
+  "stale_documents": [
+    {
+      "document": "VETT_R28_DIFFICULTY_20261112/TEAM_ROLES_AND_AUTOMATION_PLAN.md",
+      "section": "§4.2 路由卡表（R28.0）",
+      "stale_claims": [
+        "可读性评分 ✅ ALLOW（已被 t18 实测推翻：0.667 < 0.85，ρ=-0.167，DENY）",
+        "题量 160 题 / 32 场（已被 AMEND-001 提升为 320 题 / 64 场）",
+        "云端只做 80 次抽样（仍有效，作为硬上限保留）"
+      ],
+      "authority": "routing_card.json（verdict）+ preregistration v1.1.0（N=320）",
+      "rule_ids": [
+        "R-L1",
+        "R-C2"
+      ]
+    },
+    {
+      "document": "VETT_R28_DIFFICULTY_20261112/AUDIT_GOAL_AND_DESIGN_20261112.md",
+      "section": "难度剂量结论",
+      "stale_claims": [
+        "63.3/60.0/51.7 用于证明剂量杠杆已生效（t3 复核：整级宏准确率；真正的 10 对配对为 5 降/4 升/1 平，p=0.50）"
+      ],
+      "authority": "01_measurement/gate_B_decision.json（HYP-R28-DOSE = UNTESTED）",
+      "rule_ids": [
+        "R-BL3"
+      ]
+    }
+  ],
+  "known_limits": [
+    "云端 T3 当前只有 12 条提报（<30），任何云端 T3 一致率只能是 DESCRIPTIVE_ONLY，不能当门。",
+    "本地 ALLOW 的四项是在 30–32 个样本上测的点估计：n=30、agreement=0.933 的 Wilson 95% CI 约 [0.79, 0.98]，下界低于 0.85；0.85 门是对单次测量的判定，不是对能力的置信保证。",
+    "temperature=0 + 固定 seed 非逐位确定（152 样本中 1 个 5 分制分数移动 1 分）；重放只能重算评分。",
+    "本轮没有人工金标（t24 只准备就绪包），机械真值是唯一锚点；这不等于数据侧金标已被人工确认。",
+    "盲包审计是白名单 + 正则扫描，不是形式化信息流证明：改写过的难度词、跨包组合推断都不在覆盖内，需要 t17 J7 与 t8 泄漏扫描作为第二道门。",
+    "本协议只约束评测（谁判、怎么看、怎么记账），不约束数据内容正确性（那是 HA1–HA18 的事）。",
+    "协议不替 t19 做统计：端点、功效、停止规则以预注册 v1.1.0 为准，冲突时预注册优先。"
+  ],
+  "bindings": {
+    "routing_card": {
+      "path": "VETT_R28_DIFFICULTY_20261112/03_build/local/routing_card.json",
+      "sha256": "e76d5858fdbfc7661c10d4b67dc1449a127a1727586bec629a66323b9d07da00",
+      "exists": true
+    },
+    "capability_matrix": {
+      "path": "VETT_R28_DIFFICULTY_20261112/03_build/local/capability_matrix.json",
+      "sha256": "d8156f6f8a94a3c4363def69edaedbde42903b8a33286db36ff215cb550164c9",
+      "exists": true
+    },
+    "baselines": {
+      "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/BASELINES.json",
+      "sha256": "e40b1760fb59bbf0e9571009540370355ee4c9a4c223d861711b86b09cc63861",
+      "exists": true
+    },
+    "preregistration": {
+      "path": "VETT_R28_DIFFICULTY_20261112/preregistration.json",
+      "sha256": "b5c39849256665521053f2076396857b27c4aa5d4c2caecdb9125acbdbbb434a",
+      "exists": true,
+      "document_id": "VETT-R28-PREREG-20261112-v1",
+      "document_version": "1.2.0",
+      "document_amendment_id": "AMEND-002",
+      "document_frozen_at_utc": "2026-11-12T12:43:36Z"
+    },
+    "r28_contract": {
+      "path": "VETT_R28_DIFFICULTY_20261112/02_contract/r28_contract.json",
+      "sha256": "dc657f9ccc6848e57a2f068b1d7edf28a80954dbd5673bc5678b09a29e97b275",
+      "exists": true,
+      "document_id": "VETT-R28-CONTRACT-20261112-v1",
+      "document_version": "1.2.0",
+      "document_amendment_id": "AMEND-002",
+      "document_frozen_at_utc": "2026-11-12T11:01:32Z"
+    },
+    "r26_15_dataset": {
+      "path": "VETT_Cricket_v0.22_R16_Multisource_Dilemmas/r26_15_content_dependency_candidate_v3",
+      "file_count": 165,
+      "total_bytes": 93346177,
+      "expected_aggregate_sha256": "343afde4c91d7785f42296074ecea685d5d466260674ab5a8c3bc37323d851bd",
+      "recipe": "vett-tree-aggregate-v1",
+      "note": "live 字节逐文件重算，必须等于 t1 冻结值；协议自身只读该目录。"
+    }
+  },
+  "constants": {
+    "n_published": 320,
+    "n_held_out": 40,
+    "n_experiment_calls": 640,
+    "n_statistical_units": 320,
+    "seed": 20261112,
+    "temperature": 0.0,
+    "model_tag": "qwen2.5:7b-instruct-q4_K_M",
+    "model_digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+  }
+}

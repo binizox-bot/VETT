@@ -1,0 +1,819 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""build_contract.py — 生成并冻结 R28 数据优化合同（t4）。
+
+输出:
+  VETT_R28_DIFFICULTY_20261112/02_contract/r28_contract.json
+  VETT_R28_DIFFICULTY_20261112/02_contract/contract_freeze.json
+  VETT_R28_DIFFICULTY_20261112/02_contract/CONTRACT.sha256
+  VETT_R28_DIFFICULTY_20261112/02_contract/evidence/power_ladder.json
+
+依赖（只读）:
+  preregistration.json + prereg_freeze.json (t22)
+  01_measurement/{BASELINES,gate_A_decision,gate_B_decision,MECHANISM_REGISTRY}.json
+  02_contract/evidence/record_space_probe.json
+  02_contract/evidence/quota_assignment_check.json
+
+用法: python build_contract.py --freeze | --check
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import hashlib
+import json
+import math
+import pathlib
+import sys
+
+HERE = pathlib.Path(__file__).resolve()
+RUN = HERE.parents[2]              # VETT_R28_DIFFICULTY_20261112
+WS = RUN.parent
+CONTRACT_DIR = HERE.parents[1]     # 02_contract
+CONTRACT_JSON = CONTRACT_DIR / "r28_contract.json"
+FREEZE_JSON = CONTRACT_DIR / "contract_freeze.json"
+SHA_FILE = CONTRACT_DIR / "CONTRACT.sha256"
+PREREG = RUN / "preregistration.json"
+PREREG_FREEZE = RUN / "prereg_freeze.json"
+BASELINES = RUN / "01_measurement" / "BASELINES.json"
+GATE_A = RUN / "01_measurement" / "gate_A_decision.json"
+GATE_B = RUN / "01_measurement" / "gate_B_decision.json"
+MECH = RUN / "01_measurement" / "MECHANISM_REGISTRY.json"
+HYP = RUN / "01_measurement" / "HYPOTHESIS_REGISTRY.md"
+PROBE = CONTRACT_DIR / "evidence" / "record_space_probe.json"
+QUOTA = CONTRACT_DIR / "evidence" / "quota_assignment_check.json"
+PROPOSAL = RUN / "PROPOSAL_VETT_R28_DIFFICULTY_AND_INTERPRETABILITY.md"
+AUDIT = RUN / "AUDIT_GOAL_AND_DESIGN_20261112.md"
+POWER_LADDER = CONTRACT_DIR / "evidence" / "power_ladder.json"
+
+SCHEMA = "vett.r28.contract.v1"
+FREEZE_SCHEMA = "vett.r28.contract_freeze.v1"
+CONTRACT_ID = "VETT-R28-CONTRACT-20261112-v1"
+VERSION = "1.0.0"
+N_DEFAULT = 160
+HELD_OUT_N = 40
+RECORD_SAFETY_RULE = "reachable_lower_bound >= N_published + 40(held_out) + 0.10 * N_published"
+
+
+def sha256_bytes(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
+def sha256_file(p: pathlib.Path) -> str:
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def canon(obj) -> bytes:
+    return json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def phi(z: float) -> float:
+    return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+
+
+def power_row(n_published: int, discordance: float = 0.40) -> dict:
+    se = math.sqrt(discordance / n_published)
+    mde = (1.96 + 0.8416) * se
+    power10 = phi((0.10 / se) - 1.96)
+    null_ratio = 9.0 / 40.0  # 因子核全 0 格 (N/40) + 剂量阶梯 dose0 (4 × N/20) = 9N/40
+    n_null = round(n_published * null_ratio)
+    n_active = n_published - n_null
+    se_active = math.sqrt(discordance / n_active) if n_active else float("nan")
+    return {
+        "n_published": n_published,
+        "factor_core_n": n_published * 2 // 5,
+        "dose_ladder_n": n_published * 3 // 5,
+        "factor_cell_size_c": n_published // 40,
+        "dose_cell_size_m": n_published // 20,
+        "scenes": n_published // 5,
+        "expected_null_pairs": n_null,
+        "expected_active_pairs": n_active,
+        "discordance": discordance,
+        "se_pp": round(se * 100, 2),
+        "ci_half_width_pp": round(1.96 * se * 100, 2),
+        "mde_80_pp": round(mde * 100, 2),
+        "power_for_10pp": round(power10, 3),
+        "active_pair_se_pp": round(se_active * 100, 2),
+        "active_pair_ci_half_width_pp": round(1.96 * se_active * 100, 2),
+        "record_need_with_held_out": n_published + HELD_OUT_N,
+        "record_need_with_safety_10pct": int(math.ceil(n_published + HELD_OUT_N + 0.10 * n_published)),
+    }
+
+
+def power_ladder(reachable: int) -> list[dict]:
+    rows = []
+    for n in range(160, 641, 40):
+        row = power_row(n)
+        row["record_space_ok"] = row["record_need_with_safety_10pct"] <= reachable
+        rows.append(row)
+    return rows
+
+
+def rescale_quotas(rows: list[dict], n_target: int, caps: dict) -> dict:
+    """quota_rescale_v1：按 N/160 放大，逐层截断到可达上限，再用最大余数法补足。"""
+    if n_target == N_DEFAULT:
+        return {"n_published": n_target, "rows": rows, "feasible": True, "adjustments": []}
+    factor = n_target / N_DEFAULT
+    adjusted = []
+    for r in rows:
+        cap = caps.get((r["status"], r["dismissal"], r["mask"]), 0)
+        raw = r["quota"] * factor
+        val = min(cap, int(raw))
+        adjusted.append({**r, "target_raw": round(raw, 3), "capped_value": val,
+                         "headroom": max(0, cap - val)})
+    total = sum(x["capped_value"] for x in adjusted)
+    need = n_target - total
+    additions = []
+    if need > 0:
+        order = sorted(range(len(adjusted)),
+                       key=lambda i: (-adjusted[i]["headroom"], -(adjusted[i]["target_raw"] - int(adjusted[i]["target_raw"])),
+                                      adjusted[i]["stratum_rank"] if "stratum_rank" in adjusted[i] else 0, i))
+        for i in order:
+            if need <= 0:
+                break
+            add = min(need, adjusted[i]["headroom"])
+            if add > 0:
+                adjusted[i]["capped_value"] += add
+                adjusted[i]["headroom"] -= add
+                need -= add
+                additions.append({"stratum": [adjusted[i]["status"], adjusted[i]["dismissal"], adjusted[i]["mask"]],
+                                  "added": add})
+    elif need < 0:
+        order = sorted(range(len(adjusted)), key=lambda i: (-adjusted[i]["capped_value"], i))
+        for i in order:
+            if need >= 0:
+                break
+            cut = min(-need, adjusted[i]["capped_value"])
+            adjusted[i]["capped_value"] -= cut
+            need += cut
+            additions.append({"stratum": [adjusted[i]["status"], adjusted[i]["dismissal"], adjusted[i]["mask"]],
+                              "removed": cut})
+    feasible = sum(x["capped_value"] for x in adjusted) == n_target and need == 0
+    # 分块
+    factor_total_target = n_target * 2 // 5
+    raw = [(x["capped_value"] * factor_total_target / n_target, x) for x in adjusted]
+    floors = [(int(v), v - int(v), x) for v, x in raw]
+    base = sum(f[0] for f in floors)
+    extra = factor_total_target - base
+    order = sorted(range(len(floors)), key=lambda i: (-floors[i][1], i))
+    add = {i: 0 for i in range(len(floors))}
+    for i in order[:max(0, extra)]:
+        add[i] = 1
+    table = []
+    for i, (b, _, x) in enumerate(floors):
+        nf = b + add[i]
+        table.append({"status": x["status"], "dismissal": x["dismissal"], "mask": x["mask"],
+                      "quota": x["capped_value"], "n_factor_core": nf,
+                      "n_dose_ladder": x["capped_value"] - nf})
+    block_ok = (sum(t["n_factor_core"] for t in table) == factor_total_target
+                and sum(t["n_dose_ladder"] for t in table) == n_target - factor_total_target)
+    return {"n_published": n_target, "rows": table, "feasible": feasible and block_ok,
+            "adjustments": additions,
+            "block_totals": {"factor_core": sum(t["n_factor_core"] for t in table),
+                             "dose_ladder": sum(t["n_dose_ladder"] for t in table)}}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    g = ap.add_mutually_exclusive_group(required=True)
+    g.add_argument("--freeze", action="store_true")
+    g.add_argument("--check", action="store_true")
+    ap.add_argument("--force", action="store_true")
+    args = ap.parse_args()
+
+    prereg = json.loads(PREREG.read_text(encoding="utf-8"))
+    prereg_freeze = json.loads(PREREG_FREEZE.read_text(encoding="utf-8"))
+    baselines = json.loads(BASELINES.read_text(encoding="utf-8"))["baselines"]
+    gate_a = json.loads(GATE_A.read_text(encoding="utf-8"))
+    gate_b = json.loads(GATE_B.read_text(encoding="utf-8"))
+    mech = json.loads(MECH.read_text(encoding="utf-8"))
+    probe = json.loads(PROBE.read_text(encoding="utf-8"))
+    quota_check = json.loads(QUOTA.read_text(encoding="utf-8"))
+
+    reachable = probe["reachable_distinct_records_lower_bound"]
+    ladder = power_ladder(reachable)
+    POWER_LADDER.write_text(json.dumps({
+        "schema": "vett.r28.power_ladder.v1",
+        "reachable_lower_bound": reachable,
+        "safety_rule": RECORD_SAFETY_RULE,
+        "rows": ladder,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    caps = {(r["delivery_status"], r["dismissal"], r["ledger_nonzero_mask_BYE_LEG_BYE_PENALTY"]):
+            r["reachable_distinct_records"] for r in probe["strata"]}
+    quota_rows = quota_check["quota_table"]
+    amended = {str(n): rescale_quotas(quota_rows, n, caps) for n in (200, 240, 280, 320, 360, 400, 440, 480, 560, 640)}
+    AMEND_EVIDENCE = CONTRACT_DIR / "evidence" / "amendment_ladder.json"
+    AMEND_EVIDENCE.write_text(json.dumps({
+        "schema": "vett.r28.amendment_ladder.v1",
+        "rule": "quota_rescale_v1",
+        "reachable_lower_bound": reachable,
+        "candidates": amended,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    amended_summary = {
+        k: {
+            "n_published": v["n_published"],
+            "feasible": v["feasible"],
+            "block_totals": v["block_totals"],
+            "adjustment_records": len(v["adjustments"]),
+        }
+        for k, v in amended.items()
+    }
+
+    # 三条基线数值（来自 BASELINES.json，禁止手抄）
+    b_const = baselines["constant_75_to_25"]["field_accuracy_informative"]["rate"]
+    b_lr = baselines["tfidf_logreg_question_text_75_to_25"]["field_accuracy_informative"]["rate"]
+    b_anchor = baselines["anchor_classifier_75_to_25"]["field_accuracy_informative"]["rate"]
+    b_anchor_exact = baselines["anchor_classifier_75_to_25"]["record_exact"]["rate"]
+
+    contract = {
+        "schema": SCHEMA,
+        "contract_id": CONTRACT_ID,
+        "version": VERSION,
+        "status": "FROZEN",
+        "frozen_at_utc": None,
+        "frozen_at_local": None,
+        "supersedes": None,
+        "run_root": "VETT_R28_DIFFICULTY_20261112",
+        "task": {
+            "id": "t4",
+            "name": "冻结 R28 合同：四剂量 D1-D4 + 发布集/对照集拆分 + 分层定向枚举",
+            "team_id": "vett-r27-opt",
+            "member": "data_designer",
+            "depends_on": ["t2", "t3", "t22"],
+            "downstream": ["t5", "t6", "t7", "t8", "t12", "t13", "t19", "t25"],
+        },
+        "purpose": "把 R28 数据优化合同冻结为可执行、可机器校验、可复现的文件：四剂量语义、两臂双渲染、三集合拆分、分层定向枚举与配额、硬验收、基线门槛、报告口径、N 参数化与 amendment 包，以及必须在用户拍板前讲清的功效问题。合同不得与已冻结的预注册冲突；冲突时以预注册为准。",
+        "bindings": {
+            "preregistration": {
+                "path": "VETT_R28_DIFFICULTY_20261112/preregistration.json",
+                "sha256": prereg_freeze["files"]["preregistration.json"]["sha256"],
+                "endpoint_registry_sha256": prereg_freeze["endpoint_registry_sha256"],
+                "preregistration_id": prereg["preregistration_id"],
+                "main_endpoint": "paired_accuracy_drop",
+                "n_pairs_default": 160,
+                "note": "合同不重新定义端点；端点/阈值/停止规则/零结果契约/报告口径一律以预注册为准。",
+            },
+            "measurement_inputs": [
+                {"id": "baselines", "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/BASELINES.json",
+                 "sha256": None},
+                {"id": "gate_a", "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/gate_A_decision.json",
+                 "sha256": None},
+                {"id": "gate_b", "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/gate_B_decision.json",
+                 "sha256": None},
+                {"id": "mechanism_registry", "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/MECHANISM_REGISTRY.json",
+                 "sha256": None},
+                {"id": "hypothesis_registry", "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/HYPOTHESIS_REGISTRY.md",
+                 "sha256": None},
+            ],
+            "design_inputs": [
+                {"id": "proposal", "path": "VETT_R28_DIFFICULTY_20261112/PROPOSAL_VETT_R28_DIFFICULTY_AND_INTERPRETABILITY.md",
+                 "sha256": None, "binding_strength": "reference_snapshot"},
+                {"id": "audit", "path": "VETT_R28_DIFFICULTY_20261112/AUDIT_GOAL_AND_DESIGN_20261112.md",
+                 "sha256": None, "binding_strength": "reference_snapshot"},
+            ],
+            "evidence": [
+                {"id": "record_space_probe", "path": "VETT_R28_DIFFICULTY_20261112/02_contract/evidence/record_space_probe.json",
+                 "sha256": None},
+                {"id": "quota_assignment_check", "path": "VETT_R28_DIFFICULTY_20261112/02_contract/evidence/quota_assignment_check.json",
+                 "sha256": None},
+                {"id": "power_ladder", "path": "VETT_R28_DIFFICULTY_20261112/02_contract/evidence/power_ladder.json",
+                 "sha256": None},
+                {"id": "amendment_ladder", "path": "VETT_R28_DIFFICULTY_20261112/02_contract/evidence/amendment_ladder.json",
+                 "sha256": None},
+            ],
+            "immutable_baseline": {
+                "path": "VETT_R28_DIFFICULTY_20261112/../VETT_Cricket_v0.22_R16_Multisource_Dilemmas/r26_15_content_dependency_candidate_v3",
+                "files": 165,
+                "bytes": 93346177,
+                "tree_aggregate": "343afde4c91d7785f42296074ecea685d5d466260674ab5a8c3bc37323d851bd",
+                "authority": "_BACKUPS/VETT_R28_PRE_CHANGE_20261112/PROTECTED_PATHS.json",
+            },
+        },
+        "precedent": {
+            "no_verified_mechanism": {
+                "statement": "当前没有任何机制被证实能提高难度（VERIFIED = 0）。R28 的'更难'只能由 E2 的结果建立，不能由设计意图或历史数据预设。",
+                "counts": {"VERIFIED": 0, "UNTESTED": 6, "REJECTED": 3},
+                "source": "t3 MECHANISM_REGISTRY.json / gate_B_decision.json",
+            },
+            "refutations": [
+                {
+                    "id": "REF-1",
+                    "claim": "6 组同事实跨族产生 63.3/60.0/51.7 等级落差 ⇒ 剂量杠杆已验证",
+                    "status": "REFUTED",
+                    "why": "那三个数是整级宏准确率，混杂场景/比赛/抽样误差。",
+                    "true_reading": "同事实组跨族 = 10 对配对：5 降 / 4 升 / 1 平，均值 −3.3pp，符号检验 p = 0.50。",
+                    "consequence": "改为 HYP-R28-DOSE（UNTESTED，责任实验 E2）；合同不得预设剂量有效。",
+                },
+                {
+                    "id": "REF-2",
+                    "claim": "推导深度不可在保金标前提下调节",
+                    "status": "REFUTED",
+                    "why": "t3 在 6 组同事实组内发现 rule_operators 1→2、2→3、3→4 而金标逐字节相同。",
+                    "true_reading": "推导深度/算子数改为 UNTESTED 候选机制，必须由 t5 用 solver 验证多出的算子是否真必要。",
+                    "consequence": "验证前不得作为 R28 机制；若验证通过并要使用，必须走 amendment（v2）。",
+                },
+            ],
+            "b1": {
+                "descriptive": "PASS",
+                "predictive": "UNTESTED",
+                "composite": "NOT_MET_PENDING_PREDICTIVE",
+                "can_redesign_levels_from_25_questions": False,
+                "statement": "不得据 25 题重设等级。等级只保留为描述性标签（每级 n=5，记录 exact 95% CI [14.3%, 47.6%]）；R28 不使用 L1–L5 作为难度因子或抽样单位。",
+            },
+            "mechanism_registry": {
+                "VERIFIED": 0,
+                "UNTESTED": 6,
+                "REJECTED": 3,
+                "untested": ["D1 alias_hops", "D2 temporal_joins", "D3 scope_decisions",
+                             "D4 isomorphic_distractors", "推导深度/算子数", "证据位置"],
+                "rejected": ["证据分散度/文档数", "上下文长度", "bridge depth"],
+            },
+        },
+        "design": {
+            "dataset_version": "VETT-Cricket-v0.37-R28-diagnostic-pair-20261112",
+            "design_id": "R28-PAIR-DOSE-2x2x2x2",
+            "n_published_parameter": {
+                "name": "n_published",
+                "default": N_DEFAULT,
+                "type": "integer",
+                "constraint": "必须是 40 的倍数（保证因子核 = 2N/5 可被 16 整除、剂量阶梯 = 3N/5 可被 12 整除、场数 = N/5 为整数）",
+                "derived": {
+                    "factor_core_n": "2N/5",
+                    "dose_ladder_n": "3N/5",
+                    "factor_cell_size_c": "N/40",
+                    "dose_cell_size_m": "N/20",
+                    "scenes": "N/5",
+                    "n_control_renderings": "N",
+                    "n_e1_inferences": "2N",
+                },
+                "hardcoding_forbidden": "生成器、构建脚本、评测脚本与报告模板均不得硬编码 160；所有计数必须从 n_published 派生并写入 MANIFEST/config_digest。",
+                "allowed_values": [row["n_published"] for row in ladder if row["record_space_ok"]],
+                "amendment": {
+                    "trigger": "t5 记录空间探针（零成本）通过且 t25 用户批准；或预注册功效 amendment 被批准。",
+                    "package": [
+                        "preregistration.json / PREREGISTRATION.md 版本升级（design.n_pairs、blocks、power_analysis.table、effective_n 与 E1/E2/E3 的 n）",
+                        "endpoint_registry_sha256 重算 + prereg_freeze.json 重签",
+                        "用 quota_rescale_v1 重新生成配额表并写入新配置",
+                        "t8 独立核验 amendment 与端点一致性",
+                        "用户在 t25 人工门签字",
+                    ],
+                    "one_parameter": "合同侧只需改 n_published；块大小、格大小、场数、配额、功效表均由公式派生。",
+                },
+            },
+            "blocks": [
+                {"id": "factor_core", "n": 64, "rule": "n = 2N/5；2^4 因子格 × 每格 c = N/40 题",
+                 "cells": 16, "cell_capacity": 4,
+                 "purpose": "主效应与二阶交互可识别（H3/E3）"},
+                {"id": "dose_ladder", "n": 96, "rule": "n = 3N/5；4 机制 × 3 剂量 × 每格 m = N/20 题",
+                 "cells": 12, "cell_capacity": 8,
+                 "purpose": "剂量-反应斜率与单调性（H2/HYP-R28-DOSE/E2）"},
+            ],
+            "doses": [
+                {
+                    "id": "D1", "name": "证据跳数（跨文档别名）", "param": "alias_hops",
+                    "levels": {"0": "事实直接以 CASE 编号命名主体；无 locator/bridge span",
+                               "1": "1 个 locator span（register → observation token）；事实以 token 命名主体",
+                               "2": "locator + bridge span（token → packet + 时间/over）；需两跳绑定"},
+                    "extra_spans_by_level": [0, 1, 2],
+                    "renderer_support": "现有 generator.py:306-323 已支持 alias_hops >=1 / >=2（需按实例取值，不再每族固定）",
+                    "gold_effect": "无：dossier 层只改绑定路径，solver_facts 与 decision_record_flat 不变",
+                    "status": "UNTESTED",
+                },
+                {
+                    "id": "D2", "name": "修订链", "param": "temporal_joins",
+                    "levels": {"0": "无修订：干预字段只有一条当前值陈述",
+                               "1": "2 个版本：被替代值 + 现行值；按 HIGHEST_REVISION 或 LAST_PRE_LOCK 规则选一条",
+                               "2": "3 个版本（跨 2 个字段）：需沿链回放两次；证书 revision_chain 含 3 个版本身份与生效时间"},
+                    "extra_spans_by_level": [0, 1, 2],
+                    "renderer_support": "现有 generator.py:314-324 的 temporal_joins 只加 1 个 bridge span（绑定用途）；t5 必须新增真正的 revision-chain 渲染（版本对 + 策略 span + revision_chain 证书）",
+                    "gold_effect": "无：现行值即金标，版本只改变'如何找到现行值'",
+                    "status": "UNTESTED",
+                },
+                {
+                    "id": "D3", "name": "权威裁决", "param": "scope_decisions",
+                    "levels": {"0": "单一权威：无冲突、无 policy span",
+                               "1": "2 源冲突：1 个冲突 span + 1 个 policy span；authority_decision 记录裁决依据",
+                               "2": "≥2 冲突（3 源）：2 个冲突 span + 1 个 policy span + 1 个 masked cell（值被遮盖，只能按版本/时间选源）；authority_decision 记录逐对裁决"},
+                    "extra_spans_by_level": [0, 1, 2],
+                    "renderer_support": "现有 generator.py:326-366 只支持 1 个冲突源；t5 必须扩展到 ≥2 冲突 + masked cell",
+                    "gold_effect": "无：被选中的源值即金标；冲突值只作为可排除的干扰",
+                    "status": "UNTESTED",
+                },
+                {
+                    "id": "D4", "name": "干扰同构度", "param": "isomorphic_distractors",
+                    "levels": {"0": "无同构干扰",
+                               "1": "1 个同注册表 shadow 事件（同文体、异主体/时间）",
+                               "2": "≥2 个同构干扰，其中 1 个是 near-miss（除 1 个事实外与目标一致）"},
+                    "extra_spans_by_level": [0, 1, 2],
+                    "renderer_support": "现有 generator.py:368-381 已按 isomorphic_distractors 数量生成 shadow span；near-miss 变体需 t5 新增 1 个对照事实",
+                    "gold_effect": "无：干扰 span 不进入决策记录；why_not_distractor 必须逐条给出排除理由",
+                    "status": "UNTESTED",
+                },
+            ],
+            "dose_factor_orthogonality": {
+                "rule": "四剂量由生成器按实例独立赋值；因子核取 2^4 全因子（0/1），剂量阶梯只让一个机制取 0/1/2、其余固定 0。",
+                "forbidden": "禁止从 R26.15 的 difficulty_vector / level / scenario_family 反推因子水平（t2 已证共线：bridge_depth 与等级双射、distractor_count/temporal_joins 是等级确定性函数）。",
+            },
+            "arms": {
+                "published": {"id": "hard", "definition": "同一 solver_facts + 同一 decision_record_flat 渲染为指派结构元组（因子核 0/1；剂量阶梯 0/1/2）",
+                              "location": "public/ + private/"},
+                "control": {"id": "shallow", "definition": "同一 solver_facts + 同一 decision_record_flat 渲染为四剂量全 0 的最小卷宗",
+                            "location": "variants/"},
+            },
+            "twin_identity": {
+                "required_byte_identical": ["solver_facts（canonical JSON 字节）", "decision_record_flat（12 字段）",
+                                            "question_text", "output schema", "ruleset title/effective_date"],
+                "allowed_to_differ": ["dossier 文档集合与 span 文本/顺序", "每臂证书的 minimum_evidence_spans / rule_path / revision_chain / authority_decision / why_not_distractor",
+                                      "token 长度", "state.active_source（若 D3 引入策略；state 不进入 12 字段主端点）"],
+                "forbidden_to_differ": ["12 字段记录值", "delivery_status / dismissal / run_ledger", "金标或任何字段答案",
+                                        "question_text", "scenario_family（配对两臂共享同一 family）"],
+                "verification": "逐对比较 canonical JSON sha256：solver_facts 与 decision_record_flat 必须 160/160 相同；question_text 160/160 相同。",
+            },
+            "scenes": {
+                "n": 32, "items_per_scene": 5, "rule": "场 = N/5；场只是构建/审计分组，不是共享文档单元。",
+                "item_dossier": True,
+                "note": "每题拥有独立 dossier（否则无法逐题独立操纵剂量）；R26.15 的'一场 5 题共享 23 文档'结构不得沿用。",
+            },
+            "families": {
+                "rule": "发布集每族至多 1 题；族 ID 必须是中性哈希（rfam_<sha256(seed,index)[:12]>），不得编码 dose/level/answer。",
+                "pair": "配对的两臂共享同一个 family（不是两个族）。",
+                "verification": "族名基线（仅族名字符 n-gram TF-IDF+LR，按族 5 折）信息字段准确率 ≤ 40%。",
+            },
+            "splits": {
+                "published": {"n": 160, "split": "development", "public": True},
+                "held_out_test": {"n": 40, "split": "held_out_test", "public": False,
+                                  "rule": "16 个因子格 × 1 + 12 个剂量格 × 2 = 40；与发布集记录互异；不进入公开包"},
+                "calibration": {"n": 0, "reason": "R28 不做任何模型/提示调参（模型与 prompt 由预注册冻结），因此不设 calibration 划分，避免把评测题用于选择。"},
+                "record_requirement": {"published": 160, "held_out": 40, "total_distinct": 200},
+            },
+            "record_space": {
+                "probe_artifact": "02_contract/evidence/record_space_probe.json",
+                "method": "stratified_targeted_enumeration（status × dismissal 路线 × running/boundary/penalty 参数），不是随机抽样",
+                "reachable_distinct_records_lower_bound": reachable,
+                "random_sampling_reference": {"distinct_from_20000_random": 156,
+                                              "note": "随机采样不代表可达空间；旧版'160 已接近天花板'的结论作废。"},
+                "strata_count": probe["strata_count"],
+                "by_delivery_status": probe["by_delivery_status"],
+                "by_dismissal": probe["by_dismissal"],
+                "ledger_nonzero_records": probe["ledger_nonzero_records"],
+                "structural_ceilings": [
+                    {"id": "CEIL-1", "fact": "DEAD_REBALL 在 solver 中强制全账本清零且 dismissal=NONE，整个状态只有 1 个可达记录。",
+                     "consequence": "发布集最多 1 题 DEAD_REBALL；'四类都有量'按'四类都出现'执行，DEAD_REBALL = 1 是结构单点，不是偷懒。"},
+                    {"id": "CEIL-2", "fact": "BOWLED / LBW / CAUGHT 各只有 2 个可达记录（status=LEGAL；除 PENALTY 外账本全 0），STUMPED 4 个。",
+                     "consequence": "合法 dismissal 合计最多 10 题；不得为凑分布重复记录（会破坏互异率=1.0）。"},
+                    {"id": "CEIL-3", "fact": "WIDE 状态下 contact 必须为 NONE，故 BYE/LEG_BYE 恒 0；WIDE 的非零账本只有 WIDE_EXTRA 与 PENALTY。",
+                     "consequence": "BYE/LEG_BYE 覆盖必须来自 LEGAL/NO_BALL。"},
+                    {"id": "CEIL-4", "fact": "BYE 与 LEG_BYE 互斥（由 contact 决定），二者不会同时非零。",
+                     "consequence": "常数字段非零检查分别统计，不要求同一记录同时非零。"},
+                ],
+                "ceiling_correction": "旧口径'记录空间数百、160 已接近上限'来自随机抽样（2 万次仅 156）与另一次 4000 抽样的 315；分层定向枚举下界为 761，N 最多约 655 仍满足 10% 安全余量。记录空间不是本轮的主要瓶颈，功效才是。",
+                "safety_rule": RECORD_SAFETY_RULE,
+                "solver_expansion_trigger": "若 amendment 的 N 或新机制需要超过可达空间 90%，必须扩展 solver（多球累计/局内状态），属于 R29+ 范围；R28 不得靠重复记录硬凑。",
+            },
+            "quota_table": {
+                "source": "02_contract/evidence/quota_assignment_check.json",
+                "rule": "每层配额写死；配额 ≤ 探针可达记录数；不得随机采样；不得事后改配额。",
+                "rows": quota_rows,
+                "distribution": quota_check["distribution"],
+                "block_totals": quota_check["block_totals"],
+                "all_within_caps": quota_check["all_quotas_within_reachable_caps"],
+                "rescale_rule": "quota_rescale_v1：按 N/160 放大；逐层截断到可达上限；用最大余数法补足；再按 2/5 vs 3/5 做块拆分；结果必须通过 t8 复算。",
+                "amended_candidates": amended_summary,
+                "amended_candidates_full": "02_contract/evidence/amendment_ladder.json",
+            },
+            "assignment_algorithm": {
+                "id": "balanced_heterogeneity_v1",
+                "steps": [
+                    "1) 按 (status_rank, dismissal_rank, mask_rank) 排序层。",
+                    "2) 按层轮转发牌生成 item 序列（每层每次发 1 个），避免同一层的题连续堆积。",
+                    "3) 分别对因子核与剂量阶梯做格分配：每次把 item 放到未满格中 cost 最小者，cost = 3×同 status 次数 + 2×同 dismissal 次数，tie-break 按格 ID。",
+                    "4) 每格内按记录的 sha256 升序取未使用记录，保证一题一记录。",
+                ],
+                "guarantees": ["因子核 16 格各 4 题", "剂量阶梯 12 格各 8 题",
+                               "每格 ≥2 种 delivery_status", "每格 ≥2 种 dismissal（实际下界：因子核 2/3，剂量格 3/4）"],
+                "verification": "t6/t8 用 evidence/quota_assignment_check.json 复算；任何格容量或配额偏差 → BLOCK_DATA。",
+            },
+            "question_and_prompt": {
+                "question_identity": "配对两臂 question_text 逐字节相同；题面不得出现 dose/机制/等级/族名/难度词。",
+                "item_dossier": "每题独立 dossier；不得共享 R26.15 的整场 23 文档卷宗。",
+                "prompt_budget": {
+                    "max_prompt_tokens": 7000,
+                    "hard_context_cap": 8192,
+                    "measurement": "用本地模型一次 dry-run 读取 prompt_eval_count；逐题记录；超 7000 直接判不合格（不截断）。",
+                    "max_docs_per_item": 12,
+                    "max_spans_per_item": 80,
+                    "rationale": "上下文长度已被 t3 判为 REJECTED 机制（更长不等于更难）；R28 必须装进 8192 上下文，长上下文不作为难度来源。",
+                },
+                "output_contract": {
+                    "required_fields": ["decision_record", "evidence_spans", "confidence"],
+                    "decision_record_fields": prereg["reporting_contract"]["metric_definitions_frozen"]["all_fields"],
+                    "informative_fields": prereg["reporting_contract"]["metric_definitions_frozen"]["informative_fields"],
+                    "confidence": "标量 [0,1]",
+                    "counterfactual": "R28 不要求反事实输出；因果识别由同事实双渲染配对承担。",
+                    "conformance": "解析失败/缺字段/非法值/弃权 → ITT 全错（预注册口径）。",
+                },
+            },
+            "certificates": {
+                "generated_by": "确定性 solver（禁止语言模型撰写）",
+                "fields": ["minimum_evidence_spans", "rule_path", "authority_decision（D3>0 必需）",
+                           "revision_chain（D2>0 必需）", "why_not_distractor[]（D4>0 必需）",
+                           "derivation_check", "solver_facts_digest", "decision_record_flat_digest"],
+                "per_arm": "两臂各自一份证书；都必须在自己的渲染上重推 100% 成功。",
+                "publicity": "证书属于 gold，不进入公开 prompt；评测后随 explanations 发布。",
+            },
+            "determinism": {
+                "rule": "同 seed（20261112）+ 同配置 → 逐字节可重建：MANIFEST.json 的 tree aggregate 相同。",
+                "seed": 20261112,
+                "manifest_aggregate": "vett-tree-aggregate-v1（与 t1 同配方）",
+                "non_determinism_note": "本地模型 temperature=0 非逐位确定（t18：152 样本 1 个移动 1 分）；确定性要求只针对数据构建，不针对模型输出。",
+            },
+        },
+        "enumeration": {
+            "strategy": "target_record_first_v1（先定目标记录形态，再反解事实，再用 solver 校验）",
+            "steps": [
+                "1) 按配额表选目标 (delivery_status, dismissal, ledger 非零 mask) 层与目标记录。",
+                "2) 枚举并反解满足该记录的最小事实集：从 status 路线、dismissal 路线、running/boundary/penalty 参数反推。",
+                "3) 调用 solver.solve()，要求 flatten_record 逐字段等于目标记录；否则换事实集，不修改记录。",
+                "4) 从事实集中选 visible_fields：每个入证据集的字段必须有 countermodel 证明其 pivotal；非 pivotal 事实只能作干扰。",
+                "5) 生成两臂渲染与证书；校验 twin identity；写入 quota 与 audit 记录。",
+            ],
+            "forbidden": ["随机采样 FACT_DOMAINS（2 万次只得 156 记录，dismissal=NONE 占 74%）",
+                          "重复记录凑数（互异率必须 = 1.0）",
+                          "事后改配额或把不可行层静默丢弃",
+                          "用模型生成事实/金标/证书"],
+            "never_coexisting_combinations": {
+                "requirement": "至少覆盖下列'现有语料从未共存'的组合各 ≥1 题，并在 coverage 报告中逐条记录：",
+                "list": [
+                    "appeal_made=False + dismissal_candidate=LBW",
+                    "appeal_in_time=False + dismissal_candidate=CAUGHT",
+                    "contact=PERSON + wide_called=True",
+                    "dead_before_wicket=True + dismissal_candidate=RUN_OUT",
+                    "penalty_runs_batting=5 + boundary_mode=OVERTHROW",
+                ],
+                "note": "这些组合的 record 分别由 solver 决定；合同只要求事实共现，不预设 record。",
+            },
+            "quota_report": {
+                "artifact": "03_build/r28_candidate/audit/quota_report.json",
+                "must_match": "02_contract/evidence/quota_assignment_check.json 的 quota_table 逐层逐格",
+            },
+        },
+        "hard_acceptance": [
+            {"id": "HA1", "name": "发布集互异记录率", "threshold": "distinct_record_ratio == 1.0（160/160）",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA2", "name": "每族至多 1 题", "threshold": "160 个互异 neutral family；配对两臂共享 family",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA3", "name": "恒定字段 = 0", "threshold": "12 个字段中无任何字段在 160 题上恒定",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA4", "name": "常数字段非零覆盖", "threshold": "ledger.BYE ≥40、ledger.LEG_BYE ≥32、ledger.PENALTY ≥60（计划值 46/38/78）",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA5", "name": "dismissal 不退化", "threshold": "NONE ≤40%（计划 38.75%）；RUN_OUT ≥30；OBSTRUCTING ≥20；HIT_BALL_TWICE ≥20；合法 dismissal ≥8",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA6", "name": "delivery_status 覆盖", "threshold": "LEGAL ≥60、NO_BALL ≥40、WIDE ≥20、DEAD_REBALL = 1（结构单点，见 CEIL-1）",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA7", "name": "证书覆盖率与重推", "threshold": "覆盖率 100%；solver 重推金标成功率 100%（两臂各自）",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA8", "name": "双渲染一致性", "threshold": "solver_facts 与 decision_record_flat 逐字节相同 160/160；question_text 160/160 相同；两臂证书各自重推 100%",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA9", "name": "确定性重建", "threshold": "同 seed + 同配置重建 MANIFEST tree aggregate 逐字节相同",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA10", "name": "族名基线", "threshold": "仅族名信息字段准确率 ≤40%",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA11", "name": "泄漏审计", "threshold": "public 无 gold/level/dose/family 语义；无答案字符串；无跨集近重复；held_out 不在 public",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA12", "name": "配额与格分配", "threshold": "逐层配额 = 合同值；因子核 16 格 ×4；剂量阶梯 12 格 ×8；每格 ≥2 status 与 ≥2 dismissal",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA13", "name": "未共存事实组合覆盖", "threshold": "5 个指定组合各 ≥1 题，逐条记录",
+             "verified_by": "t5 + t6", "blocking": False},
+            {"id": "HA14", "name": "记录空间安全余量", "threshold": "发布+held_out 互异记录 200 ≤ 可达下界 761 × 0.9 = 684.9",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA15", "name": "prompt 预算", "threshold": "每题 prompt_eval_count ≤7000 tokens；dossier ≤12 文档、≤80 span；超限判不合格、不截断",
+             "verified_by": "t5 + t6", "blocking": True},
+            {"id": "HA16", "name": "输出 schema 冻结", "threshold": "12 字段与枚举、evidence_spans id 规则与 R26.15 兼容；字段名不得改",
+             "verified_by": "t6 + t8", "blocking": True},
+            {"id": "HA17", "name": "N 参数化", "threshold": "代码与配置无硬编码 160；所有计数可由 n_published 派生",
+             "verified_by": "t5 + t8", "blocking": True},
+        ],
+        "baselines_and_metrics": {
+            "authority": "预注册 VETT-R28-PREREG-20261112-v1（本合同以预注册为准；端点与判定一律引用预注册，不另行定义）",
+            "three_baseline_gate": {
+                "thresholds": {"constant_prior_informative": b_const,
+                               "question_text_tfidf_logreg_informative": b_lr,
+                               "anchor_mode_informative": b_anchor,
+                               "anchor_mode_record_exact": b_anchor_exact},
+                "display": {"constant_prior": "52.89%", "question_text_tfidf_logreg": "54.22%",
+                            "anchor_mode": "73.33%", "anchor_mode_record_exact": "32%"},
+                "direction": "'更难' = 准确率更低；发布版信息字段准确率必须严格低于每条基线的 min(冻结参考, R28 同集重测)。",
+                "single_baseline_forbidden": "仅越过常数先验不算成立。",
+                "source": "01_measurement/BASELINES.json",
+            },
+            "reporting": {
+                "brier": "四项并列：per_record_brier + base_rate + brier_skill（气候学 0.2016）+ per_cell_brier（0.2956 / 0.3927）；禁止 vs 0.25。",
+                "edges": "五分列：minimal_evidence_edge_f1 0.2993 / given recovered nodes 0.4886 / given gold nodes 0.3857 / endpoint recovery 0.3253 / content_dependency 0.0923；as-coded 0.7696 仅 legacy 脚注。",
+                "primary_metric": "decision_informative_field_accuracy（9 字段，ITT）；全字段仅描述。",
+            },
+        },
+        "effective_n": {
+            "r28": "160 题 / 160 族 / 160 互异记录（配对两臂共享 family，不增加 n）",
+            "r26_15_comparison": "n_eff ≤25 族 / 16 互异记录；按族 bootstrap（25 clusters）；禁止把 100 题当独立样本。",
+            "rule": "任何结果表必须打印 n_items / n_families / n_distinct_records。",
+        },
+        "forbidden_items": [
+            {"id": "FORBID-1", "item": "证据文档数/分散度作为加难机制",
+             "evidence": "2→6→13 文档：信息字段 4.033→4.200→4.552（反向上升）；71.9→65.4→33.0 t/s；配对 80K−15K=+0.552"},
+            {"id": "FORBID-2", "item": "上下文长度作为加难机制", "evidence": "80K 比 15K 只高 0.55/9，却慢约 4 倍"},
+            {"id": "FORBID-3", "item": "bridge depth 作为 R28 因子", "evidence": "与等级双射（eta²=1.0），无法独立操纵"},
+            {"id": "FORBID-4", "item": "随机采样构造记录", "evidence": "2 万次仅 156 互异，dismissal=NONE 74%"},
+            {"id": "FORBID-5", "item": "硬编码 n_published=160", "evidence": "合同要求 N 参数化；硬编码使 amendment 失败"},
+            {"id": "FORBID-6", "item": "把设计意图当证据（声称剂量能加难）", "evidence": "VERIFIED=0；HYP-R28-DOSE=UNTESTED"},
+            {"id": "FORBID-7", "item": "修改 R26.15 任何字节", "evidence": "t1 冻结 165 文件/93,346,177 字节/聚合 343afde4…51bd"},
+            {"id": "FORBID-8", "item": "用 L1–L5 等级作为抽样单位或难度因子", "evidence": "B1 can_redesign_levels_from_25_questions=false；每级 n=5"},
+            {"id": "FORBID-9", "item": "付费推理 API", "evidence": "硬约束 ¥0；本地 Ollama 为主模型"},
+            {"id": "FORBID-10", "item": "语言模型生成事实/金标/证书", "evidence": "证书必须由确定性 solver 生成"},
+        ],
+        "findings_and_constraints": {
+            "findings": [
+                {"id": "F1", "summary": "R26.15 的 100 题 = 25 族 × 4 副本，同族金标完全相同，只有 16 个互异记录；族分类器 100%。",
+                 "implication": "R28 必须一题一族一记录；R26.15 比较按族聚类。"},
+                {"id": "F2", "summary": "常数预测器 64.67% vs GLM 66.33%（+1.66pp）；信息字段 52.89% vs 55.11%。",
+                 "implication": "主指标改为信息字段 + skill；任何候选必须报常数先验对照。"},
+                {"id": "F3", "summary": "只看题面 TF-IDF+LR：信息字段 54.22%，与 GLM 55.11% 只差 0.89pp。",
+                 "implication": "无卷宗基线必须列为强制对照；'更难'不能只对常数先验成立。"},
+                {"id": "F4", "summary": "Brier 0.626796 无标度错误但参考类错；气候学 0.2016；skill −2.11；cell 级 0.2956/0.3927。",
+                 "implication": "Brier 四项并列；禁止 vs 0.25。"},
+                {"id": "F5", "summary": "as-coded conditional_edge_link_f1 0.7696 条件混用；端点恢复率 0.3253；一致版 0.4886/0.3857。",
+                 "implication": "边指标五分列；禁止把 0.7696 写成'给定正确节点'。"},
+                {"id": "F6", "summary": "R26.15 难度因子与等级高度共线：bridge_depth 双射；distractor_count/temporal_joins 是等级函数；derivation 0.90、temporal 0.77、active_source 0.707。",
+                 "implication": "四剂量必须由生成器独立赋值，禁止从 difficulty_vector 反推。"},
+                {"id": "F7", "summary": "scene_family 名称内嵌等级；active_source 部分分离；anchor 是唯一与等级正交的区组。",
+                 "implication": "族名中性化；可用 anchor 作区组但不得作为难度因子。"},
+                {"id": "F8", "summary": "observed_informative_field_value_cells=41 是去重桶数，不是分母；分母恒为 225/1440。",
+                 "implication": "报告必须写分子/分母。"},
+            ],
+            "constraints": [
+                {"id": "C1", "text": "主指标 = decision_informative_field_accuracy + 逐级/逐条件 skill（先验用不相交池重算），强制报告常数先验与 Wilson CI。"},
+                {"id": "C2", "text": "所有下游比较必须含四类基线：常数先验、anchor 众数、题面 1NN、题面 TF-IDF+LR；任何'更难'结论必须同时超过才有解释力。"},
+                {"id": "C3", "text": "记录级指标必须按场景族聚类报 n_eff（R26.15：25 族/16 记录），或使用每族至多 1 题的设计。"},
+                {"id": "C4", "text": "边指标分列：edge F1 0.2993、两个一致条件版 0.4886/0.3857、endpoint recovery 0.3253、content-dependency 0.0923。"},
+                {"id": "C5", "text": "Brier 以 record-exact 基率 0.28 的气候学 0.2016 为参考并报 skill；per-cell Brier 单列。"},
+                {"id": "C6", "text": "R28 因子设计必须与等级正交；semantic/lexical_bridge_depth 不得作为难度因子。"},
+            ],
+        },
+        "risks_and_limitations": [
+            {"id": "RISK-1", "risk": "剂量效应未被验证", "status": "UNTESTED", "mitigation": "E2 唯一裁决；合同不预设成立；失败按零结果契约报告。"},
+            {"id": "RISK-2", "risk": "D2/D3 的 0/1/2 语义当前 renderer 只支持布尔或单冲突", "status": "IMPLEMENTATION_REQUIRED",
+             "mitigation": "t5 必须实现真正的 revision chain（D2）与 ≥2 冲突+masked cell（D3）；HA 验收覆盖。"},
+            {"id": "RISK-3", "risk": "记录空间不均匀：DEAD_REBALL=1、合法 dismissal≤10", "status": "KNOWN_CEILING",
+             "mitigation": "配额已按可达上限设计；数据卡必须披露结构单点；不得重复记录。"},
+            {"id": "RISK-4", "risk": "模型上下文 8192 限制", "status": "HARD_CAP",
+             "mitigation": "每题独立紧凑 dossier，prompt ≤7000 tokens；长文档不是难度机制（REJECTED）。"},
+            {"id": "RISK-5", "risk": "功效不足（10pp 只有 ~52% 功效）", "status": "USER_DECISION_REQUIRED",
+             "mitigation": "见 user_decision_required.power_insufficiency；N 已参数化，amendment 只需改一个数。"},
+            {"id": "RISK-6", "risk": "金标未经人工双标", "status": "KNOWN_LIMITATION",
+             "mitigation": "t24 人工就绪包；论文列为发表阻断项；不得声称已验证。"},
+            {"id": "RISK-7", "risk": "本地 7B 是弱基线、temperature=0 非逐位确定", "status": "KNOWN_LIMITATION",
+             "mitigation": "预注册已声明；E5 多模型面板；数据构建确定性不受影响。"},
+            {"id": "RISK-8", "risk": "solver 是单球规则查表器（26 事实、约 20 规则分支）", "status": "KNOWN_LIMITATION",
+             "mitigation": "数据卡不得声称'多跳推理机'；难度机制只做可识别的呈现层操纵。"},
+        ],
+        "user_decision_required": {
+            "power_insufficiency": {
+                "status": "PENDING_USER_DECISION（t25 第一问题）",
+                "statement": "预注册判定要求点估计 ≥10pp 且两个 95% CI 下界 >0；但 n=160、40% 不一致率下 SE=5.0pp、CI 半宽 ±9.8pp，10pp 的双侧 80% 功效不达（约 52%；80% 功效 MDE≈14.0pp）。即使按可达记录空间扩量，扩到 N=240 也只把 MDE 降到约 11.4pp（10pp 功效约 69%）；要稳定检出 10pp 需要 N≈320（10pp 功效约 81%，MDE≈9.9pp）。记录空间探针下界 761，足以支撑 N=320（需 360 互异记录 + 10% 余量 = 396）。",
+                "options": [
+                    {"id": "A", "label": "保持 N=160", "consequence": "最省（320 次 E1 推理）；如实申报 MDE≈14pp；10pp 级效应大概率被判 DIRECTION_ONLY；不会产生假阳性，但可能漏检真实的小效应。"},
+                    {"id": "B", "label": "扩到 N=240（captain 方案）", "consequence": "需 prereg amendment v2 + t8 + 用户签字；E1 480 次推理；MDE≈11.4pp、10pp 功效≈69%；仍不能保证检出 10pp；E2/E3 规模随之变为 144/96。"},
+                    {"id": "B2", "label": "扩到 N=320（达到 80% 功效的最小 ladder 值）", "consequence": "需 amendment + t8 + 用户签字；E1 640 次推理；MDE≈9.9pp、10pp 功效≈81%；记录需求 396 ≤ 761，可行；构建与审计工作量约翻倍。"},
+                    {"id": "C", "label": "保持 N=160 但改写结论口径", "consequence": "不触碰预注册数字，但把可发表的结论限定为'可可靠检出 ≥14pp'；10pp 级效应只能报方向；审稿人若主诉是'效应小'，此选项最诚实也最弱。"},
+                ],
+                "assumption_note": "以上功效数字均按 40% 不一致率、双侧 α=0.05、无多重校正（主端点单一）计算；实际不一致率偏离时报告实际 SE/CI/功效。",
+                "default_if_no_decision": "保持 A（N=160）直至用户在 t25 明确选择；不得由执行方自行扩量。",
+            },
+            "n_amendment_package": {
+                "status": "PREPARED_NOT_APPLIED",
+                "one_parameter": "n_published",
+                "derived_automatically": ["factor_core_n = 2N/5", "dose_ladder_n = 3N/5", "c = N/40", "m = N/20", "scenes = N/5",
+                                          "quota_rescale_v1", "power ladder 行", "held_out 规模保持 40 或按比例另议"],
+                "requires_t8": ["t8 独立重算 prereg endpoint_registry_sha256", "t8 核验 amendment 与端点一致性",
+                                "t8 复算 quota 表与 caps 检查", "t8 重建 MANIFEST 确定性"],
+                "requires_user": ["t25 人工门签字", "如改 N 则同步改预注册 design/power/effective_n 与 E2/E3 n"],
+            },
+        },
+        "change_control": {
+            "frozen": True,
+            "policy": [
+                {"id": "CC1", "rule": "合同冻结后，四剂量语义、两臂拆分、配额表、硬验收阈值、N 约束、禁用项不得静默修改；任何修改必须写入 02_contract/contract_amendments.jsonl 并重新冻结。"},
+                {"id": "CC2", "rule": "涉及预注册端点/阈值/停止规则的修改一律走预注册 amendment（AM2/AM5）；合同不得先于预注册改动。"},
+                {"id": "CC3", "rule": "t8 必须独立重算 contract sha256、quota 表、格分配、twin identity、R26.15 零漂移与 N 参数化；任一不符 → FAIL。"},
+                {"id": "CC4", "rule": "用户未确认 t25 前，t5/t12/t13/t24 不得开工。"},
+            ],
+            "amendments_log": "02_contract/contract_amendments.jsonl",
+        },
+        "verification": {
+            "verifier_script": "VETT_R28_DIFFICULTY_20261112/02_contract/scripts/contract_verify.py",
+            "output": "VETT_R28_DIFFICULTY_20261112/02_contract/contract_verify_result.json",
+            "check_categories": [
+                "结构：必需段、四剂量、三集合、两块、N 参数、用户决策包",
+                "证据：探针 761、67 层、结构天花板、配额 ≤ caps、160/64/96、格分配可行",
+                "基线：52.89/54.22/73.33/32 与 BASELINES.json 逐位一致；方向与单基线禁令",
+                "预注册一致性：端点未改、endpoint_registry_sha256 与 freeze 一致、报告口径引用",
+                "机制：VERIFIED 0 / UNTESTED 6 / REJECTED 3；两条推翻记录；B1 限制；推导深度 UNTESTED",
+                "t2 findings F1–F8 与 constraints C1–C6 齐备",
+                "禁用项 10 条（含 REJECTED 机制、随机采样、硬编码 N、改 R26.15、付费 API）",
+                "硬验收 HA1–HA17（含互异率、常数字段、证书、双渲染、确定性、族名、泄漏、配额、prompt 预算）",
+                "冻结一致性：contract sha256 与 contract_freeze.json / CONTRACT.sha256 一致",
+                "R26.15 零漂移：165 文件 / 93,346,177 字节 / 聚合 343afde4…51bd",
+            ],
+        },
+        "digests": {
+            "quota_table_sha256": None,
+            "hard_acceptance_sha256": None,
+            "dose_semantics_sha256": None,
+            "canonicalization": "JSON sort_keys=True / ensure_ascii=False / separators=(',',':') / UTF-8；文件字节 hash 用 SHA-256",
+        },
+    }
+
+    # ---- 冻结元数据 ----
+    if args.freeze:
+        if CONTRACT_JSON.is_file():
+            try:
+                existing_version = json.loads(CONTRACT_JSON.read_text(encoding="utf-8")).get("version", "0")
+            except json.JSONDecodeError:
+                existing_version = "0"
+            if existing_version >= "1.1.0" and not args.force:
+                print(f"[build_contract] 现有合同版本 {existing_version} ≥ 1.1.0（已由 amendment 升级）；"
+                      f"禁止用 v1.0.0 生成器覆盖。请使用 amend_contract 脚本或 --force。", file=sys.stderr)
+                return 6
+        if FREEZE_JSON.exists() and not args.force:
+            print(f"[build_contract] 已存在冻指纹 {FREEZE_JSON}，如需重建请 --force", file=sys.stderr)
+            return 2
+        now = _dt.datetime.now().astimezone()
+        utc = now.astimezone(_dt.timezone.utc)
+        contract["frozen_at_utc"] = utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        contract["frozen_at_local"] = now.isoformat(timespec="seconds")
+        for group in ("measurement_inputs", "design_inputs", "evidence"):
+            for item in contract["bindings"][group]:
+                p = WS / item["path"]
+                if not p.is_file():
+                    print(f"[build_contract] 缺少输入: {p}", file=sys.stderr)
+                    return 3
+                item["sha256"] = sha256_file(p)
+        contract["digests"]["quota_table_sha256"] = sha256_bytes(canon(contract["design"]["quota_table"]["rows"]))
+        contract["digests"]["hard_acceptance_sha256"] = sha256_bytes(canon(contract["hard_acceptance"]))
+        contract["digests"]["dose_semantics_sha256"] = sha256_bytes(canon(contract["design"]["doses"]))
+        CONTRACT_DIR.mkdir(parents=True, exist_ok=True)
+        amend_log = CONTRACT_DIR / "contract_amendments.jsonl"
+        if not amend_log.exists():
+            amend_log.write_text("", encoding="utf-8")
+        CONTRACT_JSON.write_text(json.dumps(contract, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        data = CONTRACT_JSON.read_bytes()
+        md_path = CONTRACT_DIR / "R28_CONTRACT.md"
+        doc_files = {}
+        for p in (md_path,):
+            if p.is_file():
+                b = p.read_bytes()
+                doc_files[p.name] = {"bytes": len(b), "sha256": sha256_bytes(b)}
+        freeze = {
+            "schema": FREEZE_SCHEMA,
+            "contract_id": contract["contract_id"],
+            "version": contract["version"],
+            "frozen_at_utc": contract["frozen_at_utc"],
+            "frozen_at_local": contract["frozen_at_local"],
+            "file": {"path": "02_contract/r28_contract.json", "bytes": len(data), "sha256": sha256_bytes(data)},
+            "doc_files": doc_files,
+            "digests": contract["digests"],
+            "verification_script": "02_contract/scripts/contract_verify.py",
+            "note": "任何剂量语义/配额/硬验收/端点绑定改动都会改变 digests 或文件 sha256；t8 必须独立重算。",
+        }
+        FREEZE_JSON.write_text(json.dumps(freeze, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        sha_lines = [f"{sha256_bytes(data)}  r28_contract.json"]
+        for name, info in doc_files.items():
+            sha_lines.append(f"{info['sha256']}  {name}")
+        SHA_FILE.write_text("\n".join(sha_lines) + "\n", encoding="utf-8")
+        print(f"[build_contract] frozen: {CONTRACT_JSON} ({len(data)} B)")
+        print(f"[build_contract] sha256: {sha256_bytes(data)}")
+        print(f"[build_contract] quota_sha256: {contract['digests']['quota_table_sha256']}")
+        return 0
+
+    # ---- check 模式：核验冻结指纹（字节重建校验交由 t8 的语义校验器负责） ----
+    if not CONTRACT_JSON.is_file() or not FREEZE_JSON.is_file():
+        print("[build_contract] 缺少已冻结文件；请先 --freeze", file=sys.stderr)
+        return 4
+    data = CONTRACT_JSON.read_bytes()
+    freeze = json.loads(FREEZE_JSON.read_text(encoding="utf-8"))
+    ok = (freeze["file"]["sha256"] == sha256_bytes(data)
+          and freeze["file"]["bytes"] == len(data)
+          and SHA_FILE.is_file()
+          and SHA_FILE.read_text(encoding="utf-8").split()
+          and SHA_FILE.read_text(encoding="utf-8").split()[0] == freeze["file"]["sha256"])
+    print("[build_contract] check:",
+          "冻结指纹与文件一致" if ok else "冻结指纹与文件不一致（文件已被修改？）")
+    return 0 if ok else 5
+
+
+if __name__ == "__main__":
+    sys.exit(main())

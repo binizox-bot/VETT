@@ -1,0 +1,1351 @@
+{
+  "artifacts": {
+    "a_results": "01_measurement/A_RESULTS.json",
+    "baselines": "01_measurement/BASELINES.json",
+    "difficulty_proxies": "01_measurement/DIFFICULTY_PROXIES.json",
+    "measurement_validity_note": "01_measurement/MEASUREMENT_VALIDITY_NOTE.md",
+    "scripts": "01_measurement/scripts/"
+  },
+  "auditor": "measurement_auditor",
+  "can_proceed_to_design_and_implementation": true,
+  "conditions_to_proceed": [
+    "冻结新测量契约：主指标 = decision_informative_field_accuracy + 逐级 skill（先验必须用与评估集不相交的 75 题/或等价的 held-out 池重算），并强制报告常数先验与 95% Wilson CI。",
+    "所有下游比较必须含四类基线：常数先验、anchor 众数、题面 1NN、题面 TF-IDF+LR；任何'更难'结论必须同时超过这四条才有解释力。",
+    "记录级指标必须按场景族聚类报告 n_eff（100 题 -> 25 族 / 16 个不同记录），或使用每族至多 1 题的设计。",
+    "边指标分列：edge F1 (as-coded 0.2993) 与两个一致条件版本、endpoint recovery (0.3253)、content-dependency edge F1 (0.0923)。",
+    "Brier 以 record-exact 基率 0.28 的气候学 0.2016 为参考并报 skill；per-cell Brier 单独列。",
+    "R28 因子设计必须与等级正交；semantic/lexical_bridge_depth 不得再作为难度因子（它们与等级双射）。"
+  ],
+  "date": "2026-11-12",
+  "findings": [
+    {
+      "finding": "场景族内部 4 道题的金标 decision_record 完全相同：25 个族 x 4 重复 = 100 题，但只有 16 个不同金标记录（16 个族集合）且 25 个族中 25 个族内记录唯一。族分类器（给定族名）在 100 题与 75->25 上 field/record 全 = 100%。",
+      "id": "F1",
+      "implication": "100 题的记录级有效 n 至多 25（族数）/ 16（不同记录）；任何按题独立计算的置信区间都会高估精度。R28 必须把族作为抽样单位并禁止同族跨 split，或显式报告族聚类的 n_eff。",
+      "severity": "high"
+    },
+    {
+      "finding": "主指标由先验主导：常数预测器 64.67% vs GLM 66.33%（+1.66pp）；信息字段 52.89% vs 55.11%（+2.22pp, skill 4.72%）。",
+      "id": "F2",
+      "implication": "66.33% 不能作为'读卷宗'的证据；主指标改为信息字段 + skill，且任何候选必须报告常数先验对照。",
+      "severity": "high"
+    },
+    {
+      "finding": "仅题面 TF-IDF + 逻辑回归（不读卷宗）在 75->25 上得到 informative 54.22% / all 65.67% / record exact 0%，与 GLM 的 55.11% / 66.33% / 28% 只差 0.9pp / 0.66pp；5 折交叉（80 题训练）为 49.0% / 61.75%。",
+      "id": "F3",
+      "implication": "当前测量无法区分'读卷宗'与'只读题面'。R28 必须把无卷宗基线（题面 LR / 常数 / anchor）列为强制对照，否则'更难'不可识别。",
+      "severity": "high"
+    },
+    {
+      "finding": "Brier 0.626796 复算一致且不存标度错误（confidence 0.93-0.95，按 25 题逐题）；但参考类选错：record-exact 基率 0.28 的气候学常数 = 0.2016，Brier skill = -2.11；per-cell Brier 为 0.2956（全字段）/ 0.3927（信息字段），与 0.25 也不可比。",
+      "id": "F4",
+      "implication": "Brier 必须与基率、skill、per-cell 版本同时报告；'0.627 vs 0.25' 的对比作废。",
+      "severity": "medium"
+    },
+    {
+      "finding": "as-coded conditional_edge_link_f1 = 0.7696 的 precision 以 gold 节点为条件、recall 以模型恢复节点为条件；gold 边端点恢复率仅 32.53%。一致版本：给定恢复节点 F1=0.4886，给定 gold 节点 F1=0.3857。",
+      "id": "F5",
+      "implication": "瓶颈同时存在于 span 恢复与边连接：0.77 高估了边推理能力；主报告须分列 edge F1 / 两个一致条件 F1 / endpoint recovery。",
+      "severity": "medium"
+    },
+    {
+      "finding": "R26.15 的难度因子与等级高度共线：semantic/lexical_bridge_depth 与等级双射（eta2=1.0）；distractor_count 与 temporal_joins 是等级的确定性函数（eta2=1.0）；derivation_depth (0.90)、temporal_depth (0.77)、evidence_span_count (0.65)、evidence_doc_count (0.46) 强混杂；evidence_dispersion 无等级信号（eta2=0.011）。",
+      "id": "F6",
+      "implication": "2x2x2x2 因子设计不能从 R26.15 直接切分；必须重采样使因子与等级正交，并替换 semantic_bridge_depth 这类等价于等级的伪因子。",
+      "severity": "high"
+    },
+    {
+      "finding": "scene_family 名称内嵌等级（25 族 = 每级 5 族，Cramér's V=1，族->等级确定性）；active_source 完全分离 L1-L3 vs L4-L5（V=0.707）；context_band 与等级正交（V=0）；anchor 与等级正交（5x5 完全平衡，V=0）。",
+      "id": "F7",
+      "implication": "唯一可用的正交区组因子是 cross_level_anchor_family；R28 因子平衡可复用 anchor 作为区组，但必须重建与其正交的其余因子。",
+      "severity": "medium"
+    },
+    {
+      "finding": "observed_informative_field_value_cells = 41 是 (字段,值) 去重桶数，不是分母；信息字段分母恒为 225。",
+      "id": "F8",
+      "implication": "报告口径需写明分子/分母。",
+      "severity": "low"
+    }
+  ],
+  "gates": {
+    "A1": {
+      "criterion": "逐级先验算完且能解释 L2–L5",
+      "evidence": {
+        "definition": "逐级 leave-one-match-out：对每题的每个信息字段，取同等级、其余 19 场比赛（全 100 题）的众数；与 R26.18/R28 已冻结的 _answer_profile 口径一致。",
+        "mean_skill_L2_L5": -0.228294,
+        "per_level_observed_informative_rate": {
+          "L1": 1.0,
+          "L2": 0.422222,
+          "L3": 0.511111,
+          "L4": 0.466667,
+          "L5": 0.355556
+        },
+        "per_level_prior_rate": {
+          "L1": 0.555556,
+          "L2": 0.422222,
+          "L3": 0.711111,
+          "L4": 0.444444,
+          "L5": 0.488889
+        },
+        "per_level_prior_rate_quoted_target": {
+          "L1": 0.5556,
+          "L2": 0.4222,
+          "L3": 0.7111,
+          "L4": 0.4444,
+          "L5": 0.4889
+        },
+        "per_level_skill": {
+          "L1": 1.0,
+          "L2": 0.0,
+          "L3": -0.692308,
+          "L4": 0.04,
+          "L5": -0.26087
+        },
+        "per_level_skill_quoted_target": {
+          "L1": 1.0,
+          "L2": 0.0,
+          "L3": -0.69,
+          "L4": 0.04,
+          "L5": -0.26
+        },
+        "strict_holdout_mean_skill_L2_L5": -0.38474,
+        "strict_holdout_prior_rate": {
+          "L1": 0.644444,
+          "L2": 0.511111,
+          "L3": 0.733333,
+          "L4": 0.533333,
+          "L5": 0.533333
+        },
+        "strict_holdout_skill": {
+          "L1": 1.0,
+          "L2": -0.181818,
+          "L3": -0.833333,
+          "L4": -0.142857,
+          "L5": -0.380952
+        }
+      },
+      "explanation": "逐级先验目标值 55.6/42.2/71.1/44.4/48.9 与 skill 1.0/0/-0.69/0.04/-0.26 被逐位复现。L2–L5 的均值 skill = -0.228（严格 hold-out 先验下 -0.385），即 L2–L5 整体处于自身先验之下或恰好等于先验，L3/L5 显著低于先验；L1 的 100% 只是先验可完美命中的平凡结果，不构成难度证据。因此 §1 的 -9pp 不是聚合假象，等级阶梯在信息字段上不存在单调难度梯度。",
+      "status": "PASS"
+    },
+    "A2": {
+      "criterion": "主指标改为信息字段 + skill",
+      "evidence": {
+        "all_field_cells": {
+          "correct": 199,
+          "rate": 0.6633333333333333,
+          "total": 300
+        },
+        "constant_fields": [
+          "ledger.BYE",
+          "ledger.LEG_BYE",
+          "ledger.PENALTY"
+        ],
+        "constant_prior_informative_119_of_225": 0.528889,
+        "delta_all_field_pp": 1.6667,
+        "delta_informative_pp": 2.2222,
+        "informative_cells": {
+          "correct": 124,
+          "rate": 0.5511111111111111,
+          "total": 225
+        },
+        "informative_field_list": [
+          "batter_runs",
+          "bowler_runs",
+          "counts_in_over",
+          "delivery_status",
+          "dismissal",
+          "ledger.BATTER",
+          "ledger.NO_BALL_EXTRA",
+          "ledger.WIDE_EXTRA",
+          "total_runs"
+        ],
+        "per_field_signal": {
+          "batter_runs": {
+            "distinct_values_all100": 5,
+            "mode_share_all100": 0.52,
+            "mode_share_sentinel25": 0.52,
+            "mode_value": 0,
+            "model_accuracy_sentinel25": 0.56,
+            "official_lomo_prior_accuracy_sentinel25": 0.52,
+            "skill_over_prior": 0.08333333333333341
+          },
+          "bowler_runs": {
+            "distinct_values_all100": 7,
+            "mode_share_all100": 0.32,
+            "mode_share_sentinel25": 0.32,
+            "mode_value": 1,
+            "model_accuracy_sentinel25": 0.32,
+            "official_lomo_prior_accuracy_sentinel25": 0.32,
+            "skill_over_prior": 0.0
+          },
+          "counts_in_over": {
+            "distinct_values_all100": 2,
+            "mode_share_all100": 0.52,
+            "mode_share_sentinel25": 0.52,
+            "mode_value": true,
+            "model_accuracy_sentinel25": 0.64,
+            "official_lomo_prior_accuracy_sentinel25": 0.52,
+            "skill_over_prior": 0.25
+          },
+          "delivery_status": {
+            "distinct_values_all100": 4,
+            "mode_share_all100": 0.52,
+            "mode_share_sentinel25": 0.52,
+            "mode_value": "LEGAL",
+            "model_accuracy_sentinel25": 0.48,
+            "official_lomo_prior_accuracy_sentinel25": 0.52,
+            "skill_over_prior": -0.08333333333333341
+          },
+          "dismissal": {
+            "distinct_values_all100": 6,
+            "mode_share_all100": 0.48,
+            "mode_share_sentinel25": 0.48,
+            "mode_value": "NONE",
+            "model_accuracy_sentinel25": 0.6,
+            "official_lomo_prior_accuracy_sentinel25": 0.48,
+            "skill_over_prior": 0.23076923076923075
+          },
+          "ledger.BATTER": {
+            "distinct_values_all100": 5,
+            "mode_share_all100": 0.52,
+            "mode_share_sentinel25": 0.52,
+            "mode_value": 0,
+            "model_accuracy_sentinel25": 0.52,
+            "official_lomo_prior_accuracy_sentinel25": 0.52,
+            "skill_over_prior": 0.0
+          },
+          "ledger.NO_BALL_EXTRA": {
+            "distinct_values_all100": 2,
+            "mode_share_all100": 0.76,
+            "mode_share_sentinel25": 0.76,
+            "mode_value": 0,
+            "model_accuracy_sentinel25": 0.8,
+            "official_lomo_prior_accuracy_sentinel25": 0.76,
+            "skill_over_prior": 0.16666666666666682
+          },
+          "ledger.WIDE_EXTRA": {
+            "distinct_values_all100": 3,
+            "mode_share_all100": 0.8,
+            "mode_share_sentinel25": 0.8,
+            "mode_value": 0,
+            "model_accuracy_sentinel25": 0.72,
+            "official_lomo_prior_accuracy_sentinel25": 0.8,
+            "skill_over_prior": -0.40000000000000047
+          },
+          "total_runs": {
+            "distinct_values_all100": 7,
+            "mode_share_all100": 0.32,
+            "mode_share_sentinel25": 0.32,
+            "mode_value": 1,
+            "model_accuracy_sentinel25": 0.32,
+            "official_lomo_prior_accuracy_sentinel25": 0.32,
+            "skill_over_prior": 0.0
+          }
+        },
+        "skill_over_global_prior_informative": 0.04717
+      },
+      "explanation": "主指标 66.33% 相对常数预测器 64.67% 只有 +1.66pp；信息字段 55.11% 相对常数 52.89% 只有 +2.22pp（skill 4.72%，95% Wilson CI 与先验 CI 大幅重叠）。9 个信息字段中 4 个高于先验、3 个恰好等于先验、2 个低于先验（delivery_status -8.3pp，ledger.WIDE_EXTRA -40pp）。因此主指标必须改为信息字段准确率 + 逐级 skill，且必须同时报告先验与分母。",
+      "status": "PASS"
+    },
+    "A3": {
+      "criterion": "conditional_edge_link_f1 与 edge F1 分列",
+      "evidence": {
+        "coherent_given_gold_nodes": {
+          "f1": 0.3856691253951528,
+          "fn": 521,
+          "fp": 62,
+          "precision": 0.746938775510204,
+          "recall": 0.2599431818181818,
+          "tp": 183
+        },
+        "coherent_given_recovered_nodes": {
+          "f1": 0.4885906040268456,
+          "fn": 47,
+          "fp": 334,
+          "precision": 0.35271317829457366,
+          "recall": 0.7947598253275109,
+          "tp": 182
+        },
+        "conditional_edge_link_f1_as_coded": {
+          "f1": 0.7695560253699789,
+          "fn": 47,
+          "fp": 62,
+          "precision": 0.7459016393442623,
+          "recall": 0.7947598253275109,
+          "tp": 182
+        },
+        "content_dependency_edge_f1": {
+          "f1": 0.0923076923076923,
+          "fn": 75,
+          "fp": 43,
+          "precision": 0.12244897959183673,
+          "recall": 0.07407407407407407,
+          "tp": 6
+        },
+        "edge_f1_end_to_end": {
+          "f1": 0.2992641046606705,
+          "fn": 521,
+          "fp": 336,
+          "precision": 0.35260115606936415,
+          "recall": 0.2599431818181818,
+          "tp": 183
+        },
+        "gap_edge_vs_conditional_f1_pp": 47.0292,
+        "gold_edge_endpoint_recovery_rate": {
+          "gold": 704,
+          "predicted": 519,
+          "predicted_on_gold_nodes": 245,
+          "predicted_on_gold_nodes_share": 0.4720616570327553,
+          "rate": 0.3252840909090909,
+          "recovered": 229
+        }
+      },
+      "explanation": "两个数已被分列并独立复算：端到端 edge F1 = 0.2993；as-coded conditional_edge_link_f1 = 0.7696。但后者不是'给定正确节点'的指标：它的 precision（0.7459）以 gold 节点为条件，recall（0.7948）却以模型恢复节点为条件——只在32.53% 的 gold 边上计算。一致的版本为：给定恢复节点 F1=0.4886，给定 gold 节点 F1=0.3857。因此 §5.2 的'给定正确节点边连对 77%' 表述必须改为分列口径。",
+      "status": "PASS"
+    }
+  },
+  "inputs": {
+    "analysis_sha256": "58d5a91e88b5eb51ac98a221fb1c3f1743da70a7a15bbe7ebdf7bdd7380c6290",
+    "dataset_release_summary_sha256": "01f32665f886c3af779ff56710171ec930bd00fcd353e8c20587b3d6970eef73",
+    "gold_sha256": {
+      "match_0021": "30c4537a2f056a6619f67682f6d54e20865e56307a6c3a004d7aa90bed43a5c3",
+      "match_0066": "cd59b9dd1d988f92b52bc55d38721e68c57cc2f7028f8a8064239c4b487e63ce",
+      "match_0067": "25d2e4b7f214107b6f3c7670a00179e9ba33f6e0518277cadb513fe9a4d4810f",
+      "match_0162": "a2236fc1c29a169969efb9e245d4659d01f2d7a43d50f804fae8eb058e0e2eca",
+      "match_0220": "8d2450168ed34cfe1a35a231f25d7a574116188b5090ac946d047d0bb11b00df"
+    },
+    "predictions_sha256": "c082c85da9e8737e02909ea5cf334f117247184d2844507f98be287ae056c32a"
+  },
+  "measured_facts": {
+    "brier": {
+      "brier_skill_vs_climatology": -2.109107,
+      "climatology_constant_base_rate": 0.2016,
+      "confidence_range": [
+        0.93,
+        0.95
+      ],
+      "constant_0_5_reference": 0.25,
+      "mean_confidence": 0.934,
+      "murphy_reliability": 0.474639,
+      "murphy_resolution": 0.049443,
+      "per_cell_brier_all_fields": 0.295596,
+      "per_cell_brier_informative": 0.392663,
+      "per_record_brier": 0.626796,
+      "record_exact_base_rate": 0.28,
+      "scale_verdict": "无标度错误：confidence 在 [0,1]、按 25 题逐题计算，0.626796 与官方一致。问题在参考类：与 0.25 (p=0.5) 相比单位不一致；按 record-exact 基率 0.28 的气候学常数是 0.2016，Brier skill = -2.11。"
+    },
+    "by_level": {
+      "L1": {
+        "all_field_rate": 1.0,
+        "informative_rate": 1.0,
+        "record_exact": {
+          "correct": 5,
+          "rate": 1.0,
+          "total": 5
+        }
+      },
+      "L2": {
+        "all_field_rate": 0.566667,
+        "informative_rate": 0.422222,
+        "record_exact": {
+          "correct": 1,
+          "rate": 0.2,
+          "total": 5
+        }
+      },
+      "L3": {
+        "all_field_rate": 0.633333,
+        "informative_rate": 0.511111,
+        "record_exact": {
+          "correct": 1,
+          "rate": 0.2,
+          "total": 5
+        }
+      },
+      "L4": {
+        "all_field_rate": 0.6,
+        "informative_rate": 0.466667,
+        "record_exact": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 5
+        }
+      },
+      "L5": {
+        "all_field_rate": 0.516667,
+        "informative_rate": 0.355556,
+        "record_exact": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 5
+        }
+      }
+    },
+    "cells": {
+      "all_field_cells": 300,
+      "informative_cells": 225,
+      "matches": 5,
+      "questions": 25
+    },
+    "crosstabs": {
+      "active_source_x_level": {
+        "col_determined": false,
+        "cramers_v": 0.707107,
+        "fully_collinear": false,
+        "row_determined": false,
+        "table": {
+          "DIRECT_OBSERVATION": {
+            "L1": 20,
+            "L2": 20,
+            "L3": 20,
+            "L4": 0,
+            "L5": 0
+          },
+          "HIGHEST_REVISION": {
+            "L1": 0,
+            "L2": 0,
+            "L3": 0,
+            "L4": 10,
+            "L5": 10
+          },
+          "LAST_PRE_LOCK": {
+            "L1": 0,
+            "L2": 0,
+            "L3": 0,
+            "L4": 10,
+            "L5": 10
+          }
+        }
+      },
+      "context_band_x_level": {
+        "col_determined": false,
+        "cramers_v": 0.0,
+        "fully_collinear": false,
+        "row_determined": false,
+        "table": {
+          "32K": {
+            "L1": 5,
+            "L2": 5,
+            "L3": 5,
+            "L4": 5,
+            "L5": 5
+          },
+          "64K": {
+            "L1": 14,
+            "L2": 14,
+            "L3": 14,
+            "L4": 14,
+            "L5": 14
+          },
+          "96K_PLUS": {
+            "L1": 1,
+            "L2": 1,
+            "L3": 1,
+            "L4": 1,
+            "L5": 1
+          }
+        }
+      },
+      "derivation_depth_x_level": {
+        "col_determined": false,
+        "cramers_v": 0.853099,
+        "fully_collinear": false,
+        "row_determined": false,
+        "table": {
+          "1": {
+            "L1": 20,
+            "L2": 0,
+            "L3": 0,
+            "L4": 0,
+            "L5": 0
+          },
+          "2": {
+            "L1": 0,
+            "L2": 16,
+            "L3": 8,
+            "L4": 0,
+            "L5": 0
+          },
+          "3": {
+            "L1": 0,
+            "L2": 4,
+            "L3": 12,
+            "L4": 16,
+            "L5": 0
+          },
+          "4": {
+            "L1": 0,
+            "L2": 0,
+            "L3": 0,
+            "L4": 4,
+            "L5": 20
+          }
+        }
+      },
+      "operator_count_x_level": {
+        "col_determined": false,
+        "cramers_v": 0.470815,
+        "fully_collinear": false,
+        "row_determined": false,
+        "table": {
+          "2": {
+            "L1": 4,
+            "L2": 0,
+            "L3": 0,
+            "L4": 0,
+            "L5": 0
+          },
+          "4": {
+            "L1": 12,
+            "L2": 0,
+            "L3": 4,
+            "L4": 4,
+            "L5": 0
+          },
+          "5": {
+            "L1": 0,
+            "L2": 0,
+            "L3": 0,
+            "L4": 0,
+            "L5": 4
+          },
+          "6": {
+            "L1": 0,
+            "L2": 4,
+            "L3": 4,
+            "L4": 4,
+            "L5": 8
+          },
+          "7": {
+            "L1": 4,
+            "L2": 16,
+            "L3": 8,
+            "L4": 12,
+            "L5": 8
+          },
+          "9": {
+            "L1": 0,
+            "L2": 0,
+            "L3": 4,
+            "L4": 0,
+            "L5": 0
+          }
+        }
+      },
+      "temporal_depth_x_level": {
+        "col_determined": false,
+        "cramers_v": 0.693195,
+        "fully_collinear": false,
+        "row_determined": false,
+        "table": {
+          "0": {
+            "L1": 16,
+            "L2": 20,
+            "L3": 8,
+            "L4": 0,
+            "L5": 0
+          },
+          "1": {
+            "L1": 4,
+            "L2": 0,
+            "L3": 12,
+            "L4": 8,
+            "L5": 4
+          },
+          "2": {
+            "L1": 0,
+            "L2": 0,
+            "L3": 0,
+            "L4": 12,
+            "L5": 16
+          }
+        }
+      }
+    },
+    "difficulty_baselines": {
+      "anchor_classifier_75_to_25": {
+        "by_level": {
+          "L1": {
+            "field_accuracy_all": 0.8,
+            "field_accuracy_informative": 0.7333333333333333,
+            "record_exact": {
+              "correct": 1,
+              "rate": 0.2,
+              "total": 5
+            }
+          },
+          "L2": {
+            "field_accuracy_all": 0.8,
+            "field_accuracy_informative": 0.7333333333333333,
+            "record_exact": {
+              "correct": 2,
+              "rate": 0.4,
+              "total": 5
+            }
+          },
+          "L3": {
+            "field_accuracy_all": 0.7666666666666667,
+            "field_accuracy_informative": 0.6888888888888889,
+            "record_exact": {
+              "correct": 1,
+              "rate": 0.2,
+              "total": 5
+            }
+          },
+          "L4": {
+            "field_accuracy_all": 0.9166666666666666,
+            "field_accuracy_informative": 0.8888888888888888,
+            "record_exact": {
+              "correct": 2,
+              "rate": 0.4,
+              "total": 5
+            }
+          },
+          "L5": {
+            "field_accuracy_all": 0.7166666666666667,
+            "field_accuracy_informative": 0.6222222222222222,
+            "record_exact": {
+              "correct": 2,
+              "rate": 0.4,
+              "total": 5
+            }
+          }
+        },
+        "definition": "anchor -> modal gold record learned on the other 75 questions",
+        "field_accuracy_all": {
+          "correct": 240,
+          "rate": 0.8,
+          "total": 300
+        },
+        "field_accuracy_informative": {
+          "correct": 165,
+          "rate": 0.7333333333333333,
+          "total": 225
+        },
+        "per_field_accuracy": {
+          "batter_runs": 0.64,
+          "bowler_runs": 0.64,
+          "counts_in_over": 0.76,
+          "delivery_status": 0.76,
+          "dismissal": 0.72,
+          "ledger.BATTER": 0.64,
+          "ledger.BYE": 1.0,
+          "ledger.LEG_BYE": 1.0,
+          "ledger.NO_BALL_EXTRA": 0.88,
+          "ledger.PENALTY": 1.0,
+          "ledger.WIDE_EXTRA": 0.92,
+          "total_runs": 0.64
+        },
+        "record_exact": {
+          "correct": 8,
+          "rate": 0.32,
+          "total": 25
+        }
+      },
+      "constant_prior_holdout_75_to_25": {
+        "by_level": {
+          "L1": {
+            "field_accuracy_all": 0.7166666666666667,
+            "field_accuracy_informative": 0.6222222222222222,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L2": {
+            "field_accuracy_all": 0.6166666666666667,
+            "field_accuracy_informative": 0.4888888888888889,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L3": {
+            "field_accuracy_all": 0.7333333333333333,
+            "field_accuracy_informative": 0.6444444444444445,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L4": {
+            "field_accuracy_all": 0.65,
+            "field_accuracy_informative": 0.5333333333333333,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L5": {
+            "field_accuracy_all": 0.5166666666666667,
+            "field_accuracy_informative": 0.35555555555555557,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          }
+        },
+        "definition": "per-field mode trained on the 75 non-sentinel questions, applied to the sentinel 25",
+        "field_accuracy_all": {
+          "correct": 194,
+          "rate": 0.6466666666666666,
+          "total": 300
+        },
+        "field_accuracy_informative": {
+          "correct": 119,
+          "rate": 0.5288888888888889,
+          "total": 225
+        },
+        "per_field_accuracy": {
+          "batter_runs": 0.52,
+          "bowler_runs": 0.32,
+          "counts_in_over": 0.52,
+          "delivery_status": 0.52,
+          "dismissal": 0.48,
+          "ledger.BATTER": 0.52,
+          "ledger.BYE": 1.0,
+          "ledger.LEG_BYE": 1.0,
+          "ledger.NO_BALL_EXTRA": 0.76,
+          "ledger.PENALTY": 1.0,
+          "ledger.WIDE_EXTRA": 0.8,
+          "total_runs": 0.32
+        },
+        "record_exact": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 25
+        }
+      },
+      "family_classifier_75_to_25": {
+        "by_level": {
+          "L1": {
+            "field_accuracy_all": 1.0,
+            "field_accuracy_informative": 1.0,
+            "record_exact": {
+              "correct": 5,
+              "rate": 1.0,
+              "total": 5
+            }
+          },
+          "L2": {
+            "field_accuracy_all": 1.0,
+            "field_accuracy_informative": 1.0,
+            "record_exact": {
+              "correct": 5,
+              "rate": 1.0,
+              "total": 5
+            }
+          },
+          "L3": {
+            "field_accuracy_all": 1.0,
+            "field_accuracy_informative": 1.0,
+            "record_exact": {
+              "correct": 5,
+              "rate": 1.0,
+              "total": 5
+            }
+          },
+          "L4": {
+            "field_accuracy_all": 1.0,
+            "field_accuracy_informative": 1.0,
+            "record_exact": {
+              "correct": 5,
+              "rate": 1.0,
+              "total": 5
+            }
+          },
+          "L5": {
+            "field_accuracy_all": 1.0,
+            "field_accuracy_informative": 1.0,
+            "record_exact": {
+              "correct": 5,
+              "rate": 1.0,
+              "total": 5
+            }
+          }
+        },
+        "definition": "scenario_family -> modal gold record learned on the other 75 questions, applied to sentinel 25",
+        "families_seen_in_train": 25,
+        "field_accuracy_all": {
+          "correct": 300,
+          "rate": 1.0,
+          "total": 300
+        },
+        "field_accuracy_informative": {
+          "correct": 225,
+          "rate": 1.0,
+          "total": 225
+        },
+        "per_field_accuracy": {
+          "batter_runs": 1.0,
+          "bowler_runs": 1.0,
+          "counts_in_over": 1.0,
+          "delivery_status": 1.0,
+          "dismissal": 1.0,
+          "ledger.BATTER": 1.0,
+          "ledger.BYE": 1.0,
+          "ledger.LEG_BYE": 1.0,
+          "ledger.NO_BALL_EXTRA": 1.0,
+          "ledger.PENALTY": 1.0,
+          "ledger.WIDE_EXTRA": 1.0,
+          "total_runs": 1.0
+        },
+        "record_exact": {
+          "correct": 25,
+          "rate": 1.0,
+          "total": 25
+        }
+      },
+      "level_from_question_text_cv5": {
+        "chance_accuracy": 0.2,
+        "mean_fold_accuracy": 0.16999999999999998,
+        "mean_fold_macro_auc_ovr": 0.49437499999999995,
+        "per_fold": [
+          {
+            "accuracy": 0.05,
+            "classes": [
+              "L1",
+              "L2",
+              "L3",
+              "L4",
+              "L5"
+            ],
+            "macro_auc_ovr": 0.484375,
+            "n": 20
+          },
+          {
+            "accuracy": 0.2,
+            "classes": [
+              "L1",
+              "L2",
+              "L3",
+              "L4",
+              "L5"
+            ],
+            "macro_auc_ovr": 0.46875,
+            "n": 20
+          },
+          {
+            "accuracy": 0.25,
+            "classes": [
+              "L1",
+              "L2",
+              "L3",
+              "L4",
+              "L5"
+            ],
+            "macro_auc_ovr": 0.6,
+            "n": 20
+          },
+          {
+            "accuracy": 0.15,
+            "classes": [
+              "L1",
+              "L2",
+              "L3",
+              "L4",
+              "L5"
+            ],
+            "macro_auc_ovr": 0.459375,
+            "n": 20
+          },
+          {
+            "accuracy": 0.2,
+            "classes": [
+              "L1",
+              "L2",
+              "L3",
+              "L4",
+              "L5"
+            ],
+            "macro_auc_ovr": 0.459375,
+            "n": 20
+          }
+        ],
+        "pooled_accuracy": 0.17
+      },
+      "one_nn_question_text_75_to_25": {
+        "by_level": {
+          "L1": {
+            "field_accuracy_all": 0.6666666666666666,
+            "field_accuracy_informative": 0.5555555555555556,
+            "record_exact": {
+              "correct": 1,
+              "rate": 0.2,
+              "total": 5
+            }
+          },
+          "L2": {
+            "field_accuracy_all": 0.6333333333333333,
+            "field_accuracy_informative": 0.5111111111111111,
+            "record_exact": {
+              "correct": 2,
+              "rate": 0.4,
+              "total": 5
+            }
+          },
+          "L3": {
+            "field_accuracy_all": 0.6333333333333333,
+            "field_accuracy_informative": 0.5111111111111111,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L4": {
+            "field_accuracy_all": 0.5,
+            "field_accuracy_informative": 0.3333333333333333,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L5": {
+            "field_accuracy_all": 0.6166666666666667,
+            "field_accuracy_informative": 0.4888888888888889,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          }
+        },
+        "definition": "1-NN on question-text TF-IDF trained on 75, applied to sentinel 25",
+        "field_accuracy_all": {
+          "correct": 183,
+          "rate": 0.61,
+          "total": 300
+        },
+        "field_accuracy_informative": {
+          "correct": 108,
+          "rate": 0.48,
+          "total": 225
+        },
+        "per_field_accuracy": {
+          "batter_runs": 0.48,
+          "bowler_runs": 0.24,
+          "counts_in_over": 0.6,
+          "delivery_status": 0.52,
+          "dismissal": 0.28,
+          "ledger.BATTER": 0.48,
+          "ledger.BYE": 1.0,
+          "ledger.LEG_BYE": 1.0,
+          "ledger.NO_BALL_EXTRA": 0.8,
+          "ledger.PENALTY": 1.0,
+          "ledger.WIDE_EXTRA": 0.68,
+          "total_runs": 0.24
+        },
+        "record_exact": {
+          "correct": 3,
+          "rate": 0.12,
+          "total": 25
+        },
+        "vocabulary": 153
+      },
+      "reference_glm_sentinel25": {
+        "field_accuracy_all": 0.663333,
+        "field_accuracy_informative": 0.551111,
+        "note": "from the frozen R26.18 ANALYSIS.json; 25 questions only",
+        "record_exact": 0.28
+      },
+      "tfidf_logreg_question_text_75_to_25": {
+        "by_level": {
+          "L1": {
+            "field_accuracy_all": 0.7333333333333333,
+            "field_accuracy_informative": 0.6444444444444445,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L2": {
+            "field_accuracy_all": 0.6833333333333333,
+            "field_accuracy_informative": 0.5777777777777777,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L3": {
+            "field_accuracy_all": 0.7,
+            "field_accuracy_informative": 0.6,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L4": {
+            "field_accuracy_all": 0.5833333333333334,
+            "field_accuracy_informative": 0.4444444444444444,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          },
+          "L5": {
+            "field_accuracy_all": 0.5833333333333334,
+            "field_accuracy_informative": 0.4444444444444444,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 5
+            }
+          }
+        },
+        "definition": "multinomial logistic regression per field on question-text TF-IDF trained on 75, applied to sentinel 25",
+        "field_accuracy_all": {
+          "correct": 197,
+          "rate": 0.6566666666666666,
+          "total": 300
+        },
+        "field_accuracy_informative": {
+          "correct": 122,
+          "rate": 0.5422222222222223,
+          "total": 225
+        },
+        "per_field_accuracy": {
+          "batter_runs": 0.52,
+          "bowler_runs": 0.32,
+          "counts_in_over": 0.56,
+          "delivery_status": 0.6,
+          "dismissal": 0.48,
+          "ledger.BATTER": 0.52,
+          "ledger.BYE": 1.0,
+          "ledger.LEG_BYE": 1.0,
+          "ledger.NO_BALL_EXTRA": 0.76,
+          "ledger.PENALTY": 1.0,
+          "ledger.WIDE_EXTRA": 0.8,
+          "total_runs": 0.32
+        },
+        "record_exact": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 25
+        }
+      },
+      "tfidf_logreg_question_text_cv5_100": {
+        "by_level": {
+          "L1": {
+            "field_accuracy_all": 0.6958333333333333,
+            "field_accuracy_informative": 0.5944444444444444,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 20
+            }
+          },
+          "L2": {
+            "field_accuracy_all": 0.6041666666666666,
+            "field_accuracy_informative": 0.4722222222222222,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 20
+            }
+          },
+          "L3": {
+            "field_accuracy_all": 0.7041666666666667,
+            "field_accuracy_informative": 0.6055555555555555,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 20
+            }
+          },
+          "L4": {
+            "field_accuracy_all": 0.5958333333333333,
+            "field_accuracy_informative": 0.46111111111111114,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 20
+            }
+          },
+          "L5": {
+            "field_accuracy_all": 0.4875,
+            "field_accuracy_informative": 0.31666666666666665,
+            "record_exact": {
+              "correct": 0,
+              "rate": 0.0,
+              "total": 20
+            }
+          }
+        },
+        "definition": "multinomial logistic regression per field on question-text TF-IDF, 5-fold grouped by match",
+        "field_accuracy_all": {
+          "correct": 741,
+          "rate": 0.6175,
+          "total": 1200
+        },
+        "field_accuracy_informative": {
+          "correct": 441,
+          "rate": 0.49,
+          "total": 900
+        },
+        "per_field_accuracy": {
+          "batter_runs": 0.46,
+          "bowler_runs": 0.28,
+          "counts_in_over": 0.46,
+          "delivery_status": 0.49,
+          "dismissal": 0.45,
+          "ledger.BATTER": 0.46,
+          "ledger.BYE": 1.0,
+          "ledger.LEG_BYE": 1.0,
+          "ledger.NO_BALL_EXTRA": 0.73,
+          "ledger.PENALTY": 1.0,
+          "ledger.WIDE_EXTRA": 0.8,
+          "total_runs": 0.28
+        },
+        "record_exact": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 100
+        }
+      }
+    },
+    "difficulty_proxies": {
+      "proxy_level_collinearity": {
+        "derivation_depth": {
+          "bijective_with_level": false,
+          "eta2_by_level": 0.9000000000000001,
+          "level_determines_proxy": false,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "strongly_confounded_with_level"
+        },
+        "distractor_count": {
+          "bijective_with_level": false,
+          "eta2_by_level": 1.0,
+          "level_determines_proxy": true,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "deterministic_function_of_level"
+        },
+        "evidence_dispersion": {
+          "bijective_with_level": false,
+          "eta2_by_level": 0.0105835234595019,
+          "level_determines_proxy": false,
+          "proxy_determines_level": true,
+          "proxy_determines_level_vacuous": true,
+          "verdict": "no_level_signal"
+        },
+        "evidence_doc_count": {
+          "bijective_with_level": false,
+          "eta2_by_level": 0.4588088139542853,
+          "level_determines_proxy": false,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "strongly_confounded_with_level"
+        },
+        "evidence_span_count": {
+          "bijective_with_level": false,
+          "eta2_by_level": 0.6546662546353521,
+          "level_determines_proxy": false,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "strongly_confounded_with_level"
+        },
+        "lexical_bridge_depth": {
+          "bijective_with_level": true,
+          "eta2_by_level": 1.0,
+          "level_determines_proxy": true,
+          "proxy_determines_level": true,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "fully_collinear_with_level"
+        },
+        "operator_count": {
+          "bijective_with_level": false,
+          "eta2_by_level": 0.3724137931034482,
+          "level_determines_proxy": false,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "weak_or_nonmonotone_level_signal"
+        },
+        "semantic_bridge_depth": {
+          "bijective_with_level": true,
+          "eta2_by_level": 1.0,
+          "level_determines_proxy": true,
+          "proxy_determines_level": true,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "fully_collinear_with_level"
+        },
+        "temporal_depth": {
+          "bijective_with_level": false,
+          "eta2_by_level": 0.7695852534562211,
+          "level_determines_proxy": false,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "strongly_confounded_with_level"
+        },
+        "temporal_joins": {
+          "bijective_with_level": false,
+          "eta2_by_level": 1.0,
+          "level_determines_proxy": true,
+          "proxy_determines_level": false,
+          "proxy_determines_level_vacuous": false,
+          "verdict": "deterministic_function_of_level"
+        }
+      },
+      "verdict_groups": {
+        "deterministic_function_of_level": [
+          "distractor_count",
+          "temporal_joins"
+        ],
+        "fully_collinear_with_level": [
+          "semantic_bridge_depth",
+          "lexical_bridge_depth"
+        ],
+        "no_level_signal": [
+          "evidence_dispersion"
+        ],
+        "strongly_confounded_with_level": [
+          "evidence_span_count",
+          "evidence_doc_count",
+          "derivation_depth",
+          "temporal_depth"
+        ],
+        "weak_or_nonmonotone_level_signal": [
+          "operator_count"
+        ]
+      },
+      "zero_variance_metadata_fields": {
+        "authority_decisions": [
+          "1"
+        ],
+        "hard_negative_similarity": [
+          "HIGH"
+        ],
+        "output_payload": [
+          "7"
+        ]
+      }
+    },
+    "edges": {
+      "conditional_coherent_given_gold_f1": 0.385669,
+      "conditional_coherent_given_recovered_f1": 0.488591,
+      "conditional_edge_link_f1_as_coded": 0.769556,
+      "content_dependency_edge_f1": 0.092308,
+      "edge_f1": 0.299264,
+      "endpoint_recovery_rate": 0.325284,
+      "minimal_evidence_span_f1": 0.452247,
+      "relation_group_f1": {
+        "authority_resolution": 0.220225,
+        "content_dependency": 0.092308,
+        "decision_support": 0.3222,
+        "identity_binding": 0.661871
+      }
+    },
+    "families_and_effective_n": {
+      "distinct_gold_records_all100": 16,
+      "distinct_gold_records_sentinel25": 16,
+      "distinct_records_sentinel25_fully_correct": 6,
+      "families_with_single_gold_record_all100": 25,
+      "kish_effective_n_families_sentinel25": 25.0,
+      "questions_all": 100,
+      "questions_per_family": 4,
+      "record_collisions_across_families": {
+        "families_sharing_a_record": 16,
+        "groups": [
+          [
+            "L2_WIDE_STUMP",
+            "L4_REVIEW_WIDE_STUMP",
+            "L5_WIDE_STUMP_REVIEW"
+          ],
+          [
+            "L3_DEAD_BEFORE_RUNOUT",
+            "L4_REVIEW_DEAD_SEQUENCE",
+            "L5_RUNOUT_LATER_BOUNDARY"
+          ],
+          [
+            "L1_LEGAL_BOWLED",
+            "L2_NB_BOWLED"
+          ],
+          [
+            "L1_LEGAL_FOUR",
+            "L2_NB_BAT_FOUR"
+          ],
+          [
+            "L2_NB_OVER_WIDE",
+            "L4_REVIEW_NB_OVER_WIDE"
+          ],
+          [
+            "L3_CATCH_BOUNDARY",
+            "L4_REVIEW_CATCH_CONTROL"
+          ],
+          [
+            "L3_OVERTHROW_CROSS",
+            "L4_REVIEW_OVERTHROW"
+          ]
+        ]
+      },
+      "scenario_families": 25,
+      "sentinel25_anchor_counts": {
+        "BOUNDARY_AND_LEDGER_ATTRIBUTION": 5,
+        "CALL_PRECEDENCE_AND_EXTRAS": 5,
+        "DISMISSAL_AND_APPEAL_CONTROL": 5,
+        "EVENT_ORDER_AND_TERMINAL_STATE": 5,
+        "INVALID_DELIVERY_WICKET_GATE": 5
+      },
+      "sentinel25_families": 25
+    },
+    "headline": {
+      "all_field_accuracy": 0.663333,
+      "distinct_informative_value_cells_observed": 41,
+      "informative_field_accuracy": 0.551111,
+      "observed_informative_field_value_cells_meaning": "41 = 25 题金标中出现的 (字段,值) 去重桶数，不是分母；信息字段分母恒为 25x9 = 225。",
+      "record_exact": 0.28,
+      "value_balanced_informative_accuracy": 0.417305
+    },
+    "uncertainty_wilson_95": {
+      "all_field_accuracy": [
+        0.6080909561297259,
+        0.7144455234043472
+      ],
+      "constant_prior_all_field_194_of_300": [
+        0.5910319849316535,
+        0.6985926089356772
+      ],
+      "constant_prior_informative_119_of_225": [
+        0.46372769784587325,
+        0.5930801552717415
+      ],
+      "informative_field_accuracy": [
+        0.4858041154432411,
+        0.6147020862263854
+      ],
+      "record_exact": [
+        0.1428367383738157,
+        0.47576971896558296
+      ]
+    }
+  },
+  "name": "measurement_validity",
+  "reproduction": {
+    "commands": [
+      "python 01_measurement/scripts/measure_a.py",
+      "python 01_measurement/scripts/proxies_cd.py",
+      "python 01_measurement/scripts/baselines_b.py",
+      "python 01_measurement/scripts/compose_gate.py"
+    ],
+    "network_calls": 0,
+    "paid_api_calls": 0,
+    "python": "stdlib only",
+    "writes_outside_01_measurement": 0
+  },
+  "schema": "vett-r28-gate-A-1",
+  "stage": "A",
+  "team": "vett-r27-opt",
+  "verdict": "PASS",
+  "verdict_statement": "A1/A2/A3 全部 PASS：可进入设计与实现，但设计必须以本文件的measured_facts 与 conditions 为硬输入；本 gate 不认证 R26.15 的难度阶梯有效，只认证测量层已可复算、已定位缺陷。"
+}

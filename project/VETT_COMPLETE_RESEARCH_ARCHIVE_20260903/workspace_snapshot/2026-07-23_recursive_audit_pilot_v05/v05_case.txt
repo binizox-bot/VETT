@@ -1,0 +1,453 @@
+EASTGATE OVAL MULTI-FEED AUDIT — HARBOR CITY
+
+TASK
+Recover the target innings and return:
+1. innings summary;
+2. every batting row;
+3. every bowling row;
+4. fall of wickets;
+5. every partnership;
+6. a 72-row accepted-claim audit table with accepted_source,
+   accepted_claim_id, outcome_type and outcome_value.
+
+SCOPE AND AUDIT RULE
+- The toss seal identifies HARBOR-7 as the target chain.
+- HARBOR-7R is a scorer rehearsal, not part of the target innings.
+- Packets are in arrival order. Reconstruct slot order by over and passage.
+- Source codes are Amber=0, Blue=1, Cedar=2 and Delta=3.
+- Before slot 1, previous source code is 2 and previous accepted outcome
+  has state value 0.
+- For each HARBOR-7 slot in chronological order, calculate:
+    accepted code = (previous accepted source code + over + passage
+                     + packet nonce + previous accepted state value) mod 4.
+- State value = bat runs + leg-byes + 2*wides + 3*no-balls
+                + 2 if the accepted event is a wicket.
+- Accept only the claim from the calculated source, then use that accepted
+  source and accepted outcome as the previous state for the next slot.
+- Wides and no-balls add to team and bowler totals but are not legal balls.
+- Leg-byes add to team and partnership totals but not batter or bowler runs.
+
+ARRIVAL-ORDER EVIDENCE PACKETS
+Packet 001 | chain HARBOR-7 | slot O08.P6 | nonce 3
+  Amber claim H7-A-048: Pike to Ethan; dot ball.
+  Delta claim H7-D-048: Pike to Ethan; 4 bat runs.
+  Cedar claim H7-C-048: Pike has Ethan caught, no run.
+  Blue claim H7-B-048: Pike oversteps to Ethan; 1 no-ball.
+Packet 002 | chain HARBOR-7 | slot O04.P1 | nonce 2
+  Blue claim H7-B-019: Rowe to Aaron; dot ball.
+  Cedar claim H7-C-019: Rowe sends 2 wides past Aaron.
+  Amber claim H7-A-019: Aaron faces Rowe; 2 leg-byes.
+  Delta claim H7-D-019: Rowe to Aaron; 2 bat runs.
+Packet 003 | chain HARBOR-7 | slot O11.P6 | nonce 2
+  Cedar claim H7-C-066: Shaw oversteps to Julian; 1 no-ball.
+  Delta claim H7-D-066: Shaw sends 1 wides past Julian.
+  Amber claim H7-A-066: Julian faces Shaw; 4 leg-byes.
+  Blue claim H7-B-066: Shaw has Julian caught, no run.
+Packet 004 | chain HARBOR-7 | slot O05.P4 | nonce 3
+  Amber claim H7-A-028: Shaw has Ethan caught, no run.
+  Delta claim H7-D-028: Shaw to Ethan; 3 bat runs.
+  Blue claim H7-B-028: Shaw sends 1 wides past Ethan.
+  Cedar claim H7-C-028: Shaw to Ethan; dot ball.
+Packet 005 | chain HARBOR-7 | slot O06.P3 | nonce 1
+  Amber claim H7-A-033: Hart to Dylan; 6 bat runs.
+  Blue claim H7-B-033: Hart to Dylan; dot ball.
+  Delta claim H7-D-033: Dylan faces Hart; 2 leg-byes.
+  Cedar claim H7-C-033: Hart oversteps to Dylan; 1 no-ball.
+Packet 006 | chain HARBOR-7 | slot O07.P3 | nonce 0
+  Cedar claim H7-C-039: Frost sends 2 wides past Gavin.
+  Delta claim H7-D-039: Frost to Gavin; dot ball.
+  Amber claim H7-A-039: Gavin faces Frost; 2 leg-byes.
+  Blue claim H7-B-039: Frost has Gavin caught, no run.
+Packet 007 | chain HARBOR-7 | slot O11.P5 | nonce 3
+  Delta claim H7-D-065: Shaw sends 2 wides past Julian.
+  Blue claim H7-B-065: Shaw to Julian; 1 bat runs.
+  Cedar claim H7-C-065: Shaw to Julian; dot ball.
+  Amber claim H7-A-065: Shaw oversteps to Julian; 1 no-ball.
+Packet 008 | chain HARBOR-7R | slot O02.P1 | nonce 1
+  Delta claim H7R-D-007: Pike has Aaron caught, no run.
+  Blue claim H7R-B-007: Pike sends 1 wides past Aaron.
+  Cedar claim H7R-C-007: Aaron faces Pike; 2 leg-byes.
+  Amber claim H7R-A-007: Pike sends 2 wides past Aaron.
+Packet 009 | chain HARBOR-7 | slot O04.P4 | nonce 2
+  Blue claim H7-B-022: Rowe to Dylan; 6 bat runs.
+  Amber claim H7-A-022: Dylan faces Rowe; 4 leg-byes.
+  Cedar claim H7-C-022: Rowe sends 1 wides past Dylan.
+  Delta claim H7-D-022: Rowe has Dylan caught, no run.
+Packet 010 | chain HARBOR-7 | slot O05.P3 | nonce 0
+  Amber claim H7-A-027: Shaw oversteps to Dylan; 1 no-ball.
+  Cedar claim H7-C-027: Shaw to Dylan; 1 bat runs.
+  Blue claim H7-B-027: Shaw has Dylan caught, no run.
+  Delta claim H7-D-027: Shaw sends 2 wides past Dylan.
+Packet 011 | chain HARBOR-7 | slot O06.P2 | nonce 2
+  Delta claim H7-D-032: Hart to Dylan; 3 bat runs.
+  Blue claim H7-B-032: Hart sends 1 wides past Dylan.
+  Amber claim H7-A-032: Hart has Dylan caught, no run.
+  Cedar claim H7-C-032: Dylan faces Hart; 4 leg-byes.
+Packet 012 | chain HARBOR-7 | slot O04.P5 | nonce 1
+  Blue claim H7-B-023: Dylan faces Rowe; 4 leg-byes.
+  Cedar claim H7-C-023: Rowe oversteps to Dylan; 1 no-ball.
+  Delta claim H7-D-023: Rowe sends 2 wides past Dylan.
+  Amber claim H7-A-023: Rowe to Dylan; dot ball.
+Packet 013 | chain HARBOR-7 | slot O02.P3 | nonce 2
+  Delta claim H7-D-009: Pike oversteps to Connor; 1 no-ball.
+  Blue claim H7-B-009: Pike sends 2 wides past Connor.
+  Cedar claim H7-C-009: Pike to Connor; 1 bat runs.
+  Amber claim H7-A-009: Connor faces Pike; 2 leg-byes.
+Packet 014 | chain HARBOR-7 | slot O06.P6 | nonce 2
+  Cedar claim H7-C-036: Hart to Ethan; 2 bat runs.
+  Amber claim H7-A-036: Hart to Ethan; dot ball.
+  Blue claim H7-B-036: Ethan faces Hart; 4 leg-byes.
+  Delta claim H7-D-036: Hart oversteps to Ethan; 1 no-ball.
+Packet 015 | chain HARBOR-7R | slot O02.P4 | nonce 2
+  Delta claim H7R-D-010: Pike has Aaron caught, no run.
+  Cedar claim H7R-C-010: Pike sends 1 wides past Aaron.
+  Blue claim H7R-B-010: Aaron faces Pike; 2 leg-byes.
+  Amber claim H7R-A-010: Pike oversteps to Aaron; 1 no-ball.
+Packet 016 | chain HARBOR-7 | slot O12.P2 | nonce 3
+  Delta claim H7-D-068: Hart to Ethan; 6 bat runs.
+  Blue claim H7-B-068: Hart oversteps to Ethan; 1 no-ball.
+  Amber claim H7-A-068: Hart to Ethan; dot ball.
+  Cedar claim H7-C-068: Hart has Ethan caught, no run.
+Packet 017 | chain HARBOR-7 | slot O01.P5 | nonce 3
+  Blue claim H7-B-005: Frost oversteps to Connor; 1 no-ball.
+  Cedar claim H7-C-005: Frost has Connor caught, no run.
+  Amber claim H7-A-005: Frost to Connor; 3 bat runs.
+  Delta claim H7-D-005: Connor faces Frost; 2 leg-byes.
+Packet 018 | chain HARBOR-7 | slot O07.P4 | nonce 2
+  Amber claim H7-A-040: Frost to Gavin; 2 bat runs.
+  Cedar claim H7-C-040: Gavin faces Frost; 4 leg-byes.
+  Delta claim H7-D-040: Frost has Gavin caught, no run.
+  Blue claim H7-B-040: Frost sends 1 wides past Gavin.
+Packet 019 | chain HARBOR-7 | slot O03.P3 | nonce 1
+  Amber claim H7-A-015: Stone to Aaron; dot ball.
+  Cedar claim H7-C-015: Stone sends 2 wides past Aaron.
+  Delta claim H7-D-015: Stone to Aaron; 1 bat runs.
+  Blue claim H7-B-015: Aaron faces Stone; 2 leg-byes.
+Packet 020 | chain HARBOR-7 | slot O09.P6 | nonce 0
+  Cedar claim H7-C-054: Stone to Ethan; 2 bat runs.
+  Blue claim H7-B-054: Stone has Ethan caught, no run.
+  Delta claim H7-D-054: Ethan faces Stone; 4 leg-byes.
+  Amber claim H7-A-054: Stone oversteps to Ethan; 1 no-ball.
+Packet 021 | chain HARBOR-7 | slot O09.P2 | nonce 0
+  Blue claim H7-B-050: Stone sends 1 wides past Gavin.
+  Cedar claim H7-C-050: Stone to Gavin; 4 bat runs.
+  Delta claim H7-D-050: Stone to Gavin; dot ball.
+  Amber claim H7-A-050: Stone has Gavin caught, no run.
+Packet 022 | chain HARBOR-7 | slot O01.P4 | nonce 2
+  Delta claim H7-D-004: Frost has Connor caught, no run.
+  Blue claim H7-B-004: Frost sends 1 wides past Connor.
+  Cedar claim H7-C-004: Frost to Connor; dot ball.
+  Amber claim H7-A-004: Frost to Connor; 3 bat runs.
+Packet 023 | chain HARBOR-7 | slot O10.P1 | nonce 2
+  Delta claim H7-D-055: Rowe sends 2 wides past Gavin.
+  Amber claim H7-A-055: Gavin faces Rowe; 2 leg-byes.
+  Cedar claim H7-C-055: Rowe oversteps to Gavin; 1 no-ball.
+  Blue claim H7-B-055: Rowe has Gavin caught, no run.
+Packet 024 | chain HARBOR-7 | slot O03.P1 | nonce 2
+  Blue claim H7-B-013: Stone to Aaron; 4 bat runs.
+  Amber claim H7-A-013: Stone has Aaron caught, no run.
+  Cedar claim H7-C-013: Stone oversteps to Aaron; 1 no-ball.
+  Delta claim H7-D-013: Aaron faces Stone; 2 leg-byes.
+Packet 025 | chain HARBOR-7 | slot O04.P3 | nonce 0
+  Blue claim H7-B-021: Rowe to Dylan; 6 bat runs.
+  Amber claim H7-A-021: Rowe to Dylan; dot ball.
+  Cedar claim H7-C-021: Rowe sends 2 wides past Dylan.
+  Delta claim H7-D-021: Rowe has Dylan caught, no run.
+Packet 026 | chain HARBOR-7 | slot O11.P4 | nonce 1
+  Cedar claim H7-C-064: Shaw has Ethan caught, no run.
+  Delta claim H7-D-064: Shaw sends 1 wides past Ethan.
+  Blue claim H7-B-064: Shaw to Ethan; dot ball.
+  Amber claim H7-A-064: Shaw to Ethan; 3 bat runs.
+Packet 027 | chain HARBOR-7 | slot O02.P5 | nonce 1
+  Cedar claim H7-C-011: Pike to Connor; 2 bat runs.
+  Delta claim H7-D-011: Pike to Connor; dot ball.
+  Amber claim H7-A-011: Pike has Connor caught, no run.
+  Blue claim H7-B-011: Pike sends 2 wides past Connor.
+Packet 028 | chain HARBOR-7 | slot O03.P2 | nonce 2
+  Cedar claim H7-C-014: Stone sends 1 wides past Aaron.
+  Amber claim H7-A-014: Stone to Aaron; dot ball.
+  Blue claim H7-B-014: Stone to Aaron; 6 bat runs.
+  Delta claim H7-D-014: Stone has Aaron caught, no run.
+Packet 029 | chain HARBOR-7 | slot O01.P1 | nonce 0
+  Blue claim H7-B-001: Frost to Aaron; dot ball.
+  Delta claim H7-D-001: Frost has Aaron caught, no run.
+  Amber claim H7-A-001: Frost to Aaron; 1 bat runs.
+  Cedar claim H7-C-001: Aaron faces Frost; 2 leg-byes.
+Packet 030 | chain HARBOR-7 | slot O07.P6 | nonce 1
+  Blue claim H7-B-042: Frost has Gavin caught, no run.
+  Delta claim H7-D-042: Frost sends 1 wides past Gavin.
+  Cedar claim H7-C-042: Frost to Gavin; 3 bat runs.
+  Amber claim H7-A-042: Frost oversteps to Gavin; 1 no-ball.
+Packet 031 | chain HARBOR-7 | slot O12.P6 | nonce 2
+  Cedar claim H7-C-072: Hart to Cameron; 1 bat runs.
+  Amber claim H7-A-072: Hart sends 1 wides past Cameron.
+  Delta claim H7-D-072: Cameron faces Hart; 4 leg-byes.
+  Blue claim H7-B-072: Hart to Cameron; dot ball.
+Packet 032 | chain HARBOR-7 | slot O05.P5 | nonce 1
+  Amber claim H7-A-029: Shaw oversteps to Dylan; 1 no-ball.
+  Blue claim H7-B-029: Shaw to Dylan; 2 bat runs.
+  Delta claim H7-D-029: Shaw has Dylan caught, no run.
+  Cedar claim H7-C-029: Shaw sends 2 wides past Dylan.
+Packet 033 | chain HARBOR-7R | slot O12.P4 | nonce 3
+  Amber claim H7R-A-070: Cameron faces Hart; 4 leg-byes.
+  Delta claim H7R-D-070: Hart has Cameron caught, no run.
+  Cedar claim H7R-C-070: Cameron faces Hart; 4 leg-byes.
+  Blue claim H7R-B-070: Hart to Cameron; dot ball.
+Packet 034 | chain HARBOR-7R | slot O08.P2 | nonce 3
+  Delta claim H7R-D-044: Pike oversteps to Ethan; 1 no-ball.
+  Amber claim H7R-A-044: Pike sends 1 wides past Ethan.
+  Blue claim H7R-B-044: Pike sends 2 wides past Ethan.
+  Cedar claim H7R-C-044: Ethan faces Pike; 4 leg-byes.
+Packet 035 | chain HARBOR-7R | slot O04.P6 | nonce 3
+  Cedar claim H7R-C-024: Rowe oversteps to Dylan; 1 no-ball.
+  Amber claim H7R-A-024: Rowe sends 1 wides past Dylan.
+  Blue claim H7R-B-024: Rowe sends 2 wides past Dylan.
+  Delta claim H7R-D-024: Rowe has Dylan caught, no run.
+Packet 036 | chain HARBOR-7 | slot O10.P5 | nonce 2
+  Delta claim H7-D-059: Rowe to Ethan; dot ball.
+  Amber claim H7-A-059: Rowe oversteps to Ethan; 1 no-ball.
+  Blue claim H7-B-059: Rowe sends 2 wides past Ethan.
+  Cedar claim H7-C-059: Rowe to Ethan; 3 bat runs.
+Packet 037 | chain HARBOR-7 | slot O08.P2 | nonce 2
+  Delta claim H7-D-044: Pike has Ethan caught, no run.
+  Blue claim H7-B-044: Pike oversteps to Ethan; 1 no-ball.
+  Cedar claim H7-C-044: Pike to Ethan; 1 bat runs.
+  Amber claim H7-A-044: Pike to Ethan; dot ball.
+Packet 038 | chain HARBOR-7 | slot O05.P1 | nonce 2
+  Delta claim H7-D-025: Aaron faces Shaw; 2 leg-byes.
+  Cedar claim H7-C-025: Shaw has Aaron caught, no run.
+  Blue claim H7-B-025: Shaw to Aaron; 1 bat runs.
+  Amber claim H7-A-025: Shaw sends 2 wides past Aaron.
+Packet 039 | chain HARBOR-7 | slot O05.P6 | nonce 3
+  Amber claim H7-A-030: Shaw to Dylan; dot ball.
+  Delta claim H7-D-030: Dylan faces Shaw; 4 leg-byes.
+  Blue claim H7-B-030: Shaw to Dylan; 4 bat runs.
+  Cedar claim H7-C-030: Shaw has Dylan caught, no run.
+Packet 040 | chain HARBOR-7R | slot O08.P3 | nonce 2
+  Delta claim H7R-D-045: Pike has Ethan caught, no run.
+  Cedar claim H7R-C-045: Pike has Ethan caught, no run.
+  Amber claim H7R-A-045: Pike sends 2 wides past Ethan.
+  Blue claim H7R-B-045: Pike has Ethan caught, no run.
+Packet 041 | chain HARBOR-7 | slot O12.P3 | nonce 0
+  Amber claim H7-A-069: Hart to Ethan; 3 bat runs.
+  Delta claim H7-D-069: Hart sends 2 wides past Ethan.
+  Cedar claim H7-C-069: Hart to Ethan; dot ball.
+  Blue claim H7-B-069: Hart has Ethan caught, no run.
+Packet 042 | chain HARBOR-7 | slot O06.P5 | nonce 1
+  Delta claim H7-D-035: Hart to Ethan; dot ball.
+  Blue claim H7-B-035: Hart to Ethan; 1 bat runs.
+  Cedar claim H7-C-035: Hart oversteps to Ethan; 1 no-ball.
+  Amber claim H7-A-035: Ethan faces Hart; 2 leg-byes.
+Packet 043 | chain HARBOR-7 | slot O11.P2 | nonce 3
+  Cedar claim H7-C-062: Shaw sends 1 wides past Ethan.
+  Blue claim H7-B-062: Ethan faces Shaw; 4 leg-byes.
+  Delta claim H7-D-062: Shaw to Ethan; dot ball.
+  Amber claim H7-A-062: Shaw oversteps to Ethan; 1 no-ball.
+Packet 044 | chain HARBOR-7 | slot O07.P2 | nonce 1
+  Delta claim H7-D-038: Frost has Dylan caught, no run.
+  Blue claim H7-B-038: Dylan faces Frost; 4 leg-byes.
+  Amber claim H7-A-038: Frost to Dylan; dot ball.
+  Cedar claim H7-C-038: Frost oversteps to Dylan; 1 no-ball.
+Packet 045 | chain HARBOR-7 | slot O12.P1 | nonce 0
+  Blue claim H7-B-067: Hart sends 2 wides past Ethan.
+  Delta claim H7-D-067: Hart has Ethan caught, no run.
+  Amber claim H7-A-067: Hart to Ethan; 2 bat runs.
+  Cedar claim H7-C-067: Ethan faces Hart; 2 leg-byes.
+Packet 046 | chain HARBOR-7 | slot O09.P1 | nonce 2
+  Delta claim H7-D-049: Stone sends 2 wides past Gavin.
+  Amber claim H7-A-049: Stone to Gavin; 3 bat runs.
+  Cedar claim H7-C-049: Stone to Gavin; dot ball.
+  Blue claim H7-B-049: Stone oversteps to Gavin; 1 no-ball.
+Packet 047 | chain HARBOR-7 | slot O02.P6 | nonce 3
+  Cedar claim H7-C-012: Pike has Dylan caught, no run.
+  Blue claim H7-B-012: Pike to Dylan; 6 bat runs.
+  Amber claim H7-A-012: Pike to Dylan; dot ball.
+  Delta claim H7-D-012: Dylan faces Pike; 4 leg-byes.
+Packet 048 | chain HARBOR-7 | slot O04.P2 | nonce 2
+  Delta claim H7-D-020: Rowe has Aaron caught, no run.
+  Blue claim H7-B-020: Rowe to Aaron; 1 bat runs.
+  Amber claim H7-A-020: Rowe sends 1 wides past Aaron.
+  Cedar claim H7-C-020: Rowe oversteps to Aaron; 1 no-ball.
+Packet 049 | chain HARBOR-7 | slot O06.P1 | nonce 0
+  Delta claim H7-D-031: Hart has Ethan caught, no run.
+  Cedar claim H7-C-031: Ethan faces Hart; 2 leg-byes.
+  Amber claim H7-A-031: Hart to Ethan; 1 bat runs.
+  Blue claim H7-B-031: Hart sends 2 wides past Ethan.
+Packet 050 | chain HARBOR-7R | slot O03.P6 | nonce 0
+  Cedar claim H7R-C-018: Stone to Dylan; dot ball.
+  Blue claim H7R-B-018: Stone sends 2 wides past Dylan.
+  Amber claim H7R-A-018: Stone to Dylan; dot ball.
+  Delta claim H7R-D-018: Stone to Dylan; dot ball.
+Packet 051 | chain HARBOR-7R | slot O09.P2 | nonce 2
+  Cedar claim H7R-C-050: Stone sends 1 wides past Gavin.
+  Delta claim H7R-D-050: Stone sends 2 wides past Gavin.
+  Amber claim H7R-A-050: Stone oversteps to Gavin; 1 no-ball.
+  Blue claim H7R-B-050: Stone sends 2 wides past Gavin.
+Packet 052 | chain HARBOR-7 | slot O05.P2 | nonce 2
+  Blue claim H7-B-026: Shaw to Ethan; 1 bat runs.
+  Delta claim H7-D-026: Shaw sends 1 wides past Ethan.
+  Amber claim H7-A-026: Ethan faces Shaw; 4 leg-byes.
+  Cedar claim H7-C-026: Shaw has Ethan caught, no run.
+Packet 053 | chain HARBOR-7 | slot O12.P4 | nonce 1
+  Amber claim H7-A-070: Hart to Cameron; 4 bat runs.
+  Blue claim H7-B-070: Hart sends 1 wides past Cameron.
+  Cedar claim H7-C-070: Hart has Cameron caught, no run.
+  Delta claim H7-D-070: Hart oversteps to Cameron; 1 no-ball.
+Packet 054 | chain HARBOR-7 | slot O08.P5 | nonce 0
+  Blue claim H7-B-047: Pike to Ethan; 6 bat runs.
+  Amber claim H7-A-047: Pike to Ethan; dot ball.
+  Delta claim H7-D-047: Pike sends 2 wides past Ethan.
+  Cedar claim H7-C-047: Pike oversteps to Ethan; 1 no-ball.
+Packet 055 | chain HARBOR-7R | slot O06.P2 | nonce 2
+  Blue claim H7R-B-032: Hart sends 2 wides past Dylan.
+  Delta claim H7R-D-032: Hart sends 2 wides past Dylan.
+  Cedar claim H7R-C-032: Dylan faces Hart; 4 leg-byes.
+  Amber claim H7R-A-032: Hart to Dylan; dot ball.
+Packet 056 | chain HARBOR-7 | slot O10.P3 | nonce 2
+  Delta claim H7-D-057: Rowe to Julian; 1 bat runs.
+  Amber claim H7-A-057: Rowe sends 2 wides past Julian.
+  Cedar claim H7-C-057: Rowe to Julian; dot ball.
+  Blue claim H7-B-057: Rowe has Julian caught, no run.
+Packet 057 | chain HARBOR-7 | slot O02.P4 | nonce 2
+  Amber claim H7-A-010: Aaron faces Pike; 4 leg-byes.
+  Cedar claim H7-C-010: Pike oversteps to Aaron; 1 no-ball.
+  Delta claim H7-D-010: Pike to Aaron; 1 bat runs.
+  Blue claim H7-B-010: Pike to Aaron; dot ball.
+Packet 058 | chain HARBOR-7 | slot O10.P6 | nonce 2
+  Delta claim H7-D-060: Rowe to Julian; 4 bat runs.
+  Blue claim H7-B-060: Rowe to Julian; dot ball.
+  Cedar claim H7-C-060: Julian faces Rowe; 4 leg-byes.
+  Amber claim H7-A-060: Rowe oversteps to Julian; 1 no-ball.
+Packet 059 | chain HARBOR-7 | slot O04.P6 | nonce 1
+  Cedar claim H7-C-024: Rowe to Dylan; dot ball.
+  Delta claim H7-D-024: Dylan faces Rowe; 4 leg-byes.
+  Amber claim H7-A-024: Rowe to Dylan; 6 bat runs.
+  Blue claim H7-B-024: Rowe has Dylan caught, no run.
+Packet 060 | chain HARBOR-7 | slot O03.P4 | nonce 3
+  Cedar claim H7-C-016: Stone to Dylan; 4 bat runs.
+  Blue claim H7-B-016: Stone oversteps to Dylan; 1 no-ball.
+  Delta claim H7-D-016: Dylan faces Stone; 4 leg-byes.
+  Amber claim H7-A-016: Stone to Dylan; dot ball.
+Packet 061 | chain HARBOR-7 | slot O10.P2 | nonce 1
+  Delta claim H7-D-056: Rowe has Julian caught, no run.
+  Amber claim H7-A-056: Rowe to Julian; 4 bat runs.
+  Blue claim H7-B-056: Rowe oversteps to Julian; 1 no-ball.
+  Cedar claim H7-C-056: Rowe sends 1 wides past Julian.
+Packet 062 | chain HARBOR-7 | slot O02.P1 | nonce 1
+  Delta claim H7-D-007: Aaron faces Pike; 2 leg-byes.
+  Cedar claim H7-C-007: Pike to Aaron; 3 bat runs.
+  Amber claim H7-A-007: Pike to Aaron; dot ball.
+  Blue claim H7-B-007: Pike has Aaron caught, no run.
+Packet 063 | chain HARBOR-7 | slot O08.P4 | nonce 3
+  Cedar claim H7-C-046: Pike has Ethan caught, no run.
+  Blue claim H7-B-046: Pike to Ethan; dot ball.
+  Delta claim H7-D-046: Pike sends 1 wides past Ethan.
+  Amber claim H7-A-046: Pike to Ethan; 4 bat runs.
+Packet 064 | chain HARBOR-7 | slot O07.P1 | nonce 0
+  Delta claim H7-D-037: Frost has Dylan caught, no run.
+  Cedar claim H7-C-037: Frost to Dylan; dot ball.
+  Amber claim H7-A-037: Dylan faces Frost; 2 leg-byes.
+  Blue claim H7-B-037: Frost to Dylan; 4 bat runs.
+Packet 065 | chain HARBOR-7 | slot O12.P5 | nonce 1
+  Cedar claim H7-C-071: Cameron faces Hart; 4 leg-byes.
+  Blue claim H7-B-071: Hart to Cameron; dot ball.
+  Delta claim H7-D-071: Hart has Cameron caught, no run.
+  Amber claim H7-A-071: Hart sends 2 wides past Cameron.
+Packet 066 | chain HARBOR-7 | slot O09.P4 | nonce 3
+  Blue claim H7-B-052: Stone to Ethan; 4 bat runs.
+  Cedar claim H7-C-052: Ethan faces Stone; 4 leg-byes.
+  Delta claim H7-D-052: Stone sends 1 wides past Ethan.
+  Amber claim H7-A-052: Stone to Ethan; dot ball.
+Packet 067 | chain HARBOR-7R | slot O10.P6 | nonce 2
+  Delta claim H7R-D-060: Julian faces Rowe; 2 leg-byes.
+  Amber claim H7R-A-060: Rowe to Julian; dot ball.
+  Blue claim H7R-B-060: Rowe to Julian; dot ball.
+  Cedar claim H7R-C-060: Rowe to Julian; dot ball.
+Packet 068 | chain HARBOR-7 | slot O08.P1 | nonce 1
+  Cedar claim H7-C-043: Pike oversteps to Gavin; 1 no-ball.
+  Delta claim H7-D-043: Pike to Gavin; 3 bat runs.
+  Blue claim H7-B-043: Pike has Gavin caught, no run.
+  Amber claim H7-A-043: Pike to Gavin; dot ball.
+Packet 069 | chain HARBOR-7 | slot O09.P3 | nonce 0
+  Blue claim H7-B-051: Stone sends 2 wides past Gavin.
+  Cedar claim H7-C-051: Stone to Gavin; 3 bat runs.
+  Amber claim H7-A-051: Stone oversteps to Gavin; 1 no-ball.
+  Delta claim H7-D-051: Stone has Gavin caught, no run.
+Packet 070 | chain HARBOR-7 | slot O03.P5 | nonce 0
+  Blue claim H7-B-017: Stone has Dylan caught, no run.
+  Cedar claim H7-C-017: Stone to Dylan; 4 bat runs.
+  Amber claim H7-A-017: Dylan faces Stone; 2 leg-byes.
+  Delta claim H7-D-017: Stone sends 2 wides past Dylan.
+Packet 071 | chain HARBOR-7 | slot O03.P6 | nonce 0
+  Blue claim H7-B-018: Stone oversteps to Dylan; 1 no-ball.
+  Amber claim H7-A-018: Dylan faces Stone; 4 leg-byes.
+  Cedar claim H7-C-018: Stone to Dylan; dot ball.
+  Delta claim H7-D-018: Stone to Dylan; 1 bat runs.
+Packet 072 | chain HARBOR-7 | slot O07.P5 | nonce 0
+  Blue claim H7-B-041: Frost oversteps to Gavin; 1 no-ball.
+  Cedar claim H7-C-041: Frost to Gavin; 2 bat runs.
+  Delta claim H7-D-041: Gavin faces Frost; 2 leg-byes.
+  Amber claim H7-A-041: Frost has Gavin caught, no run.
+Packet 073 | chain HARBOR-7 | slot O09.P5 | nonce 0
+  Delta claim H7-D-053: Stone to Ethan; dot ball.
+  Cedar claim H7-C-053: Stone oversteps to Ethan; 1 no-ball.
+  Amber claim H7-A-053: Stone sends 2 wides past Ethan.
+  Blue claim H7-B-053: Stone has Ethan caught, no run.
+Packet 074 | chain HARBOR-7 | slot O01.P6 | nonce 1
+  Delta claim H7-D-006: Frost to Aaron; 3 bat runs.
+  Cedar claim H7-C-006: Frost oversteps to Aaron; 1 no-ball.
+  Amber claim H7-A-006: Frost has Aaron caught, no run.
+  Blue claim H7-B-006: Frost sends 1 wides past Aaron.
+Packet 075 | chain HARBOR-7 | slot O06.P4 | nonce 2
+  Blue claim H7-B-034: Hart sends 1 wides past Dylan.
+  Amber claim H7-A-034: Hart oversteps to Dylan; 1 no-ball.
+  Delta claim H7-D-034: Dylan faces Hart; 4 leg-byes.
+  Cedar claim H7-C-034: Hart to Dylan; 1 bat runs.
+Packet 076 | chain HARBOR-7 | slot O10.P4 | nonce 0
+  Blue claim H7-B-058: Rowe to Ethan; dot ball.
+  Delta claim H7-D-058: Ethan faces Rowe; 4 leg-byes.
+  Cedar claim H7-C-058: Rowe to Ethan; 3 bat runs.
+  Amber claim H7-A-058: Rowe has Ethan caught, no run.
+Packet 077 | chain HARBOR-7 | slot O01.P3 | nonce 2
+  Delta claim H7-D-003: Frost to Connor; dot ball.
+  Blue claim H7-B-003: Frost to Connor; 4 bat runs.
+  Amber claim H7-A-003: Frost sends 2 wides past Connor.
+  Cedar claim H7-C-003: Frost oversteps to Connor; 1 no-ball.
+Packet 078 | chain HARBOR-7 | slot O11.P3 | nonce 3
+  Amber claim H7-A-063: Shaw to Ethan; 4 bat runs.
+  Delta claim H7-D-063: Ethan faces Shaw; 2 leg-byes.
+  Cedar claim H7-C-063: Shaw sends 2 wides past Ethan.
+  Blue claim H7-B-063: Shaw has Ethan caught, no run.
+Packet 079 | chain HARBOR-7 | slot O11.P1 | nonce 2
+  Blue claim H7-B-061: Shaw to Ethan; 6 bat runs.
+  Cedar claim H7-C-061: Shaw has Ethan caught, no run.
+  Amber claim H7-A-061: Ethan faces Shaw; 2 leg-byes.
+  Delta claim H7-D-061: Shaw oversteps to Ethan; 1 no-ball.
+Packet 080 | chain HARBOR-7 | slot O08.P3 | nonce 3
+  Delta claim H7-D-045: Pike oversteps to Ethan; 1 no-ball.
+  Amber claim H7-A-045: Pike to Ethan; dot ball.
+  Blue claim H7-B-045: Pike to Ethan; 8 bat runs.
+  Cedar claim H7-C-045: Ethan faces Pike; 2 leg-byes.
+Packet 081 | chain HARBOR-7 | slot O01.P2 | nonce 3
+  Delta claim H7-D-002: Frost to Connor; 4 bat runs.
+  Amber claim H7-A-002: Frost sends 1 wides past Connor.
+  Blue claim H7-B-002: Frost oversteps to Connor; 1 no-ball.
+  Cedar claim H7-C-002: Frost has Connor caught, no run.
+Packet 082 | chain HARBOR-7 | slot O02.P2 | nonce 2
+  Amber claim H7-A-008: Pike to Connor; 4 bat runs.
+  Blue claim H7-B-008: Pike oversteps to Connor; 1 no-ball.
+  Cedar claim H7-C-008: Pike to Connor; dot ball.
+  Delta claim H7-D-008: Connor faces Pike; 4 leg-byes.
+Packet 083 | chain HARBOR-7R | slot O11.P5 | nonce 0
+  Delta claim H7R-D-065: Shaw sends 1 wides past Julian.
+  Amber claim H7R-A-065: Shaw has Julian caught, no run.
+  Cedar claim H7R-C-065: Julian faces Shaw; 2 leg-byes.
+  Blue claim H7R-B-065: Shaw oversteps to Julian; 1 no-ball.
+Packet 084 | chain HARBOR-7R | slot O05.P3 | nonce 2
+  Amber claim H7R-A-027: Shaw oversteps to Dylan; 1 no-ball.
+  Cedar claim H7R-C-027: Dylan faces Shaw; 2 leg-byes.
+  Delta claim H7R-D-027: Dylan faces Shaw; 4 leg-byes.
+  Blue claim H7R-B-027: Dylan faces Shaw; 4 leg-byes.
+
+END OF EVIDENCE
+Do not average claims. Exactly one claim is accepted at every target slot.

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vett-cricket.org/schema/canonical-match-v1.json",
+  "title": "VETT-Cricket canonical match root",
+  "type": "object",
+  "required": [
+    "root_id",
+    "source_match_id",
+    "source_hashes",
+    "curation_status",
+    "match_metadata",
+    "innings",
+    "tables",
+    "events",
+    "cells",
+    "validation"
+  ],
+  "properties": {
+    "root_id": {"type": "string"},
+    "source_match_id": {"type": "string"},
+    "source_hashes": {
+      "type": "object",
+      "required": ["commentary_sha256", "scorecard_sha256"],
+      "properties": {
+        "commentary_sha256": {"type": "string"},
+        "scorecard_sha256": {"type": "string"},
+        "evidence_chain_sha256": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "curation_status": {
+      "enum": [
+        "READY_FOR_GENERATED_VIEWS",
+        "NEEDS_SUPPORT_ANNOTATION",
+        "NEEDS_BALL_ACCOUNTING",
+        "BLOCKED_SCORECARD_CONFLICT",
+        "BLOCKED_CONSTRUCTION_LEAK",
+        "EXCLUDED_DUPLICATE"
+      ]
+    },
+    "match_metadata": {"type": "object"},
+    "innings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["innings_id", "team", "runs", "overs", "legal_balls"],
+        "properties": {
+          "innings_id": {"type": "string"},
+          "team": {"type": "string"},
+          "runs": {"type": "integer"},
+          "wickets": {"type": ["integer", "null"]},
+          "overs": {"type": "string"},
+          "legal_balls": {"type": "integer"},
+          "summary": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["table_id", "table_type", "columns", "rows"],
+        "properties": {
+          "table_id": {"type": "string"},
+          "table_type": {"type": "string"},
+          "innings_id": {"type": ["string", "null"]},
+          "columns": {"type": "array", "items": {"type": "string"}},
+          "rows": {"type": "array", "items": {"type": "object"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "events": {"type": "array", "items": {"type": "object"}},
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "cell_id",
+          "table_id",
+          "row_id",
+          "column",
+          "value",
+          "gold_status"
+        ],
+        "properties": {
+          "cell_id": {"type": "string"},
+          "table_id": {"type": "string"},
+          "row_id": {"type": "string"},
+          "column": {"type": "string"},
+          "value": {},
+          "gold_status": {
+            "enum": [
+              "CANONICAL_CANDIDATE",
+              "BLOCKED_BY_CONFLICT",
+              "NEEDS_SUPPORT_ANNOTATION"
+            ]
+          },
+          "source_coordinate": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "audit_action",
+        "source_audit_action",
+        "failed_checks",
+        "release_blockers",
+        "oracle_status"
+      ],
+      "properties": {
+        "audit_action": {"type": "string"},
+        "source_audit_action": {"type": "string"},
+        "failed_checks": {"type": "array", "items": {"type": "string"}},
+        "release_blockers": {"type": "array", "items": {"type": "string"}},
+        "oracle_status": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

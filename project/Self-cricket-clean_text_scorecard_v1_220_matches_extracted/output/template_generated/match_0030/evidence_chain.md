@@ -1,0 +1,9 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic match facts can be read directly from the table and commentary. | Harborfield won by 9 wickets; Logan Vale was Player of the Match; Lagoon made 52 all out and Harborfield reached 53/1. |
+| L1 | Key player identification | Main contributors remain easy to identify without calculation. | Logan Vale took four wickets; Connor Blake and Caleb Hart each took two; Liam Foster finished not out in the chase. |
+| L2 | Cricket-rule arithmetic | Requires checking batting runs, extras, chase target, and wicket margin. | Lagoon batting runs add to 31 and extras add 21, giving 52; Harborfield batting runs add to 41 and extras add 12, giving 53; Harborfield lost only one wicket, so the result is a nine-wicket win. |
+| L2 | Partnership and FOW consistency | Requires cumulative verification across partnership and fall-of-wickets tables. | Lagoon partnerships move through 9, 33, 34, 41, 43, 44, 48, 49, 49, and 52; Harborfield partnerships move through 44 and 53. |
+| L2 | Bowling reconciliation | Requires understanding that byes and leg-byes are not charged to bowlers. | Harborfield bowlers concede 51 bowler-charged runs while Lagoon total 52 because one run is a bye; Lagoon bowlers concede all 53 because Harborfield had no byes or leg-byes. |
+| L3 | Commentary-hidden inference | Key facts are embedded through rhythm and pressure rather than dense score listing. | The text describes Lagoon being held together mostly by extras, Logan Vale breaking the middle order, and Harborfield completing a low-risk chase. |
+| L3 | Narrative-to-table validation | Readers must connect descriptive phrases to specific table evidence. | “The largest stand still leaned heavily on gifts,” “Logan turned slow pressure into wickets,” and “the chase was nearly done before the only wicket fell” map back to the partnerships, bowling, and FOW tables. |

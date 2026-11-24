@@ -1,0 +1,55 @@
+{
+  "protocol_version": "VETT-R26.14-STRUCTURAL-SHORTCUT-CONTRACT-1",
+  "status": "FROZEN_BEFORE_R26_14_STRUCTURAL_AUDIT_RESULT",
+  "scope": "Post-candidate deterministic diagnostic. It may reject a candidate for a reproducible shortcut, but passing it does not establish neural-model difficulty.",
+  "audits": {
+    "question_to_evidence_bm25": {
+      "candidate_pool": "all public spans in the same match",
+      "retrieval_budget": "exactly the gold positive evidence span count for that question",
+      "gates": {
+        "overall_positive_recall_at_gold_k_at_most": 0.45,
+        "each_L3_L5_positive_recall_at_gold_k_at_most": 0.50
+      },
+      "descriptive_only": [
+        "mean_reciprocal_rank_first_positive",
+        "rejected_span_recall_at_rejected_k",
+        "by_level_results"
+      ]
+    },
+    "question_only_topology_prior": {
+      "split": "leave one match out",
+      "predictor": "Jaccard 1-nearest-neighbour over public question text; deterministic lexical tie break",
+      "targets": [
+        "positive evidence cardinality",
+        "rejected evidence cardinality",
+        "typed edge cardinality",
+        "typed relation-count signature"
+      ],
+      "gates": {
+        "typed_relation_count_signature_exact_at_most": 0.50,
+        "typed_edge_cardinality_exact_at_most": 0.50
+      },
+      "descriptive_only": [
+        "positive_evidence_cardinality_exact",
+        "rejected_evidence_cardinality_exact",
+        "relation_multiset_f1",
+        "by_level_results"
+      ],
+      "claim_boundary": "Relation counts contain no span endpoints. Even an exact signature cannot earn an exact typed edge under the official scorer without recovering the correct public span IDs and directions."
+    },
+    "public_numeric_level_confound": {
+      "split": "leave one match out",
+      "predictor": "standardized 1-nearest-neighbour over public-only length, corpus-size, marker-position and lexical-score features",
+      "gate": {
+        "level_macro_f1_at_most": 0.40
+      },
+      "required_control_if_failed": "Retain and report equal cross-level-anchor weighting; do not interpret an unadjusted level curve causally.",
+      "claim_boundary": "Predicting the private level does not recover facts or evidence, but it can confound interpretation of the five-level curve."
+    }
+  },
+  "decision_policy": {
+    "on_any_failed_shortcut_gate": "Do not run external models. Reproduce the failure on 220 streamed matches and build a new candidate only if it persists and a semantics-preserving repair exists.",
+    "on_all_shortcut_gates_pass": "Freeze R26.14. Carry descriptive risks into Sentinel5 error analysis; do not create R26.15 solely to lower a descriptive diagnostic."
+  },
+  "provider_requests_authorized": false
+}

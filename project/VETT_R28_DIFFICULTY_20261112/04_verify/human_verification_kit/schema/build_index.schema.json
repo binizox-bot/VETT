@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vett.r28.human_kit.build_index.schema.v1",
+  "title": "R28 build index required by the human-verification kit",
+  "description": "The R28 build must publish this file so the kit can bind the 100 sampled design slots to real item ids. Config alone cannot disambiguate the four dose=0 dose-ladder cells, so dose-ladder items must carry mechanism + dose (or a stratum_id of the form 'DL:Dk=level').",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "schema": {"type": "string"},
+    "n_published": {"type": "integer"},
+    "items": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["item_id", "block", "cell"],
+            "properties": {
+              "item_id": {"type": "string"},
+              "block": {"const": "factor_core"},
+              "cell": {"type": "string", "pattern": "^[01]{4}$"},
+              "status": {"type": "string"},
+              "dismissal": {"type": "string"},
+              "tags": {"type": "array", "items": {"type": "string"}},
+              "family_id": {"type": "string"}
+            }
+          },
+          {
+            "type": "object",
+            "required": ["item_id", "block", "mechanism", "dose"],
+            "properties": {
+              "item_id": {"type": "string"},
+              "block": {"const": "dose_ladder"},
+              "mechanism": {"enum": ["D1", "D2", "D3", "D4"]},
+              "dose": {"enum": [0, 1, 2]},
+              "status": {"type": "string"},
+              "dismissal": {"type": "string"},
+              "tags": {"type": "array", "items": {"type": "string"}},
+              "family_id": {"type": "string"}
+            }
+          }
+        ]
+      }
+    }
+  }
+}

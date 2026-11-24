@@ -1,0 +1,1011 @@
+{
+  "arm": "published",
+  "authority_decision": null,
+  "context_spans": [
+    "r28fact_6544868883b7ea7d4632",
+    "r28fact_6e1e038fb2470bf0bc6f",
+    "r28fact_86fb04da24188f68f90f",
+    "r28fact_991d6fb907a7e1287407",
+    "r28fact_bf58e0db4421a796bf01",
+    "r28fact_cbc8be10165d84416015",
+    "r28fact_cdea2bac85e3b4e29a52",
+    "r28fact_e8fba511a3fa1f283ae0"
+  ],
+  "dataset_version": "VETT-Cricket-v0.37-R28-diagnostic-pair-20261112",
+  "decision_record_flat": {
+    "batter_runs": 0,
+    "bowler_runs": 6,
+    "counts_in_over": false,
+    "delivery_status": "WIDE",
+    "dismissal": "NONE",
+    "ledger.BATTER": 0,
+    "ledger.BYE": 0,
+    "ledger.LEG_BYE": 0,
+    "ledger.NO_BALL_EXTRA": 0,
+    "ledger.PENALTY": 10,
+    "ledger.WIDE_EXTRA": 6,
+    "total_runs": 16
+  },
+  "decision_record_flat_sha256": "553a6d4536593d64cf3df121f31982d9b55dafb131897cb1b06e87d3b9c1d7af",
+  "derivation_check": {
+    "derivation_depth_content": 7,
+    "derivation_depth_structural": 0,
+    "derivation_depth_verified": 7,
+    "gold_record_sha256": "553a6d4536593d64cf3df121f31982d9b55dafb131897cb1b06e87d3b9c1d7af",
+    "necessary_operators": [
+      "STATUS_WIDE",
+      "GATE_DECEPTION",
+      "LEDGER_STATUS_EXTRA",
+      "MOVEMENT_COMPOSE",
+      "RUN_CREDIT_ROUTE",
+      "PENALTY_AWARD",
+      "BOWLER_DEBIT"
+    ],
+    "not_on_path_operators": [
+      "STATUS_EARLY_DEAD",
+      "STATUS_NO_BALL",
+      "STATUS_WIDE_REVOKE",
+      "STATUS_LEGAL_DEFAULT",
+      "DISMISSAL_NONE_CANDIDATE",
+      "GATE_APPEAL",
+      "GATE_DEAD_SEQUENCE",
+      "GATE_FAIR_WICKET",
+      "BOWLED_TEST",
+      "LBW_THREE_TESTS",
+      "CAUGHT_CONTROL",
+      "RUNOUT_GROUND_TEST",
+      "NB_KEEPER_RUNOUT_EXCEPTION",
+      "STUMPED_KEEPER_TEST",
+      "DISMISSAL_RETURN_OBSTRUCTING",
+      "DISMISSAL_RETURN_HIT_BALL_TWICE",
+      "COMPLETED_DISMISSAL_SUPPRESS",
+      "DEAD_REBALL_ZERO"
+    ],
+    "operator_count_fired": 8,
+    "operator_version": "r28-derivation-pipeline-v1",
+    "operators": [
+      {
+        "ablation": null,
+        "description": "early Dead ball becomes the delivery status before any other call",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "STATUS_EARLY_DEAD",
+        "reads": [
+          "early_dead_reball"
+        ],
+        "rule_key": null,
+        "stage": "STATUS",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "delivery_status"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "a No-ball call outranks a Wide call",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "STATUS_NO_BALL",
+        "reads": [
+          "no_ball_called"
+        ],
+        "rule_key": null,
+        "stage": "STATUS",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "delivery_status"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "a Wide call is revoked when the ball touched bat or person",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "STATUS_WIDE_REVOKE",
+        "reads": [
+          "wide_called",
+          "contact"
+        ],
+        "rule_key": null,
+        "stage": "STATUS",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "delivery_status"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "cf20581d2f4e46c7a806d1f065052e8bc61b2e8628a66c60f6ab56e5a99d7bdf",
+          "changed_fields": [
+            "bowler_runs",
+            "delivery_status",
+            "ledger.BYE",
+            "ledger.WIDE_EXTRA",
+            "total_runs"
+          ],
+          "outcome": "RECORD_CHANGED"
+        },
+        "description": "an unrevoked Wide call becomes the delivery status",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "STATUS_WIDE",
+        "reads": [
+          "wide_called",
+          "contact"
+        ],
+        "rule_key": "WIDE_SCORE",
+        "stage": "STATUS",
+        "verdict": "NECESSARY",
+        "writes": [
+          "delivery_status"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "no overriding call: the delivery is legal",
+        "fired": false,
+        "necessity_kind": "STRUCTURAL",
+        "operator_id": "STATUS_LEGAL_DEFAULT",
+        "reads": [],
+        "rule_key": null,
+        "stage": "STATUS",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "delivery_status"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "no wicket event was submitted",
+        "fired": false,
+        "necessity_kind": "STRUCTURAL",
+        "operator_id": "DISMISSAL_NONE_CANDIDATE",
+        "reads": [
+          "dismissal_candidate"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "no dismissal without a timely fielding-side appeal",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "GATE_APPEAL",
+        "reads": [
+          "appeal_made",
+          "appeal_in_time"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "a wicket broken after the ball is dead cannot count",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "GATE_DEAD_SEQUENCE",
+        "reads": [
+          "early_dead_reball",
+          "dead_before_wicket"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "04539c755fdaa3f28d3552f74cf118009484addb305a06c5d9ac6484ee6d2ac3",
+          "changed_fields": [
+            "bowler_runs",
+            "dismissal",
+            "ledger.WIDE_EXTRA",
+            "total_runs"
+          ],
+          "outcome": "RECORD_CHANGED"
+        },
+        "description": "wilful deception makes the ball dead and removes dismissal",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "GATE_DECEPTION",
+        "reads": [
+          "wilful_deception"
+        ],
+        "rule_key": "DECEPTION",
+        "stage": "DISMISSAL",
+        "verdict": "NECESSARY",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "an unfair put-down is not a dismissal",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "GATE_FAIR_WICKET",
+        "reads": [
+          "wicket_fair"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "Bowled needs a legal delivery that broke the striker's wicket",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "BOWLED_TEST",
+        "reads": [
+          "delivery_status",
+          "wicket_broken_by_delivery"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "LBW needs a legal delivery plus pitching, impact and wicket tests",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "LBW_THREE_TESTS",
+        "reads": [
+          "delivery_status",
+          "lbw_pitch_valid",
+          "lbw_impact_valid",
+          "lbw_would_hit_wicket"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "Caught needs bat contact and a fair, complete catch",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "CAUGHT_CONTROL",
+        "reads": [
+          "contact",
+          "catch_complete",
+          "ball_grounded_before_control",
+          "boundary_contact_before_completion"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "Run out needs the batter to be out of ground",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "RUNOUT_GROUND_TEST",
+        "reads": [
+          "out_of_ground"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "after No ball a keeper-only put-down without an attempted run is not Run out",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "NB_KEEPER_RUNOUT_EXCEPTION",
+        "reads": [
+          "delivery_status",
+          "keeper_only",
+          "attempting_run"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "Stumped vs Run out is decided by keeper-only control and the attempted run",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "STUMPED_KEEPER_TEST",
+        "reads": [
+          "delivery_status",
+          "out_of_ground",
+          "keeper_only",
+          "attempting_run"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "Obstructing the field remains available as a dismissal",
+        "fired": false,
+        "necessity_kind": "RULE_RECOGNITION",
+        "operator_id": "DISMISSAL_RETURN_OBSTRUCTING",
+        "reads": [
+          "dismissal_candidate"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "Hit the ball twice remains available as a dismissal",
+        "fired": false,
+        "necessity_kind": "RULE_RECOGNITION",
+        "operator_id": "DISMISSAL_RETURN_HIT_BALL_TWICE",
+        "reads": [
+          "dismissal_candidate"
+        ],
+        "rule_key": null,
+        "stage": "DISMISSAL",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "dismissal"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "de0c50eff5998a8947eb9bdb254f659424fcf19e20f57a3813bdcdd89e38ce9a",
+          "changed_fields": [
+            "bowler_runs",
+            "ledger.WIDE_EXTRA",
+            "total_runs"
+          ],
+          "outcome": "RECORD_CHANGED"
+        },
+        "description": "a No ball adds one No-ball extra, a Wide adds one Wide extra",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "LEDGER_STATUS_EXTRA",
+        "reads": [
+          "delivery_status"
+        ],
+        "rule_key": "WIDE_SCORE",
+        "stage": "LEDGER",
+        "verdict": "NECESSARY",
+        "writes": [
+          "ledger.NO_BALL_EXTRA",
+          "ledger.WIDE_EXTRA"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "c50809231d97cd8e0eb29b5fc8a757cb2be27eb0dbab616baba0919c9cb5ac65",
+          "changed_fields": [
+            "bowler_runs",
+            "ledger.WIDE_EXTRA",
+            "total_runs"
+          ],
+          "outcome": "RECORD_CHANGED"
+        },
+        "description": "runs before the terminal event: completed runs, boundary allowance, awards",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "MOVEMENT_COMPOSE",
+        "reads": [
+          "completed_runs",
+          "boundary_mode",
+          "boundary_allowance",
+          "crossed_at_throw",
+          "award_run_in_progress",
+          "wilful_deception",
+          "dismissal"
+        ],
+        "rule_key": null,
+        "stage": "LEDGER",
+        "verdict": "NECESSARY",
+        "writes": [
+          "movement"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "e85bdf6c16113a73212932845dffe33d8da5e3216b52576cab848387fe5591f8",
+          "changed_fields": [
+            "batter_runs",
+            "ledger.BATTER",
+            "ledger.WIDE_EXTRA"
+          ],
+          "outcome": "RECORD_CHANGED"
+        },
+        "description": "credit movement to bat, byes, leg byes or wide extras by contact",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "RUN_CREDIT_ROUTE",
+        "reads": [
+          "contact",
+          "delivery_status"
+        ],
+        "rule_key": null,
+        "stage": "LEDGER",
+        "verdict": "NECESSARY",
+        "writes": [
+          "ledger.BATTER",
+          "ledger.BYE",
+          "ledger.LEG_BYE",
+          "ledger.WIDE_EXTRA"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "46ce13ebf60ed52224fe236ae9f34f28c01947541a93e9455fb83ec0358e0dc6",
+          "changed_fields": [
+            "ledger.PENALTY",
+            "total_runs"
+          ],
+          "outcome": "RECORD_CHANGED"
+        },
+        "description": "penalty runs awarded to the batting side",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "PENALTY_AWARD",
+        "reads": [
+          "penalty_runs_batting",
+          "wilful_deception"
+        ],
+        "rule_key": "DECEPTION",
+        "stage": "LEDGER",
+        "verdict": "NECESSARY",
+        "writes": [
+          "ledger.PENALTY"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "a completed dismissal removes ordinary running from the ledger",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "COMPLETED_DISMISSAL_SUPPRESS",
+        "reads": [
+          "dismissal",
+          "delivery_status"
+        ],
+        "rule_key": null,
+        "stage": "LEDGER",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "ledger.BATTER",
+          "ledger.BYE",
+          "ledger.LEG_BYE",
+          "ledger.WIDE_EXTRA"
+        ]
+      },
+      {
+        "ablation": null,
+        "description": "a Dead ball records nothing",
+        "fired": false,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "DEAD_REBALL_ZERO",
+        "reads": [
+          "delivery_status"
+        ],
+        "rule_key": null,
+        "stage": "LEDGER",
+        "verdict": "NOT_ON_PATH",
+        "writes": [
+          "ledger.BATTER",
+          "ledger.NO_BALL_EXTRA",
+          "ledger.WIDE_EXTRA",
+          "ledger.BYE",
+          "ledger.LEG_BYE",
+          "ledger.PENALTY"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": null,
+          "outcome": "ABLATION_UNRESOLVED",
+          "unresolved_field": "invalid_record:bowler runs disagree with ledger"
+        },
+        "description": "the bowling analysis debits batter runs and both extra types",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "BOWLER_DEBIT",
+        "reads": [
+          "ledger.BATTER",
+          "ledger.NO_BALL_EXTRA",
+          "ledger.WIDE_EXTRA"
+        ],
+        "rule_key": "BOWLER_DEBIT",
+        "stage": "RECORD",
+        "verdict": "NECESSARY",
+        "writes": [
+          "bowler_runs"
+        ]
+      },
+      {
+        "ablation": {
+          "ablated_record_sha256": "553a6d4536593d64cf3df121f31982d9b55dafb131897cb1b06e87d3b9c1d7af",
+          "changed_fields": [],
+          "outcome": "RECORD_UNCHANGED"
+        },
+        "description": "only an ordinary legal delivery counts as one of the over",
+        "fired": true,
+        "necessity_kind": "FACT_CONDITION",
+        "operator_id": "COUNTS_IN_OVER",
+        "reads": [
+          "delivery_status",
+          "forced_not_count",
+          "wilful_deception"
+        ],
+        "rule_key": "WIDE_COUNT",
+        "stage": "RECORD",
+        "verdict": "PRESENTATION_ONLY",
+        "writes": [
+          "counts_in_over"
+        ]
+      }
+    ],
+    "presentation_only_operators": [
+      "COUNTS_IN_OVER"
+    ],
+    "replay_equal": true,
+    "replayed_record_sha256": "553a6d4536593d64cf3df121f31982d9b55dafb131897cb1b06e87d3b9c1d7af",
+    "solver_equivalence": {
+      "flat_record_equal": true,
+      "module": "vett_r25.solver",
+      "sha256": "4fcd8a10fe5cb7c8de422c2357ebefc13fe82d3e69020cfcada955b4a5fe3362"
+    },
+    "steps_sha256": "4701dc72630cfe461c7259fdea0e7ec70f88cf9fdd51536d1589af94e0ad7c74"
+  },
+  "distractor_spans": [
+    "r28shadow_b28bca338d3052230bf7",
+    "r28shadow_f65dfac8cf53fb253949"
+  ],
+  "dose_assignment": {
+    "D1": 0,
+    "D2": 0,
+    "D3": 0,
+    "D4": 2
+  },
+  "dose_witness_digest": "a43d60732e2ab1b8f22b6c7d1162474d4fde03abe8bd733fe3d7e0a7cdc40524",
+  "evidence_edges": [
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_0321513d45b50e51f3ac",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_5733433f70593f5690a7",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_6544868883b7ea7d4632",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_66bdf53ad47858867e87",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_6e1e038fb2470bf0bc6f",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_86fb04da24188f68f90f",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_991d6fb907a7e1287407",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_bf58e0db4421a796bf01",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_c7b5659461c478bab6c0",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_cbc8be10165d84416015",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_cdea2bac85e3b4e29a52",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_db55f9a7195f2d5b0bc2",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "supports_decision",
+      "source_id": "r28fact_e8fba511a3fa1f283ae0",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "identifies",
+      "source_id": "r28q_0313",
+      "target_id": "r28fact_6544868883b7ea7d4632"
+    },
+    {
+      "relation": "governs_decision",
+      "source_id": "r28rule_15a4503a7d8f977c4533",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "governs_decision",
+      "source_id": "r28rule_864cfff04948d211c583",
+      "target_id": "decision:r28q_0313"
+    },
+    {
+      "relation": "governs_decision",
+      "source_id": "r28rule_b05be60be6df57efa450",
+      "target_id": "decision:r28q_0313"
+    }
+  ],
+  "evidence_necessity": [
+    {
+      "countermodel": null,
+      "dependency": "PIVOTAL_FACT",
+      "field": "appeal_in_time",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_6544868883b7ea7d4632",
+      "value": true
+    },
+    {
+      "countermodel": null,
+      "dependency": "PIVOTAL_FACT",
+      "field": "appeal_made",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_cdea2bac85e3b4e29a52",
+      "value": true
+    },
+    {
+      "countermodel": null,
+      "dependency": "PIVOTAL_FACT",
+      "field": "award_run_in_progress",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_86fb04da24188f68f90f",
+      "value": true
+    },
+    {
+      "countermodel": {
+        "field": "boundary_allowance",
+        "from": 4,
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "de0c50eff5998a8947eb9bdb254f659424fcf19e20f57a3813bdcdd89e38ce9a",
+        "to": 0
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "boundary_allowance",
+      "in_minimum_evidence": true,
+      "removal_detail": [
+        "bowler_runs",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "removal_result": "RECORD_CHANGES",
+      "span_id": "r28fact_5733433f70593f5690a7",
+      "value": 4
+    },
+    {
+      "countermodel": {
+        "field": "boundary_mode",
+        "from": "LATER_AFTER_WICKET",
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "de0c50eff5998a8947eb9bdb254f659424fcf19e20f57a3813bdcdd89e38ce9a",
+        "to": "NONE"
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "boundary_mode",
+      "in_minimum_evidence": true,
+      "removal_detail": [
+        "bowler_runs",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "removal_result": "RECORD_CHANGES",
+      "span_id": "r28fact_0321513d45b50e51f3ac",
+      "value": "LATER_AFTER_WICKET"
+    },
+    {
+      "countermodel": {
+        "field": "completed_runs",
+        "from": 3,
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "201702bc4b641907926b9118d2e571bfc1205f7dcd797ef13250fc6859e21b1b",
+        "to": 5
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "completed_runs",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_cbc8be10165d84416015",
+      "value": 3
+    },
+    {
+      "countermodel": {
+        "field": "contact",
+        "from": "NONE",
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "f375a2ed6c894d578cdef5ff537c520c1863806fd3e688c82cc6ba982aef1c50",
+        "to": "BAT"
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "contact",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_bf58e0db4421a796bf01",
+      "value": "NONE"
+    },
+    {
+      "countermodel": null,
+      "dependency": "PIVOTAL_FACT",
+      "field": "crossed_at_throw",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_991d6fb907a7e1287407",
+      "value": false
+    },
+    {
+      "countermodel": null,
+      "dependency": "PIVOTAL_FACT",
+      "field": "dismissal_candidate",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_e8fba511a3fa1f283ae0",
+      "value": "HIT_BALL_TWICE"
+    },
+    {
+      "countermodel": {
+        "field": "penalty_runs_batting",
+        "from": 5,
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "ed7dc49b1398478a53b4b6eafe9f0a0ae7322c342328c2594c1738542c289886",
+        "to": 0
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "penalty_runs_batting",
+      "in_minimum_evidence": true,
+      "removal_detail": [
+        "ledger.PENALTY",
+        "total_runs"
+      ],
+      "removal_result": "RECORD_CHANGES",
+      "span_id": "r28fact_db55f9a7195f2d5b0bc2",
+      "value": 5
+    },
+    {
+      "countermodel": null,
+      "dependency": "PIVOTAL_FACT",
+      "field": "wicket_fair",
+      "in_minimum_evidence": false,
+      "removal_detail": null,
+      "removal_result": "NO_EFFECT",
+      "span_id": "r28fact_6e1e038fb2470bf0bc6f",
+      "value": true
+    },
+    {
+      "countermodel": {
+        "field": "wide_called",
+        "from": true,
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "cf20581d2f4e46c7a806d1f065052e8bc61b2e8628a66c60f6ab56e5a99d7bdf",
+        "to": false
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "wide_called",
+      "in_minimum_evidence": true,
+      "removal_detail": [
+        "bowler_runs",
+        "delivery_status",
+        "ledger.BYE",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "removal_result": "RECORD_CHANGES",
+      "span_id": "r28fact_c7b5659461c478bab6c0",
+      "value": true
+    },
+    {
+      "countermodel": {
+        "field": "wilful_deception",
+        "from": true,
+        "outcome": "RECORD_CHANGED",
+        "record_sha256": "0745f64371b311c802884cb08dde25cf255cc3d40812ad530db8ff973894dc4b",
+        "to": false
+      },
+      "dependency": "PIVOTAL_FACT",
+      "field": "wilful_deception",
+      "in_minimum_evidence": true,
+      "removal_detail": [
+        "bowler_runs",
+        "dismissal",
+        "ledger.PENALTY",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "removal_result": "RECORD_CHANGES",
+      "span_id": "r28fact_66bdf53ad47858867e87",
+      "value": true
+    }
+  ],
+  "masked_cell": null,
+  "masked_cell_spans": [],
+  "minimum_evidence_count": 8,
+  "minimum_evidence_spans": [
+    "r28fact_0321513d45b50e51f3ac",
+    "r28fact_5733433f70593f5690a7",
+    "r28fact_66bdf53ad47858867e87",
+    "r28fact_c7b5659461c478bab6c0",
+    "r28fact_db55f9a7195f2d5b0bc2",
+    "r28rule_15a4503a7d8f977c4533",
+    "r28rule_864cfff04948d211c583",
+    "r28rule_b05be60be6df57efa450"
+  ],
+  "presentation_only_operators": [
+    {
+      "necessity_kind": "FACT_CONDITION",
+      "operator_id": "COUNTS_IN_OVER",
+      "removal_result": "NO_EFFECT",
+      "rule_key": "WIDE_COUNT",
+      "span_id": "r28rule_26e34c550b9914108185",
+      "verdict": "PRESENTATION_ONLY"
+    }
+  ],
+  "presentation_only_rule_keys": [
+    "WIDE_COUNT"
+  ],
+  "process_support_spans": [],
+  "question_id": "r28q_0313",
+  "rejected_evidence_spans": [],
+  "revision_chain": null,
+  "rule_path": [
+    {
+      "necessity_kind": "FACT_CONDITION",
+      "operator_id": "STATUS_WIDE",
+      "removal_result": "UNRESOLVED_RULE_JUSTIFICATION",
+      "rule_key": "WIDE_SCORE",
+      "span_id": "r28rule_15a4503a7d8f977c4533",
+      "verdict": "NECESSARY"
+    },
+    {
+      "necessity_kind": "FACT_CONDITION",
+      "operator_id": "GATE_DECEPTION",
+      "removal_result": "UNRESOLVED_RULE_JUSTIFICATION",
+      "rule_key": "DECEPTION",
+      "span_id": "r28rule_864cfff04948d211c583",
+      "verdict": "NECESSARY"
+    },
+    {
+      "necessity_kind": "FACT_CONDITION",
+      "operator_id": "LEDGER_STATUS_EXTRA",
+      "removal_result": "UNRESOLVED_RULE_JUSTIFICATION",
+      "rule_key": "WIDE_SCORE",
+      "span_id": "r28rule_15a4503a7d8f977c4533",
+      "verdict": "NECESSARY"
+    },
+    {
+      "necessity_kind": "FACT_CONDITION",
+      "operator_id": "PENALTY_AWARD",
+      "removal_result": "UNRESOLVED_RULE_JUSTIFICATION",
+      "rule_key": "DECEPTION",
+      "span_id": "r28rule_864cfff04948d211c583",
+      "verdict": "NECESSARY"
+    },
+    {
+      "necessity_kind": "FACT_CONDITION",
+      "operator_id": "BOWLER_DEBIT",
+      "removal_result": "UNRESOLVED_RULE_JUSTIFICATION",
+      "rule_key": "BOWLER_DEBIT",
+      "span_id": "r28rule_b05be60be6df57efa450",
+      "verdict": "NECESSARY"
+    }
+  ],
+  "rule_path_rule_keys": [
+    "WIDE_SCORE",
+    "DECEPTION",
+    "WIDE_SCORE",
+    "DECEPTION",
+    "BOWLER_DEBIT"
+  ],
+  "schema": "vett.r28.certificate.v1",
+  "solver": {
+    "module": "vett_r25.solver",
+    "scenarios_sha256": "d695252cb5a0c4b0183fbdd4764d1b52177187b50c7483b690e5b9e413b5b45a",
+    "sha256": "4fcd8a10fe5cb7c8de422c2357ebefc13fe82d3e69020cfcada955b4a5fe3362"
+  },
+  "solver_facts_sha256": "081306de0e6f671f5bf86910ee57ebb532730f56ae31e8b440e441f3a1bbfbaa",
+  "why_not_distractor": [
+    {
+      "differing_fact_count": 3,
+      "differing_facts": [
+        "completed_runs",
+        "boundary_allowance",
+        "penalty_runs_batting"
+      ],
+      "distractor_record_differs_in": [
+        "bowler_runs",
+        "ledger.PENALTY",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "distractor_record_sha256": "73faaf74d24d2a0eaf37aa5aa1c7a08b8a71fcda1e9783a2b1883a9f7922df3f",
+      "near_miss": false,
+      "record_isomorphic": false,
+      "span_id": "r28shadow_b28bca338d3052230bf7",
+      "subject": "a parallel review, slip QH"
+    },
+    {
+      "differing_fact_count": 1,
+      "differing_facts": [
+        "completed_runs"
+      ],
+      "distractor_record_differs_in": [
+        "bowler_runs",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "distractor_record_sha256": "201702bc4b641907926b9118d2e571bfc1205f7dcd797ef13250fc6859e21b1b",
+      "near_miss": true,
+      "record_isomorphic": false,
+      "span_id": "r28shadow_f65dfac8cf53fb253949",
+      "subject": "a parallel review, slip GL"
+    }
+  ]
+}

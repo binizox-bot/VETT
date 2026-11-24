@@ -1,0 +1,236 @@
+{
+  "schema": "vett-r28-gate-j-snapshot/v1",
+  "snapshot_id": "GATE-J-S2",
+  "status": "ACTIVE",
+  "supersedes": "GATE-J-S1",
+  "frozen_at_utc": "2026-11-12T15:31:05Z",
+  "frozen_after": "t20 CLOSED_LOOP_VERIFICATION 10/10 PASS（captain 2026-11-12 放行发 S2）",
+  "purpose": "t8 的唯一锚点：这 6 个 04_verify 产物的字节在 S2 内不变；任何写入按 GATE_J_SNAPSHOT_POLICY.md §6 受控处理（METADATA_ONLY 不重验 / CONTENT_CHANGED 必须发 S3）。",
+  "gate_id": "VETT-R28-GATE-J-20261112",
+  "artifacts": {
+    "J_GATE.json": {
+      "bytes": 64695,
+      "sha256": "971a6840d1fdb4893148500043798153611c3f4157c9dc928815b421a17737f5"
+    },
+    "J_GATE.md": {
+      "bytes": 27461,
+      "sha256": "fc7e2c45db9d9893722eed2e9d3f38baa130ba53f9da9394805c26f699ce7375"
+    },
+    "J8_REOPEN_RUNBOOK.md": {
+      "bytes": 8684,
+      "sha256": "bc063f7d2cd783b1dc527799f46ce03e9d47673b5e4e9d94525a00e35b4bd2ba"
+    },
+    "scripts/j_gate.py": {
+      "bytes": 92586,
+      "sha256": "25229818ac7348c54c2211052d2af590098bd2a917e543cd4bf20eb975b676c3"
+    },
+    "scripts/reaudit_packets.py": {
+      "bytes": 8489,
+      "sha256": "96cc859db1d7c58a54f8d1c7b4d3a746c076f3084e807ca47ca8dbdb70fb7c1f"
+    },
+    "tests/test_j_gate.py": {
+      "bytes": 6988,
+      "sha256": "48ba4f2e827946814f9828fa9cb7773e4dc89ab8c188249b6d2648f53b1b91b8"
+    }
+  },
+  "support_files": {
+    "GATE_J_SNAPSHOT_POLICY.md": {
+      "bytes": 7682,
+      "sha256": "f9ea55fe37d965d63783f09fc5c0fc3daa28430d068a8c7c1356b842c9dc8644"
+    },
+    "scripts/verify_snapshot.py": {
+      "bytes": 10172,
+      "sha256": "e58d9768fb91835bc7eafed478f9dabb5acd1c47355130f97abefcd97f370802"
+    },
+    "scripts/recompute_content_hash.py": {
+      "bytes": 5070,
+      "sha256": "064a8a66403f5eb931c6dae84ffadb10f370059291ccba8fb0b35ce38f4830a0"
+    }
+  },
+  "reproducibility": {
+    "recipe_version": "vett-gate-content-digest/v2",
+    "recipe_text": "vett-gate-content-digest/v2\n1) 读取 JSON\n2) 删除（点号路径，逐层下钻，仅当父对象存在时删除）：\n     generated_at_utc\n     protocol_precondition.evidence.verify_checked_at_utc\n     items.J0_protocol_precondition.evidence.verify_checked_at_utc\n3) 序列化：json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(\",\", \":\"))\n   —— UTF-8、键升序、紧凑分隔符、无尾随换行\n4) 对上述字符串的 UTF-8 字节做 SHA-256\n排除项说明：三个时间戳都是\"元数据\"，其中两个来自上游 protocol_verify 的运行时刻。\nartifacts/verdicts/evidence 的数字与结构**全部参与**哈希（不做任何归一化）。",
+    "content_sha256_v2": "9b0f4d40272213580bb03e2c60d9ef22eb39abba3723b4ca9383171d9def54b2",
+    "content_sha256_excluding_volatile": "9b0f4d40272213580bb03e2c60d9ef22eb39abba3723b4ca9383171d9def54b2",
+    "volatile_fields": [
+      "generated_at_utc",
+      "protocol_precondition.evidence.verify_checked_at_utc",
+      "items.J0_protocol_precondition.evidence.verify_checked_at_utc"
+    ],
+    "pinned_generated_at_utc": "2026-11-12T15:28:50Z",
+    "byte_identical_rerun": "python scripts/j_gate.py --write --json-only --generated-at <pinned_generated_at_utc>",
+    "fingerprints_command": "python scripts/verify_snapshot.py --fingerprints（S2 起指纹块一律机械生成，禁止手抄）",
+    "verify_command": "python scripts/verify_snapshot.py --expect S2",
+    "content_digest_implementations": [
+      "scripts/recompute_content_hash.py（独立实现，含 --recipe/--compare）",
+      "scripts/verify_snapshot.py --content-digest（内置）"
+    ]
+  },
+  "verdicts": {
+    "J0": "PASS",
+    "J1_T1": "PASS",
+    "J1_T2": "PASS",
+    "J1_S1": "INSUFFICIENT",
+    "J1_C1": "INSUFFICIENT",
+    "J1b": "PASS",
+    "J1c": "SHORTCUT_FLAG",
+    "J2_T3": "DESCRIPTIVE_ONLY",
+    "J3": "NOT_ESTIMATED",
+    "J4": "PASS",
+    "J5": "NOT_RUN",
+    "J6": "PASS",
+    "J7": "PASS",
+    "J8": "PASS",
+    "J9": "PASS",
+    "J10": "GUARDED",
+    "J11": "TRANSFER_TO_T11",
+    "J12": "FLAG_NOT_ADMISSIBLE",
+    "J13": "NO_DISCRIMINATION"
+  },
+  "blocking": [],
+  "j8_conditions": {
+    "C1_main_hits": 0,
+    "C1_main_annotations": 0,
+    "C2_raw_hits": 0,
+    "C2_structural_hits": 0,
+    "C2_unauditable_production": 0,
+    "C3_config_ok": true,
+    "C4_cache_hits_resolved": "71/71",
+    "C5_quarantine_verified": "35/35",
+    "C5_evidence_strength": "text-level only (not a structural proof)"
+  },
+  "known_limitations": [
+    "F6（verifier 复现）C2 未堵的绕过：把变体 token 从中间拆开放在两个字段里（{\"a\": \"T2.naturalness_pair.cho\", \"b\": \"ice.v9\"}）不会被命中；captain 点名的 {\"prefix\": \"…choice\", \"suffix\": \".v9\"} 反而是能拦住的（prefix 本身命中形态）。caption 口径：C2 只报'未发现符合形态的变体，不证明不存在'。captain 裁决记为已知局限、不修；若未来升为结构证据，须改为 config schema 白名单 / 解析 runner 实际读取的键。",
+    "C5 只是文本级（text grep）证据，不是结构证明；不得单独作为隔离有效性的强证据。",
+    "C2 在 F4 修复前对 pretty-printed JSON 静默失效（verifier 发现，已修 + 已加回归测试）；C2 仍只作辅助通道。"
+  ],
+  "change_reason": "S1 已作废（F8）：t20 的正常 plain `j_gate.py` 运行重写了 J_GATE.json 的 generated_at_utc，按字节哈希判锚点必然失效。S2 在两方面不同：① `j_gate.py` 默认只读、写盘需 `--write`；② 内容摘要可被两份独立实现复算（v2），因此'只是元数据在动'可被判出来，不必反复发快照。",
+  "timeline": [
+    {
+      "at_utc": "2026-11-12T15:25:49Z",
+      "event": "S1 pinned J_GATE.json（acb06196…），frozen 15:25:57Z"
+    },
+    {
+      "at_utc": "2026-11-12T15:26:22Z",
+      "event": "S1 BROKEN：t20 的 plain `j_gate.py`（J8 闭合复核，完全合法）重写 J_GATE.json → 6f534158…；仅 generated_at_utc 变动"
+    },
+    {
+      "at_utc": "2026-11-12T15:27Z",
+      "event": "F8 定性（captain）：根因是工具默认写行为，不是谁违规；修法=默认只读 + 显式 --write"
+    },
+    {
+      "at_utc": "2026-11-12T15:29Z",
+      "event": "F8b：内容摘要口径升级 v2（剔 3 条时间戳路径 + 紧凑分隔符），两份独立实现逐位一致"
+    },
+    {
+      "at_utc": "2026-11-12T15:33Z",
+      "event": "t20 关闭（10/10 PASS），captain 放行发 S2"
+    }
+  ],
+  "no_verdict_change_proof": {
+    "claim": "S1 时代与 S2 之间，**没有任何 J 项判定或数字变化**",
+    "evidence_1": "S2 记录 verdict_index/blocking/J8 五条条件，与 S1 时代的报告一致：J8 PASS、blocking=[]、C1 0/0、C2 0+0+0、C3 true、C4 71/71、C5 35/35+0 引用",
+    "evidence_2": "本轮所有写入只涉及文档与工具输出（--fingerprints、policy、§9.1 记录）；J 项判定字段未改",
+    "honest_caveat": "**不能用 content digest 直接证明这一点**：S1 时代记录的 5d7efca5 属旧口径（只剔顶层 generated_at_utc），与 v2 不可比——这正是 F8b 要修的问题。S2 记录 v2 值 9b0f4d40… 作为**今后**的基准，而不是回溯声明与 S1 相等。任何回溯性相等主张都必须能复算，否则不进验收清单。"
+  },
+  "write_policy": {
+    "default": "j_gate.py 默认只读；plain/--json-only/--check-md/--no-write 均不落盘；只有 --write 才写",
+    "who": "仅 judge_architect（J 门 owner），且需 captain 指令或新事实",
+    "after_write": [
+      "立刻用 --fingerprints 输出新字节表 + content_sha256_v2",
+      "运行 verify_snapshot.py --expect S2 看分类：METADATA_ONLY → t8 不重验；CONTENT_CHANGED → 必须发 S3 并经 captain 确认"
+    ],
+    "other_agents": "如 t20/t8 需刷新，用 --write 并先告知 owner；只需判定则 plain 运行 + 读现有文件"
+  },
+  "protocol_bindings": {
+    "protocol_json": "1a87c3165353f5ec44701f85207aa8cc4faf0b96173c6312152c3d50c50c1293",
+    "protocol_md": "9758d0e1fc8e13905b710cc6314ea98ca8b7aaad9daed77d475c958d7eb4300e",
+    "protocol_freeze": "ab18ee1bffe17322c6cd0605562e3608fc2ce6f2734f2cee9704500f0761697e",
+    "protocol_frozen_at_utc": "2026-11-12T15:16:44Z",
+    "note": "上游协议 7 件与 S2 分离：协议变更由 PAMEND-### 管理（当前 002/003/004）。"
+  },
+  "s1_record": {
+    "snapshot_id": "GATE-J-S1",
+    "status": "SUPERSEDED_NO_ANCHOR",
+    "frozen_at_utc": "2026-11-12T15:25:57Z",
+    "artifacts": {
+      "J_GATE.json": {
+        "bytes": 64695,
+        "sha256": "acb06196cf3d078e8b094fe993ccafe252c105580ba65e44fedf4e75df673923",
+        "sha256_current": "68d7604bccccd485414de2e1e77f6bd5275ac54fc850c60f0fb23d844c04fa0c",
+        "sha256_observed_at_supersede": "971a6840d1fdb4893148500043798153611c3f4157c9dc928815b421a17737f5",
+        "content_sha256_v2": "9b0f4d40272213580bb03e2c60d9ef22eb39abba3723b4ca9383171d9def54b2"
+      },
+      "J_GATE.md": {
+        "bytes": 25960,
+        "sha256": "7499218c5887cc661fe4872a519870fc0ecf151e1dcd2e3969900f14289131f2"
+      },
+      "J8_REOPEN_RUNBOOK.md": {
+        "bytes": 8684,
+        "sha256": "bc063f7d2cd783b1dc527799f46ce03e9d47673b5e4e9d94525a00e35b4bd2ba"
+      },
+      "scripts/j_gate.py": {
+        "bytes": 92231,
+        "sha256": "f998cb018f84cab831b9e62c7ab631086313c894e21daf427e535b09623ea948"
+      },
+      "scripts/reaudit_packets.py": {
+        "bytes": 8489,
+        "sha256": "96cc859db1d7c58a54f8d1c7b4d3a746c076f3084e807ca47ca8dbdb70fb7c1f"
+      },
+      "tests/test_j_gate.py": {
+        "bytes": 6988,
+        "sha256": "48ba4f2e827946814f9828fa9cb7773e4dc89ab8c188249b6d2648f53b1b91b8"
+      }
+    },
+    "superseded": {
+      "at_utc": "2026-11-12T15:26:22Z",
+      "by": "t20 的 plain `j_gate.py` 运行（J8 闭合复核，完全合法）",
+      "what": "J_GATE.json 由 acb06196… 变为 6f534158…（仅 generated_at_utc 变动）",
+      "root_cause": "工具默认写行为：跑验证即写产物，导致任何正常复核都会打破锚点（F8）",
+      "fix": "j_gate.py 默认只读，写盘需显式 --write；t20 关闭前不设新锚点（见 GATE_J_SNAPSHOT_POLICY.md）",
+      "captain_ruling": "与其反复失效，不如如实声明 t20 期间 J_GATE 是活跃产物，不出锚点；t20 一关再发 S2"
+    },
+    "stability_policy": [
+      "本快照状态 SUPERSEDED_NO_ANCHOR：t8 不再引用 S1；t20 关闭前不设新锚点。",
+      "j_gate.py 默认只读；写盘必须显式 --write，且由 owner 主动告知下游新的字节哈希与内容摘要。",
+      "双轨哈希规则见 GATE_J_SNAPSHOT_POLICY.md §2；内容摘要配方见 §3（两份独立实现）。",
+      "t20 关闭后由 owner 一次性发 S2（新 snapshot_id + 全量 digest + 理由 + 时间线），供 t8 做增量核对。"
+    ]
+  },
+  "history": [
+    {
+      "id": "F7",
+      "found_by": "verifier",
+      "issue": "--check-md 每次重写 J_GATE.json（新 generated_at_utc），同一内容出现 3 个 sha256",
+      "fix": "--check-md/--no-write 只读；只有显式写入才落盘",
+      "artifact_impact": "J_GATE.json 字节曾多次变动（内容未变）"
+    },
+    {
+      "id": "F8-pre",
+      "found_by": "judge_architect（在测 F7 时连带发现）",
+      "issue": "J_GATE.json 的 J0 证据里嵌了上游 verify_checked_at_utc，任何 protocol_verify --check 都会改变内容摘要",
+      "fix": "内容摘要额外剔除 items.J0_protocol_precondition.evidence.verify_checked_at_utc；并加脚本 verify_snapshot.py 做三分类",
+      "artifact_impact": "无（仅口径修正）",
+      "note": "旧编号；按 captain 2026-11-12 的编号，F8 专指“S1 锚点被显式写行为打破”"
+    },
+    {
+      "id": "F8",
+      "found_by": "verifier",
+      "issue": "S1 锚点在 t20 的正常 plain 运行后被打破（J_GATE.json 字节变化，内容未变）",
+      "root_cause": "默认写行为：j_gate.py 每次运行都重写产物",
+      "fix": "默认只读 + 显式 --write；t20 关闭前不设锚点"
+    },
+    {
+      "id": "F8b",
+      "found_by": "judge_architect",
+      "issue": "内容摘要此前不可复现（J0 证据两份、只剔一份；旧口径未给 canonical 细节）",
+      "fix": "vett-gate-content-digest/v2 + 两份独立实现，实测逐位一致"
+    },
+    {
+      "id": "S2-issued",
+      "by": "judge_architect",
+      "at_utc": "2026-11-12T15:31:05Z",
+      "reason": "t20 关闭后按 captain 指令发 S2；锚点从字节哈希单轨改为双轨（字节 + 可复算内容摘要）"
+    }
+  ]
+}

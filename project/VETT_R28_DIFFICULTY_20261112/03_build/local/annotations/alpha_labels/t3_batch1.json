@@ -1,0 +1,135 @@
+{
+  "schema": "vett-t16-alpha-labels/v1",
+  "task": "T3_adjudication",
+  "batch": 1,
+  "rows": [
+    {
+      "id": "sub_01",
+      "labels": {
+        "fields": {
+          "verdict": "DEFECT",
+          "field_verdicts": {
+            "batter_runs": "WRONG:0",
+            "bowler_runs": "WRONG:1",
+            "counts_in_over": "OK",
+            "delivery_status": "OK",
+            "dismissal": "OK",
+            "ledger.BATTER": "WRONG:0",
+            "ledger.BYE": "WRONG:8",
+            "ledger.LEG_BYE": "OK",
+            "ledger.NO_BALL_EXTRA": "OK",
+            "ledger.PENALTY": "OK",
+            "ledger.WIDE_EXTRA": "OK",
+            "total_runs": "WRONG:14"
+          },
+          "correct_record": {"batter_runs": 0, "bowler_runs": 1, "counts_in_over": false, "delivery_status": "NO_BALL", "dismissal": "HIT_BALL_TWICE", "ledger.BATTER": 0, "ledger.BYE": 8, "ledger.LEG_BYE": 0, "ledger.NO_BALL_EXTRA": 1, "ledger.PENALTY": 5, "ledger.WIDE_EXTRA": 0, "total_runs": 14}
+        },
+        "span": {"verdict": "DEFECT", "detail": "cited 3 spans are appeal timing / appeal / award-included-run-in-progress; none states the No-ball signal, the contact (neither bat nor person), the overthrow boundary or the 5 penalty runs, so the record is not established."},
+        "edge": {"verdict": "DEFECT", "detail": "overthrow accumulation (19.8: 1 completed + 1 run in progress + 6 boundary) and classification by contact (neither bat nor person -> byes) were not applied; the No-ball dismissal restriction (21.17) was respected, which is the one edge handled."},
+        "abstain": {"verdict": "PASS", "detail": "no abstention, record complete, confidence 0.72 in [0,1]."},
+        "conformance": {"verdict": "PASS", "detail": "exactly the 12 frozen fields, correct types, enums valid."},
+        "overall": "DEFECT",
+        "required_fixes": ["recompute batter/bye/bowler/total under 19.8 + contact classification", "cite the status, contact, boundary and penalty spans"]
+      },
+      "confidence": 0.86,
+      "unsure": false,
+      "rationale": "No-ball delivery with a fair hit-the-ball-twice dismissal, so the dismissal is legal but the 8 overthrow runs are byes (ball touched neither bat nor person) and must not become batter runs."
+    },
+    {
+      "id": "sub_02",
+      "labels": {
+        "fields": {
+          "verdict": "PASS",
+          "field_verdicts": {
+            "batter_runs": "OK",
+            "bowler_runs": "OK",
+            "counts_in_over": "OK",
+            "delivery_status": "OK",
+            "dismissal": "OK",
+            "ledger.BATTER": "OK",
+            "ledger.BYE": "OK",
+            "ledger.LEG_BYE": "OK",
+            "ledger.NO_BALL_EXTRA": "OK",
+            "ledger.PENALTY": "OK",
+            "ledger.WIDE_EXTRA": "OK",
+            "total_runs": "OK"
+          },
+          "correct_record": {"batter_runs": 0, "bowler_runs": 1, "counts_in_over": false, "delivery_status": "NO_BALL", "dismissal": "OBSTRUCTING_FIELD", "ledger.BATTER": 0, "ledger.BYE": 0, "ledger.LEG_BYE": 0, "ledger.NO_BALL_EXTRA": 1, "ledger.PENALTY": 5, "ledger.WIDE_EXTRA": 0, "total_runs": 6}
+        },
+        "span": {"verdict": "DEFECT", "detail": "the three cited spans only cover appeal formalities; the No-ball signal, the 5 penalty runs and the boundary-after-wicket note that justify the zeros are not cited."},
+        "edge": {"verdict": "PASS", "detail": "the 4-run allowance is correctly not counted (ball reached the boundary only after the wicket event) and the obstructing dismissal is allowed after a No ball (21.17)."},
+        "abstain": {"verdict": "PASS", "detail": "no abstention; confidence 0.72 in [0,1]."},
+        "conformance": {"verdict": "PASS", "detail": "12 fields, correct types and enums."},
+        "overall": "DEFECT",
+        "required_fixes": ["replace the evidence set with status/penalty/boundary-after-wicket spans"]
+      },
+      "confidence": 0.78,
+      "unsure": false,
+      "rationale": "Every field value is reproducible from the dossier (No ball +1, 0 batter runs, 5 penalty runs, allowance cancelled by the wicket event), but the submitted evidence set cannot carry that record."
+    },
+    {
+      "id": "sub_03",
+      "labels": {
+        "fields": {
+          "verdict": "DEFECT",
+          "field_verdicts": {
+            "batter_runs": "OK",
+            "bowler_runs": "OK",
+            "counts_in_over": "OK",
+            "delivery_status": "OK",
+            "dismissal": "OK",
+            "ledger.BATTER": "OK",
+            "ledger.BYE": "WRONG:9",
+            "ledger.LEG_BYE": "OK",
+            "ledger.NO_BALL_EXTRA": "OK",
+            "ledger.PENALTY": "OK",
+            "ledger.WIDE_EXTRA": "OK",
+            "total_runs": "WRONG:10"
+          },
+          "correct_record": {"batter_runs": 0, "bowler_runs": 1, "counts_in_over": false, "delivery_status": "NO_BALL", "dismissal": "RUN_OUT", "ledger.BATTER": 0, "ledger.BYE": 9, "ledger.LEG_BYE": 0, "ledger.NO_BALL_EXTRA": 1, "ledger.PENALTY": 0, "ledger.WIDE_EXTRA": 0, "total_runs": 10}
+        },
+        "span": {"verdict": "DEFECT", "detail": "no signed revision span and no revision-policy span is cited, although the completed-runs value is only decidable from them."},
+        "edge": {"verdict": "DEFECT", "detail": "the revision policy (greater signed revision wins -> 3 completed runs, not 0) was ignored, and the overthrow allowance (6) plus those 3 runs were not recorded as byes."},
+        "abstain": {"verdict": "PASS", "detail": "no abstention; confidence 0.72 in [0,1]."},
+        "conformance": {"verdict": "PASS", "detail": "12 fields, correct types and enums."},
+        "overall": "DEFECT",
+        "required_fixes": ["apply the signed-revision policy (rev 9 = 3 completed runs)", "record 3+6 as byes and total 10"]
+      },
+      "confidence": 0.85,
+      "unsure": false,
+      "rationale": "The dossier carries two signed versions of the completed-runs entry and an explicit policy to take the greater revision, so the submitted 0 is wrong and the 9 overthrow runs must land in byes."
+    },
+    {
+      "id": "sub_04",
+      "labels": {
+        "fields": {
+          "verdict": "DEFECT",
+          "field_verdicts": {
+            "batter_runs": "OK",
+            "bowler_runs": "WRONG:5",
+            "counts_in_over": "OK",
+            "delivery_status": "OK",
+            "dismissal": "OK",
+            "ledger.BATTER": "OK",
+            "ledger.BYE": "OK",
+            "ledger.LEG_BYE": "OK",
+            "ledger.NO_BALL_EXTRA": "OK",
+            "ledger.PENALTY": "OK",
+            "ledger.WIDE_EXTRA": "WRONG:5",
+            "total_runs": "WRONG:10"
+          },
+          "correct_record": {"batter_runs": 0, "bowler_runs": 5, "counts_in_over": false, "delivery_status": "WIDE", "dismissal": "RUN_OUT", "ledger.BATTER": 0, "ledger.BYE": 0, "ledger.LEG_BYE": 0, "ledger.NO_BALL_EXTRA": 0, "ledger.PENALTY": 5, "ledger.WIDE_EXTRA": 5, "total_runs": 10}
+        },
+        "span": {"verdict": "DEFECT", "detail": "the cited spans are appeal formalities; the Wide signal, the overthrow boundary, the contact note and the 5 penalty runs are all outside the cited set."},
+        "edge": {"verdict": "DEFECT", "detail": "Law 22.6-22.7 (completed runs and a boundary allowance from a Wide are recorded as Wides) was not applied: the 4-run overthrow boundary is missing from ledger.WIDE_EXTRA."},
+        "abstain": {"verdict": "PASS", "detail": "no abstention; confidence 0.72 in [0,1]."},
+        "conformance": {"verdict": "PASS", "detail": "12 fields, correct types and enums."},
+        "overall": "DEFECT",
+        "required_fixes": ["fold the 4 boundary runs into ledger.WIDE_EXTRA (5) and total (10)", "cite status/boundary/penalty spans"]
+      },
+      "confidence": 0.85,
+      "unsure": false,
+      "rationale": "A Wide with 0 completed runs, an overthrow four and no crossing still yields 5 wide extras and a bowler debit of 5, because wide deliveries carry their boundary allowance as Wides."
+    }
+  ]
+}

@@ -1,0 +1,705 @@
+# B210 P_E_probe
+
+- hypothesis: Field probes on the sufficient evidence excerpt: does localization reduce runs/wickets field confusion?
+- rationale: Buffer after full-table queue; E-only probes on 68 units.
+- created: 2026-11-20T13:27:12+08:00
+- requests: 594 (external API 0)
+- scoring: exact integer match per field; compare with O probes on the same unit/model
+- sources: commentary.txt (excerpt), scorecard.md
+
+## Positions
+
+- match_0001 innings 1
+- match_0001 innings 2
+- match_0002 innings 1
+- match_0002 innings 2
+- match_0003 innings 1
+- match_0003 innings 2
+- match_0005 innings 1
+- match_0005 innings 2
+- match_0006 innings 1
+- match_0006 innings 2
+- match_0007 innings 1
+- match_0007 innings 2
+- match_0008 innings 1
+- match_0008 innings 2
+- match_0009 innings 1
+- match_0009 innings 2
+- match_0010 innings 1
+- match_0011 innings 1
+- match_0011 innings 2
+- match_0012 innings 1
+- match_0012 innings 2
+- match_0013 innings 1
+- match_0013 innings 2
+- match_0014 innings 1
+- match_0014 innings 2
+- match_0015 innings 1
+- match_0016 innings 1
+- match_0016 innings 2
+- match_0017 innings 1
+- match_0018 innings 1
+- match_0019 innings 1
+- match_0019 innings 2
+- match_0021 innings 1
+- match_0021 innings 2
+- match_0043 innings 1
+- match_0043 innings 2
+- match_0044 innings 1
+- match_0044 innings 2
+- match_0045 innings 1
+- match_0047 innings 1
+- match_0047 innings 2
+- match_0048 innings 1
+- match_0048 innings 2
+- match_0049 innings 2
+- match_0050 innings 1
+- match_0051 innings 1
+- match_0051 innings 2
+- match_0054 innings 1
+- match_0065 innings 1
+- match_0074 innings 1
+- match_0076 innings 1
+- match_0085 innings 2
+- match_0086 innings 1
+- match_0086 innings 2
+- match_0087 innings 1
+- match_0087 innings 2
+- match_0096 innings 1
+- match_0096 innings 2
+- match_0099 innings 1
+- match_0099 innings 2
+- match_0102 innings 1
+- match_0102 innings 2
+- match_0103 innings 1
+- match_0165 innings 1
+- match_0165 innings 2
+- match_0166 innings 1
+
+## Conditions
+
+E
+
+## Models
+
+- qwen2.5:7b-instruct-q4_K_M
+- llama3.1:8b
+- gemma2:9b
+
+## Tasks
+
+- match_0001 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=7dc0b01f4a2c
+- match_0001 inn1 E llama3.1:8b (probe_runs) key=0ac60c75c1aa
+- match_0001 inn1 E gemma2:9b (probe_runs) key=9ee0b6c3b582
+- match_0001 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c8d79d1ddde5
+- match_0001 inn1 E llama3.1:8b (probe_wickets) key=3917a9e141da
+- match_0001 inn1 E gemma2:9b (probe_wickets) key=9756f8cb8f5a
+- match_0001 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=8a688da2cc9a
+- match_0001 inn1 E llama3.1:8b (probe_both) key=ef3c94cd766e
+- match_0001 inn1 E gemma2:9b (probe_both) key=74a80a7bbcd9
+- match_0001 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=84eff566c08a
+- match_0001 inn2 E llama3.1:8b (probe_runs) key=d5543305cb28
+- match_0001 inn2 E gemma2:9b (probe_runs) key=415ccf72ff1d
+- match_0001 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=ea20299431e1
+- match_0001 inn2 E llama3.1:8b (probe_wickets) key=b90d092aeec0
+- match_0001 inn2 E gemma2:9b (probe_wickets) key=7f32d2b6d3ce
+- match_0001 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=9ae47d584b20
+- match_0001 inn2 E llama3.1:8b (probe_both) key=e7860696712e
+- match_0001 inn2 E gemma2:9b (probe_both) key=8d1894bf1601
+- match_0002 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=84dd5f7ab244
+- match_0002 inn1 E llama3.1:8b (probe_runs) key=ab5d63a791e9
+- match_0002 inn1 E gemma2:9b (probe_runs) key=b3f56131cbbc
+- match_0002 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=b0da238756c9
+- match_0002 inn1 E llama3.1:8b (probe_wickets) key=198cc272e262
+- match_0002 inn1 E gemma2:9b (probe_wickets) key=5625e691f8fe
+- match_0002 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=bb9a0a88d5f0
+- match_0002 inn1 E llama3.1:8b (probe_both) key=1804b1b7034a
+- match_0002 inn1 E gemma2:9b (probe_both) key=e0837844dd50
+- match_0002 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=98da346f07ab
+- match_0002 inn2 E llama3.1:8b (probe_runs) key=f8a7d8edc175
+- match_0002 inn2 E gemma2:9b (probe_runs) key=f11bc9b58bd1
+- match_0002 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c22fd553f177
+- match_0002 inn2 E llama3.1:8b (probe_wickets) key=800e3870636d
+- match_0002 inn2 E gemma2:9b (probe_wickets) key=7df20ad48237
+- match_0002 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=23528041753c
+- match_0002 inn2 E llama3.1:8b (probe_both) key=6eaf97f6a455
+- match_0002 inn2 E gemma2:9b (probe_both) key=5681e1e2b3d4
+- match_0003 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=18c87d260b34
+- match_0003 inn1 E llama3.1:8b (probe_runs) key=8a42b70d8147
+- match_0003 inn1 E gemma2:9b (probe_runs) key=acab529b28af
+- match_0003 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=f12e3acf8bfa
+- match_0003 inn1 E llama3.1:8b (probe_wickets) key=5ba8b5336486
+- match_0003 inn1 E gemma2:9b (probe_wickets) key=bc428bba92ce
+- match_0003 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=7874d94d27ee
+- match_0003 inn1 E llama3.1:8b (probe_both) key=7bfa6ccfd69b
+- match_0003 inn1 E gemma2:9b (probe_both) key=cd373b87b668
+- match_0003 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=0330a94bbdf6
+- match_0003 inn2 E llama3.1:8b (probe_runs) key=d46ef030ab93
+- match_0003 inn2 E gemma2:9b (probe_runs) key=91c5cf80a18a
+- match_0003 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=0def39dfab22
+- match_0003 inn2 E llama3.1:8b (probe_wickets) key=a97782606ddd
+- match_0003 inn2 E gemma2:9b (probe_wickets) key=10708074b375
+- match_0003 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=cf7abec4d96f
+- match_0003 inn2 E llama3.1:8b (probe_both) key=9f983bf32f61
+- match_0003 inn2 E gemma2:9b (probe_both) key=4a3991600a97
+- match_0005 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=2ad32186764c
+- match_0005 inn1 E llama3.1:8b (probe_runs) key=524e1a4fe171
+- match_0005 inn1 E gemma2:9b (probe_runs) key=f348b6c5edab
+- match_0005 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=943d140351a8
+- match_0005 inn1 E llama3.1:8b (probe_wickets) key=ae664986f08e
+- match_0005 inn1 E gemma2:9b (probe_wickets) key=3478057d2a4c
+- match_0005 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=ba8aeeedb270
+- match_0005 inn1 E llama3.1:8b (probe_both) key=504e81f39077
+- match_0005 inn1 E gemma2:9b (probe_both) key=3410e17f4515
+- match_0005 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=60b1690d1372
+- match_0005 inn2 E llama3.1:8b (probe_runs) key=6c29d0a38215
+- match_0005 inn2 E gemma2:9b (probe_runs) key=71fca52d701d
+- match_0005 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=5e44de892112
+- match_0005 inn2 E llama3.1:8b (probe_wickets) key=32e22dd72d0f
+- match_0005 inn2 E gemma2:9b (probe_wickets) key=03b02727981c
+- match_0005 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=13fad9ab3e22
+- match_0005 inn2 E llama3.1:8b (probe_both) key=4f3125f7f456
+- match_0005 inn2 E gemma2:9b (probe_both) key=eb3a6b6b8b16
+- match_0006 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=8adaa8e016d4
+- match_0006 inn1 E llama3.1:8b (probe_runs) key=fdd14b1ff778
+- match_0006 inn1 E gemma2:9b (probe_runs) key=0ef59806ae2b
+- match_0006 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=e47b6371095f
+- match_0006 inn1 E llama3.1:8b (probe_wickets) key=b50e1f1049ce
+- match_0006 inn1 E gemma2:9b (probe_wickets) key=1f991696e46f
+- match_0006 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=a20da7434af6
+- match_0006 inn1 E llama3.1:8b (probe_both) key=bb375040358c
+- match_0006 inn1 E gemma2:9b (probe_both) key=123eb54ab1f6
+- match_0006 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=cfdf70fedd2c
+- match_0006 inn2 E llama3.1:8b (probe_runs) key=5fe52479c59f
+- match_0006 inn2 E gemma2:9b (probe_runs) key=ee0999215919
+- match_0006 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=97cc7bc10ec3
+- match_0006 inn2 E llama3.1:8b (probe_wickets) key=47ff22fa7ca7
+- match_0006 inn2 E gemma2:9b (probe_wickets) key=c383dddb5737
+- match_0006 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=5f82638818ac
+- match_0006 inn2 E llama3.1:8b (probe_both) key=3301f88f7237
+- match_0006 inn2 E gemma2:9b (probe_both) key=c94ebed91f2a
+- match_0007 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=dac7c6612a36
+- match_0007 inn1 E llama3.1:8b (probe_runs) key=7b773d2b3243
+- match_0007 inn1 E gemma2:9b (probe_runs) key=1ba61a8a5179
+- match_0007 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=7e6a23976b88
+- match_0007 inn1 E llama3.1:8b (probe_wickets) key=ecc3152ff1b6
+- match_0007 inn1 E gemma2:9b (probe_wickets) key=c4bb32a73afa
+- match_0007 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=f5279800150d
+- match_0007 inn1 E llama3.1:8b (probe_both) key=a849e184adbf
+- match_0007 inn1 E gemma2:9b (probe_both) key=84f3663d29aa
+- match_0007 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=778d3c7616f2
+- match_0007 inn2 E llama3.1:8b (probe_runs) key=217ed2a6ab0e
+- match_0007 inn2 E gemma2:9b (probe_runs) key=715e0675920b
+- match_0007 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=9736a991e479
+- match_0007 inn2 E llama3.1:8b (probe_wickets) key=a497ce17635b
+- match_0007 inn2 E gemma2:9b (probe_wickets) key=7d0795da9c03
+- match_0007 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=e1a04190bd59
+- match_0007 inn2 E llama3.1:8b (probe_both) key=719f127135c4
+- match_0007 inn2 E gemma2:9b (probe_both) key=1d7481886614
+- match_0008 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=d6845ead1086
+- match_0008 inn1 E llama3.1:8b (probe_runs) key=04cd966869c0
+- match_0008 inn1 E gemma2:9b (probe_runs) key=f8559a439a7b
+- match_0008 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=dbfdf7b2d48e
+- match_0008 inn1 E llama3.1:8b (probe_wickets) key=132a97833325
+- match_0008 inn1 E gemma2:9b (probe_wickets) key=2f4d59c34045
+- match_0008 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=cfbe659eceb0
+- match_0008 inn1 E llama3.1:8b (probe_both) key=272aeec87bc1
+- match_0008 inn1 E gemma2:9b (probe_both) key=a343ba903265
+- match_0008 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=9d82def1803a
+- match_0008 inn2 E llama3.1:8b (probe_runs) key=a77b4e523cc8
+- match_0008 inn2 E gemma2:9b (probe_runs) key=5ee288f279be
+- match_0008 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=20e6e420e599
+- match_0008 inn2 E llama3.1:8b (probe_wickets) key=6235662c1dba
+- match_0008 inn2 E gemma2:9b (probe_wickets) key=8b71efd8f73f
+- match_0008 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=706d6ab0d432
+- match_0008 inn2 E llama3.1:8b (probe_both) key=2d08d7fc3f3d
+- match_0008 inn2 E gemma2:9b (probe_both) key=fd97a8fe0325
+- match_0009 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=a06e57b186dd
+- match_0009 inn1 E llama3.1:8b (probe_runs) key=247e8b87f321
+- match_0009 inn1 E gemma2:9b (probe_runs) key=d355c04d9703
+- match_0009 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=356b2a5886eb
+- match_0009 inn1 E llama3.1:8b (probe_wickets) key=f1cebf451799
+- match_0009 inn1 E gemma2:9b (probe_wickets) key=8313856cdaf8
+- match_0009 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=07ff8ce1cf43
+- match_0009 inn1 E llama3.1:8b (probe_both) key=906f9ace880e
+- match_0009 inn1 E gemma2:9b (probe_both) key=6a7a59d2429d
+- match_0009 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=c0576b582d0d
+- match_0009 inn2 E llama3.1:8b (probe_runs) key=7b6afee7ab6d
+- match_0009 inn2 E gemma2:9b (probe_runs) key=a09c467eaf3e
+- match_0009 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c9a939ad895f
+- match_0009 inn2 E llama3.1:8b (probe_wickets) key=ccd33a2d0ad3
+- match_0009 inn2 E gemma2:9b (probe_wickets) key=7125bf82b38f
+- match_0009 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=abd2928b75fc
+- match_0009 inn2 E llama3.1:8b (probe_both) key=e00476d7d45a
+- match_0009 inn2 E gemma2:9b (probe_both) key=95e66ce6a192
+- match_0010 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=c1d0c81fc9da
+- match_0010 inn1 E llama3.1:8b (probe_runs) key=6d5ae5b0dcbc
+- match_0010 inn1 E gemma2:9b (probe_runs) key=fcb290c249c4
+- match_0010 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=54ca130dc145
+- match_0010 inn1 E llama3.1:8b (probe_wickets) key=da875560f2c9
+- match_0010 inn1 E gemma2:9b (probe_wickets) key=3929fbfe4bb7
+- match_0010 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=3ff659d5ed51
+- match_0010 inn1 E llama3.1:8b (probe_both) key=35b434bff1b2
+- match_0010 inn1 E gemma2:9b (probe_both) key=70f99bd6675b
+- match_0011 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=90b71daf851d
+- match_0011 inn1 E llama3.1:8b (probe_runs) key=cab126b4f460
+- match_0011 inn1 E gemma2:9b (probe_runs) key=2df16d7a7219
+- match_0011 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=cac1e2ad5f45
+- match_0011 inn1 E llama3.1:8b (probe_wickets) key=349aa8c24f06
+- match_0011 inn1 E gemma2:9b (probe_wickets) key=d16169807fa1
+- match_0011 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=5b0598f1ae96
+- match_0011 inn1 E llama3.1:8b (probe_both) key=05ab9dc2c297
+- match_0011 inn1 E gemma2:9b (probe_both) key=2cc6529b11fe
+- match_0011 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=3bbf72b7e0e4
+- match_0011 inn2 E llama3.1:8b (probe_runs) key=a2ba3b497cbc
+- match_0011 inn2 E gemma2:9b (probe_runs) key=b27860b750ac
+- match_0011 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=579dd2186c92
+- match_0011 inn2 E llama3.1:8b (probe_wickets) key=44c2bba4437c
+- match_0011 inn2 E gemma2:9b (probe_wickets) key=f2cd70ee8baa
+- match_0011 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=7e300f61c4c9
+- match_0011 inn2 E llama3.1:8b (probe_both) key=351135e767e3
+- match_0011 inn2 E gemma2:9b (probe_both) key=41878958a055
+- match_0012 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=2299535e5417
+- match_0012 inn1 E llama3.1:8b (probe_runs) key=ec90886ec849
+- match_0012 inn1 E gemma2:9b (probe_runs) key=2e81670ac48a
+- match_0012 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=db4374a7ff09
+- match_0012 inn1 E llama3.1:8b (probe_wickets) key=209a359af555
+- match_0012 inn1 E gemma2:9b (probe_wickets) key=0d467dcf44ff
+- match_0012 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=bb35f8bc8053
+- match_0012 inn1 E llama3.1:8b (probe_both) key=90a9419e637c
+- match_0012 inn1 E gemma2:9b (probe_both) key=87796610a7a1
+- match_0012 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=b329dab13da1
+- match_0012 inn2 E llama3.1:8b (probe_runs) key=13f688e6f0da
+- match_0012 inn2 E gemma2:9b (probe_runs) key=614cb91037eb
+- match_0012 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=67e4679fa816
+- match_0012 inn2 E llama3.1:8b (probe_wickets) key=a35445e76dd3
+- match_0012 inn2 E gemma2:9b (probe_wickets) key=05c913da29f3
+- match_0012 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=74f2c9c9b424
+- match_0012 inn2 E llama3.1:8b (probe_both) key=4bf64f1f2aaf
+- match_0012 inn2 E gemma2:9b (probe_both) key=5bcd5f3e1afc
+- match_0013 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=5675f37f8550
+- match_0013 inn1 E llama3.1:8b (probe_runs) key=b5a446197292
+- match_0013 inn1 E gemma2:9b (probe_runs) key=7a0972b87ce0
+- match_0013 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=788a2261eaad
+- match_0013 inn1 E llama3.1:8b (probe_wickets) key=423dbb85955f
+- match_0013 inn1 E gemma2:9b (probe_wickets) key=2a68c353d552
+- match_0013 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=1a81720cc1c7
+- match_0013 inn1 E llama3.1:8b (probe_both) key=b0cc9c3deac0
+- match_0013 inn1 E gemma2:9b (probe_both) key=7ce3713598d9
+- match_0013 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=cb04684f50b6
+- match_0013 inn2 E llama3.1:8b (probe_runs) key=fbebd3e5c3ae
+- match_0013 inn2 E gemma2:9b (probe_runs) key=ebfec34713b1
+- match_0013 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=b58cd8f36ae3
+- match_0013 inn2 E llama3.1:8b (probe_wickets) key=05c292d67fe6
+- match_0013 inn2 E gemma2:9b (probe_wickets) key=a35e0aa08782
+- match_0013 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=f8309ea44619
+- match_0013 inn2 E llama3.1:8b (probe_both) key=28f1f4015636
+- match_0013 inn2 E gemma2:9b (probe_both) key=bf7bb1ac3503
+- match_0014 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=3424bdb7de58
+- match_0014 inn1 E llama3.1:8b (probe_runs) key=21c64cc332b2
+- match_0014 inn1 E gemma2:9b (probe_runs) key=c40145519b9d
+- match_0014 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=4d5fee2630d9
+- match_0014 inn1 E llama3.1:8b (probe_wickets) key=b9ce35d2bd48
+- match_0014 inn1 E gemma2:9b (probe_wickets) key=60b6d7f12b05
+- match_0014 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=cb5fadd89924
+- match_0014 inn1 E llama3.1:8b (probe_both) key=49d025470cd8
+- match_0014 inn1 E gemma2:9b (probe_both) key=2c425e1af40d
+- match_0014 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=5b15eb779105
+- match_0014 inn2 E llama3.1:8b (probe_runs) key=121710a181d7
+- match_0014 inn2 E gemma2:9b (probe_runs) key=c83cffd44b34
+- match_0014 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=457415869824
+- match_0014 inn2 E llama3.1:8b (probe_wickets) key=18cee4e82332
+- match_0014 inn2 E gemma2:9b (probe_wickets) key=4eeb399907ce
+- match_0014 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=1f10ad4b06e9
+- match_0014 inn2 E llama3.1:8b (probe_both) key=12839ee8c9a4
+- match_0014 inn2 E gemma2:9b (probe_both) key=9c9b0f18fef1
+- match_0015 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=2baa91f42451
+- match_0015 inn1 E llama3.1:8b (probe_runs) key=52e621ba1ae6
+- match_0015 inn1 E gemma2:9b (probe_runs) key=659a0f4125cc
+- match_0015 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=43f975d67a64
+- match_0015 inn1 E llama3.1:8b (probe_wickets) key=4b3e1a9d0a98
+- match_0015 inn1 E gemma2:9b (probe_wickets) key=412effccfa1e
+- match_0015 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=73772d5a3009
+- match_0015 inn1 E llama3.1:8b (probe_both) key=1efce09fecdc
+- match_0015 inn1 E gemma2:9b (probe_both) key=d04869a853ea
+- match_0016 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=9b294b76e27b
+- match_0016 inn1 E llama3.1:8b (probe_runs) key=a93d571360ed
+- match_0016 inn1 E gemma2:9b (probe_runs) key=c98699d31950
+- match_0016 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=9a9d1cc1a723
+- match_0016 inn1 E llama3.1:8b (probe_wickets) key=15974bb5ae10
+- match_0016 inn1 E gemma2:9b (probe_wickets) key=566c4311b463
+- match_0016 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=4d6e2d750412
+- match_0016 inn1 E llama3.1:8b (probe_both) key=68191b8a35b5
+- match_0016 inn1 E gemma2:9b (probe_both) key=6033d60a803a
+- match_0016 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=e17113823e05
+- match_0016 inn2 E llama3.1:8b (probe_runs) key=d1375ae5a5ff
+- match_0016 inn2 E gemma2:9b (probe_runs) key=cade97b019ea
+- match_0016 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c8273c9c42c4
+- match_0016 inn2 E llama3.1:8b (probe_wickets) key=a9bfc462e57f
+- match_0016 inn2 E gemma2:9b (probe_wickets) key=b7e8f57148ae
+- match_0016 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=cddd73af0917
+- match_0016 inn2 E llama3.1:8b (probe_both) key=5e16f638e261
+- match_0016 inn2 E gemma2:9b (probe_both) key=d3eaecb2ed7d
+- match_0017 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=55aab152057a
+- match_0017 inn1 E llama3.1:8b (probe_runs) key=d15ea34a9fc2
+- match_0017 inn1 E gemma2:9b (probe_runs) key=10c1b8cbe46a
+- match_0017 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=3ff66a8bd9a5
+- match_0017 inn1 E llama3.1:8b (probe_wickets) key=c16b0eea3b2d
+- match_0017 inn1 E gemma2:9b (probe_wickets) key=102b9cd1f4d5
+- match_0017 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=d382374e0ac5
+- match_0017 inn1 E llama3.1:8b (probe_both) key=290b9030525b
+- match_0017 inn1 E gemma2:9b (probe_both) key=541b72faaab5
+- match_0018 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=11b5f386b584
+- match_0018 inn1 E llama3.1:8b (probe_runs) key=a19e942ddc08
+- match_0018 inn1 E gemma2:9b (probe_runs) key=cb6f90e4f41f
+- match_0018 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=d6abf0b253c2
+- match_0018 inn1 E llama3.1:8b (probe_wickets) key=8647d9b61245
+- match_0018 inn1 E gemma2:9b (probe_wickets) key=7864384cf3e3
+- match_0018 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=24c27f4e8009
+- match_0018 inn1 E llama3.1:8b (probe_both) key=9ffd2a9d0dda
+- match_0018 inn1 E gemma2:9b (probe_both) key=c5b93395c175
+- match_0019 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=a9503856cf86
+- match_0019 inn1 E llama3.1:8b (probe_runs) key=0be143171ea6
+- match_0019 inn1 E gemma2:9b (probe_runs) key=a51d4e05dde9
+- match_0019 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c26730ea62a0
+- match_0019 inn1 E llama3.1:8b (probe_wickets) key=998828eed27c
+- match_0019 inn1 E gemma2:9b (probe_wickets) key=4a8cd44ed8d5
+- match_0019 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=4aebccd8c039
+- match_0019 inn1 E llama3.1:8b (probe_both) key=38379c62d7a2
+- match_0019 inn1 E gemma2:9b (probe_both) key=f5518b6c4f11
+- match_0019 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=e37384aaf2eb
+- match_0019 inn2 E llama3.1:8b (probe_runs) key=4897a57e78a6
+- match_0019 inn2 E gemma2:9b (probe_runs) key=a66ef7c4149c
+- match_0019 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=b9a5a52b0bfd
+- match_0019 inn2 E llama3.1:8b (probe_wickets) key=87fca4749e09
+- match_0019 inn2 E gemma2:9b (probe_wickets) key=29d60cec0fd4
+- match_0019 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=91e0f84a5b6a
+- match_0019 inn2 E llama3.1:8b (probe_both) key=fc1659b9e4a7
+- match_0019 inn2 E gemma2:9b (probe_both) key=6cc03edd1e7d
+- match_0021 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=cf46ae0f29e0
+- match_0021 inn1 E llama3.1:8b (probe_runs) key=0ccc1a409232
+- match_0021 inn1 E gemma2:9b (probe_runs) key=23eba29011ec
+- match_0021 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=1923bdd7b5a9
+- match_0021 inn1 E llama3.1:8b (probe_wickets) key=8cb7185358b9
+- match_0021 inn1 E gemma2:9b (probe_wickets) key=e432414d971c
+- match_0021 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=b1df65e4706d
+- match_0021 inn1 E llama3.1:8b (probe_both) key=353749090be1
+- match_0021 inn1 E gemma2:9b (probe_both) key=4a0021a189dc
+- match_0021 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=9edd70f540de
+- match_0021 inn2 E llama3.1:8b (probe_runs) key=2dee28e7ec96
+- match_0021 inn2 E gemma2:9b (probe_runs) key=9fb87a2c6205
+- match_0021 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=d3361567d274
+- match_0021 inn2 E llama3.1:8b (probe_wickets) key=27f372ba62b6
+- match_0021 inn2 E gemma2:9b (probe_wickets) key=572eb57d9b8f
+- match_0021 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=005b7610e9c5
+- match_0021 inn2 E llama3.1:8b (probe_both) key=7aab32e1cca7
+- match_0021 inn2 E gemma2:9b (probe_both) key=7a941a4524da
+- match_0043 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=b7b47c4551c9
+- match_0043 inn1 E llama3.1:8b (probe_runs) key=0addc25cbbd4
+- match_0043 inn1 E gemma2:9b (probe_runs) key=1146d9dd9bf5
+- match_0043 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=261cc588cf01
+- match_0043 inn1 E llama3.1:8b (probe_wickets) key=274c2a093d0b
+- match_0043 inn1 E gemma2:9b (probe_wickets) key=5c6cc18d00fe
+- match_0043 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=582bb3a26ff8
+- match_0043 inn1 E llama3.1:8b (probe_both) key=df44770dd082
+- match_0043 inn1 E gemma2:9b (probe_both) key=b17adc27d46e
+- match_0043 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=b3fa9471f547
+- match_0043 inn2 E llama3.1:8b (probe_runs) key=582885c416de
+- match_0043 inn2 E gemma2:9b (probe_runs) key=a518515bf613
+- match_0043 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=5ac623f22591
+- match_0043 inn2 E llama3.1:8b (probe_wickets) key=86f79d447cae
+- match_0043 inn2 E gemma2:9b (probe_wickets) key=cd7ff67d1ed7
+- match_0043 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=7dd595939459
+- match_0043 inn2 E llama3.1:8b (probe_both) key=5784885b82b6
+- match_0043 inn2 E gemma2:9b (probe_both) key=c97a82e6b2e4
+- match_0044 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=42a78f0f02d9
+- match_0044 inn1 E llama3.1:8b (probe_runs) key=52fdde9f46bb
+- match_0044 inn1 E gemma2:9b (probe_runs) key=2b985b75be6a
+- match_0044 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=354f4b5cb92c
+- match_0044 inn1 E llama3.1:8b (probe_wickets) key=6e0144f3299a
+- match_0044 inn1 E gemma2:9b (probe_wickets) key=aa5b7d6da9df
+- match_0044 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=43ea66fa0f64
+- match_0044 inn1 E llama3.1:8b (probe_both) key=e30da634b119
+- match_0044 inn1 E gemma2:9b (probe_both) key=00b08ac3ea3d
+- match_0044 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=370a4c6476fd
+- match_0044 inn2 E llama3.1:8b (probe_runs) key=47c87735557c
+- match_0044 inn2 E gemma2:9b (probe_runs) key=b81c55ebfcce
+- match_0044 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=ffea1018bc59
+- match_0044 inn2 E llama3.1:8b (probe_wickets) key=e67c3efae0f3
+- match_0044 inn2 E gemma2:9b (probe_wickets) key=5a9208104db7
+- match_0044 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=510de9c7cfdc
+- match_0044 inn2 E llama3.1:8b (probe_both) key=f4a3c1e92fb3
+- match_0044 inn2 E gemma2:9b (probe_both) key=e62a3a62b4cf
+- match_0045 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=0b56135cc0a0
+- match_0045 inn1 E llama3.1:8b (probe_runs) key=4ed63c91c255
+- match_0045 inn1 E gemma2:9b (probe_runs) key=574a37bda63a
+- match_0045 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=18346aecdcac
+- match_0045 inn1 E llama3.1:8b (probe_wickets) key=7ecf89d1051f
+- match_0045 inn1 E gemma2:9b (probe_wickets) key=a3008e79ba96
+- match_0045 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=f62950f4e53f
+- match_0045 inn1 E llama3.1:8b (probe_both) key=bf2f4298c24b
+- match_0045 inn1 E gemma2:9b (probe_both) key=827fee158857
+- match_0047 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=5e016ccf815c
+- match_0047 inn1 E llama3.1:8b (probe_runs) key=6bf0743fcb30
+- match_0047 inn1 E gemma2:9b (probe_runs) key=3e3ef2c3177c
+- match_0047 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=7753c19ff95c
+- match_0047 inn1 E llama3.1:8b (probe_wickets) key=07f369194167
+- match_0047 inn1 E gemma2:9b (probe_wickets) key=08e32ee22901
+- match_0047 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=41e1011b256d
+- match_0047 inn1 E llama3.1:8b (probe_both) key=f74530e037d9
+- match_0047 inn1 E gemma2:9b (probe_both) key=37b84c4db622
+- match_0047 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=a570ae3688a2
+- match_0047 inn2 E llama3.1:8b (probe_runs) key=f9da39dee33e
+- match_0047 inn2 E gemma2:9b (probe_runs) key=4a321cb2e642
+- match_0047 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=bcd5fbf61996
+- match_0047 inn2 E llama3.1:8b (probe_wickets) key=8abed59a94b7
+- match_0047 inn2 E gemma2:9b (probe_wickets) key=97573ed70dd6
+- match_0047 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=b9453d2fe521
+- match_0047 inn2 E llama3.1:8b (probe_both) key=6cfe279aa94e
+- match_0047 inn2 E gemma2:9b (probe_both) key=cba0948d8ce4
+- match_0048 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=03004a104d42
+- match_0048 inn1 E llama3.1:8b (probe_runs) key=59ebf149b94d
+- match_0048 inn1 E gemma2:9b (probe_runs) key=3fcd2a8fc601
+- match_0048 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=0e93f5c36c5b
+- match_0048 inn1 E llama3.1:8b (probe_wickets) key=b7021ed0cb34
+- match_0048 inn1 E gemma2:9b (probe_wickets) key=7533b1499524
+- match_0048 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=0a6b667f6d60
+- match_0048 inn1 E llama3.1:8b (probe_both) key=27cae83fbc3c
+- match_0048 inn1 E gemma2:9b (probe_both) key=6954e3bf4b18
+- match_0048 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=9ab753372092
+- match_0048 inn2 E llama3.1:8b (probe_runs) key=018708d5ef17
+- match_0048 inn2 E gemma2:9b (probe_runs) key=7252b7be7a38
+- match_0048 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=e7e482f35e01
+- match_0048 inn2 E llama3.1:8b (probe_wickets) key=1ba1b28c8af5
+- match_0048 inn2 E gemma2:9b (probe_wickets) key=21c958ce3203
+- match_0048 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=ff068274957e
+- match_0048 inn2 E llama3.1:8b (probe_both) key=170960e59617
+- match_0048 inn2 E gemma2:9b (probe_both) key=033fca75c36d
+- match_0049 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=17b6116aeb54
+- match_0049 inn2 E llama3.1:8b (probe_runs) key=f11d6a25e513
+- match_0049 inn2 E gemma2:9b (probe_runs) key=6bea8d33f62e
+- match_0049 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=109dc8eebadc
+- match_0049 inn2 E llama3.1:8b (probe_wickets) key=d2a769e688fe
+- match_0049 inn2 E gemma2:9b (probe_wickets) key=9a380f0d51b8
+- match_0049 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=e313a00302ca
+- match_0049 inn2 E llama3.1:8b (probe_both) key=ce67dfca24f0
+- match_0049 inn2 E gemma2:9b (probe_both) key=9310a9e4516d
+- match_0050 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=ebaae5b2e60c
+- match_0050 inn1 E llama3.1:8b (probe_runs) key=931f0b2f06a4
+- match_0050 inn1 E gemma2:9b (probe_runs) key=eb3b70abf321
+- match_0050 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=4e31ebb9ed4b
+- match_0050 inn1 E llama3.1:8b (probe_wickets) key=4a4a550b9ca1
+- match_0050 inn1 E gemma2:9b (probe_wickets) key=bb30607824ba
+- match_0050 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=1396f4b2a052
+- match_0050 inn1 E llama3.1:8b (probe_both) key=4fd124dee00b
+- match_0050 inn1 E gemma2:9b (probe_both) key=a90cc1a930fd
+- match_0051 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=7c6ee368ba02
+- match_0051 inn1 E llama3.1:8b (probe_runs) key=38b72c2bd184
+- match_0051 inn1 E gemma2:9b (probe_runs) key=e647aadb6826
+- match_0051 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=f1f23ecb40a2
+- match_0051 inn1 E llama3.1:8b (probe_wickets) key=712c5848061b
+- match_0051 inn1 E gemma2:9b (probe_wickets) key=a4c6a4bebad0
+- match_0051 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=7345e1a993a7
+- match_0051 inn1 E llama3.1:8b (probe_both) key=afa6823c492b
+- match_0051 inn1 E gemma2:9b (probe_both) key=df87876121a8
+- match_0051 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=0a614d0202ed
+- match_0051 inn2 E llama3.1:8b (probe_runs) key=2fdebda9dc8a
+- match_0051 inn2 E gemma2:9b (probe_runs) key=6a17969b823c
+- match_0051 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=f0f0000029a8
+- match_0051 inn2 E llama3.1:8b (probe_wickets) key=6e307f9c0c1b
+- match_0051 inn2 E gemma2:9b (probe_wickets) key=d991f15768ce
+- match_0051 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=88b12f1fa801
+- match_0051 inn2 E llama3.1:8b (probe_both) key=1cec26d1efdd
+- match_0051 inn2 E gemma2:9b (probe_both) key=9c36d5d4cd27
+- match_0054 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=6fdfd4391c45
+- match_0054 inn1 E llama3.1:8b (probe_runs) key=07aeef28f617
+- match_0054 inn1 E gemma2:9b (probe_runs) key=47417fe53b9f
+- match_0054 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=64a99ac645c9
+- match_0054 inn1 E llama3.1:8b (probe_wickets) key=8b5f778b7a8d
+- match_0054 inn1 E gemma2:9b (probe_wickets) key=e1fd9ae84713
+- match_0054 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=727f7491a8f2
+- match_0054 inn1 E llama3.1:8b (probe_both) key=33047abf634c
+- match_0054 inn1 E gemma2:9b (probe_both) key=1bf5283a5f2e
+- match_0065 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=97257f354d2a
+- match_0065 inn1 E llama3.1:8b (probe_runs) key=c580058e774b
+- match_0065 inn1 E gemma2:9b (probe_runs) key=2b2896e130be
+- match_0065 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c80f4074d5e4
+- match_0065 inn1 E llama3.1:8b (probe_wickets) key=ab1a2c65fcdc
+- match_0065 inn1 E gemma2:9b (probe_wickets) key=472d12f1b439
+- match_0065 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=db19bc3022ca
+- match_0065 inn1 E llama3.1:8b (probe_both) key=d580918680c8
+- match_0065 inn1 E gemma2:9b (probe_both) key=e2f1cc29c4ab
+- match_0074 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=d834de26f8a6
+- match_0074 inn1 E llama3.1:8b (probe_runs) key=235cf2ea5a66
+- match_0074 inn1 E gemma2:9b (probe_runs) key=81a5e22e0231
+- match_0074 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=092090c94be2
+- match_0074 inn1 E llama3.1:8b (probe_wickets) key=c9b3048eaa96
+- match_0074 inn1 E gemma2:9b (probe_wickets) key=b87f2236d5bd
+- match_0074 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=da4b1e2e67f2
+- match_0074 inn1 E llama3.1:8b (probe_both) key=e08edd4f75c7
+- match_0074 inn1 E gemma2:9b (probe_both) key=077516102ede
+- match_0076 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=526a11686bc3
+- match_0076 inn1 E llama3.1:8b (probe_runs) key=a27a7b96a2a1
+- match_0076 inn1 E gemma2:9b (probe_runs) key=56c278831fd9
+- match_0076 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=6d2e64bc0dfd
+- match_0076 inn1 E llama3.1:8b (probe_wickets) key=ec00e84284d6
+- match_0076 inn1 E gemma2:9b (probe_wickets) key=024f8cbff519
+- match_0076 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=24c9da27c2cf
+- match_0076 inn1 E llama3.1:8b (probe_both) key=2d0694bea0be
+- match_0076 inn1 E gemma2:9b (probe_both) key=c1b1875ed4fa
+- match_0085 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=38f765222a32
+- match_0085 inn2 E llama3.1:8b (probe_runs) key=3f936591dd00
+- match_0085 inn2 E gemma2:9b (probe_runs) key=c073f4be3ef7
+- match_0085 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=85282f149ce4
+- match_0085 inn2 E llama3.1:8b (probe_wickets) key=8d50746368eb
+- match_0085 inn2 E gemma2:9b (probe_wickets) key=c66f399f7fe9
+- match_0085 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=04b45803fd1f
+- match_0085 inn2 E llama3.1:8b (probe_both) key=567f569aa073
+- match_0085 inn2 E gemma2:9b (probe_both) key=9383b1da21a7
+- match_0086 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=e9a94f5604cd
+- match_0086 inn1 E llama3.1:8b (probe_runs) key=3ead4c747cda
+- match_0086 inn1 E gemma2:9b (probe_runs) key=da8c4bc4ee1e
+- match_0086 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=9036cbd07e98
+- match_0086 inn1 E llama3.1:8b (probe_wickets) key=f0881db2b9ae
+- match_0086 inn1 E gemma2:9b (probe_wickets) key=4e6fa312cc6f
+- match_0086 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=02e7823cfb0a
+- match_0086 inn1 E llama3.1:8b (probe_both) key=a3d0bb813532
+- match_0086 inn1 E gemma2:9b (probe_both) key=188a76fbe331
+- match_0086 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=e8fa400c0296
+- match_0086 inn2 E llama3.1:8b (probe_runs) key=5d48cbdced45
+- match_0086 inn2 E gemma2:9b (probe_runs) key=051517299583
+- match_0086 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=83c973263765
+- match_0086 inn2 E llama3.1:8b (probe_wickets) key=49f0389d7ae5
+- match_0086 inn2 E gemma2:9b (probe_wickets) key=a828edcc0a84
+- match_0086 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=695ceb30aaa7
+- match_0086 inn2 E llama3.1:8b (probe_both) key=5a57b53c5a3e
+- match_0086 inn2 E gemma2:9b (probe_both) key=5352b5bf291a
+- match_0087 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=f5d55b825e3e
+- match_0087 inn1 E llama3.1:8b (probe_runs) key=d2dc969addce
+- match_0087 inn1 E gemma2:9b (probe_runs) key=26d120eab9d5
+- match_0087 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=d38b48d728e5
+- match_0087 inn1 E llama3.1:8b (probe_wickets) key=395898c1303f
+- match_0087 inn1 E gemma2:9b (probe_wickets) key=5c15d359b12e
+- match_0087 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=d3ad5b0a28bf
+- match_0087 inn1 E llama3.1:8b (probe_both) key=ba58fbb5df05
+- match_0087 inn1 E gemma2:9b (probe_both) key=320769285633
+- match_0087 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=d8b7c1359d69
+- match_0087 inn2 E llama3.1:8b (probe_runs) key=933a461b5c06
+- match_0087 inn2 E gemma2:9b (probe_runs) key=476b669b47c5
+- match_0087 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=48e8180e1559
+- match_0087 inn2 E llama3.1:8b (probe_wickets) key=684ece24bf5f
+- match_0087 inn2 E gemma2:9b (probe_wickets) key=c29f5a849366
+- match_0087 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=bd845feaafff
+- match_0087 inn2 E llama3.1:8b (probe_both) key=b823266f0ca1
+- match_0087 inn2 E gemma2:9b (probe_both) key=ad5a4f661459
+- match_0096 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=ed9406d01082
+- match_0096 inn1 E llama3.1:8b (probe_runs) key=5b1e391a600a
+- match_0096 inn1 E gemma2:9b (probe_runs) key=0ce458fe69ab
+- match_0096 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=c9976d2e0dbb
+- match_0096 inn1 E llama3.1:8b (probe_wickets) key=9b1e92f74688
+- match_0096 inn1 E gemma2:9b (probe_wickets) key=0ea2c2b6d2ea
+- match_0096 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=a2509ac867f6
+- match_0096 inn1 E llama3.1:8b (probe_both) key=de28885e604d
+- match_0096 inn1 E gemma2:9b (probe_both) key=f96d939b701a
+- match_0096 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=eb1c8a73f799
+- match_0096 inn2 E llama3.1:8b (probe_runs) key=d8b00880de0c
+- match_0096 inn2 E gemma2:9b (probe_runs) key=a59ddce9ada5
+- match_0096 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=060d84bb6cbe
+- match_0096 inn2 E llama3.1:8b (probe_wickets) key=a072e8b7fe34
+- match_0096 inn2 E gemma2:9b (probe_wickets) key=a3262378ba91
+- match_0096 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=950ee254ac55
+- match_0096 inn2 E llama3.1:8b (probe_both) key=d4b925cccaa6
+- match_0096 inn2 E gemma2:9b (probe_both) key=4b35ddcc1238
+- match_0099 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=186c73d52f60
+- match_0099 inn1 E llama3.1:8b (probe_runs) key=09bc4f54af16
+- match_0099 inn1 E gemma2:9b (probe_runs) key=d36c6b0c0028
+- match_0099 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=462b8682a127
+- match_0099 inn1 E llama3.1:8b (probe_wickets) key=d710ae55b0e4
+- match_0099 inn1 E gemma2:9b (probe_wickets) key=265910c12867
+- match_0099 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=9f20278d7fa2
+- match_0099 inn1 E llama3.1:8b (probe_both) key=5704319aa8ab
+- match_0099 inn1 E gemma2:9b (probe_both) key=2c1f40374b83
+- match_0099 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=8c2941c367d5
+- match_0099 inn2 E llama3.1:8b (probe_runs) key=32f9bda2ff0e
+- match_0099 inn2 E gemma2:9b (probe_runs) key=ccf68e5f0c68
+- match_0099 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=a16383facc22
+- match_0099 inn2 E llama3.1:8b (probe_wickets) key=6e47c85484d7
+- match_0099 inn2 E gemma2:9b (probe_wickets) key=a77b21590ffb
+- match_0099 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=b98c61e9d156
+- match_0099 inn2 E llama3.1:8b (probe_both) key=059239f6087f
+- match_0099 inn2 E gemma2:9b (probe_both) key=544b36d2e268
+- match_0102 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=6509d77708e5
+- match_0102 inn1 E llama3.1:8b (probe_runs) key=309392514684
+- match_0102 inn1 E gemma2:9b (probe_runs) key=5a6d792ab27b
+- match_0102 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=1845fcc4c3c3
+- match_0102 inn1 E llama3.1:8b (probe_wickets) key=6af0d051b9a3
+- match_0102 inn1 E gemma2:9b (probe_wickets) key=53182dd926f8
+- match_0102 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=3cc40a9e8ae3
+- match_0102 inn1 E llama3.1:8b (probe_both) key=7292fb676c42
+- match_0102 inn1 E gemma2:9b (probe_both) key=1b58a10fb0c9
+- match_0102 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=ee257ff55888
+- match_0102 inn2 E llama3.1:8b (probe_runs) key=ae81e8dc8f44
+- match_0102 inn2 E gemma2:9b (probe_runs) key=c363a5ea6b3b
+- match_0102 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=03342a0c8efa
+- match_0102 inn2 E llama3.1:8b (probe_wickets) key=4875cc41191e
+- match_0102 inn2 E gemma2:9b (probe_wickets) key=1474e914b084
+- match_0102 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=16cf420947c2
+- match_0102 inn2 E llama3.1:8b (probe_both) key=0dcb9d80ad16
+- match_0102 inn2 E gemma2:9b (probe_both) key=364a7f6bf79e
+- match_0103 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=626b7a4abf16
+- match_0103 inn1 E llama3.1:8b (probe_runs) key=9e89e2171a09
+- match_0103 inn1 E gemma2:9b (probe_runs) key=037d80dfd4ca
+- match_0103 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=fec6d771bee4
+- match_0103 inn1 E llama3.1:8b (probe_wickets) key=ba47de073d6e
+- match_0103 inn1 E gemma2:9b (probe_wickets) key=b35af0d3e577
+- match_0103 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=df130cf18bc8
+- match_0103 inn1 E llama3.1:8b (probe_both) key=b96f149e2479
+- match_0103 inn1 E gemma2:9b (probe_both) key=55dbe1a26add
+- match_0165 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=b3203417172b
+- match_0165 inn1 E llama3.1:8b (probe_runs) key=7fe8399d8504
+- match_0165 inn1 E gemma2:9b (probe_runs) key=a94963627a24
+- match_0165 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=adc0d1a54045
+- match_0165 inn1 E llama3.1:8b (probe_wickets) key=ba37ae48fb68
+- match_0165 inn1 E gemma2:9b (probe_wickets) key=e18342cdaf3f
+- match_0165 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=9a33055c56f5
+- match_0165 inn1 E llama3.1:8b (probe_both) key=3acfc5d6aba6
+- match_0165 inn1 E gemma2:9b (probe_both) key=99951ac21277
+- match_0165 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=0f0f77ed1ca3
+- match_0165 inn2 E llama3.1:8b (probe_runs) key=ed500e6c3efe
+- match_0165 inn2 E gemma2:9b (probe_runs) key=ae35f86854eb
+- match_0165 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=a9cc283d9839
+- match_0165 inn2 E llama3.1:8b (probe_wickets) key=6395d87559fe
+- match_0165 inn2 E gemma2:9b (probe_wickets) key=38b1f2c25853
+- match_0165 inn2 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=6e9d9040ed61
+- match_0165 inn2 E llama3.1:8b (probe_both) key=b6ad6c58cc39
+- match_0165 inn2 E gemma2:9b (probe_both) key=5eaec80d2434
+- match_0166 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_runs) key=0a7a594da162
+- match_0166 inn1 E llama3.1:8b (probe_runs) key=8bd145c7a9ef
+- match_0166 inn1 E gemma2:9b (probe_runs) key=4488a814d79c
+- match_0166 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_wickets) key=e3dfa4fbcfe7
+- match_0166 inn1 E llama3.1:8b (probe_wickets) key=dbaef1c240d3
+- match_0166 inn1 E gemma2:9b (probe_wickets) key=52c1225b9f27
+- match_0166 inn1 E qwen2.5:7b-instruct-q4_K_M (probe_both) key=f8278b4e25c1
+- match_0166 inn1 E llama3.1:8b (probe_both) key=47eb8c42bdbd
+- match_0166 inn1 E gemma2:9b (probe_both) key=015e0b2db079
+
+## Rejected candidates
+
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0066 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task
+- match_0085 E: duplicate_existing_task

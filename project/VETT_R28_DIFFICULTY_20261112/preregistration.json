@@ -1,0 +1,2205 @@
+{
+  "schema": "vett.r28.preregistration.v1",
+  "preregistration_id": "VETT-R28-PREREG-20261112-v1",
+  "version": "1.2.0",
+  "status": "FROZEN",
+  "frozen_at_utc": "2026-11-12T12:43:36Z",
+  "frozen_at_local": "2026-11-12T20:43:36+08:00",
+  "supersedes": null,
+  "prior_versions": [
+    {
+      "version": "1.0.0",
+      "sha256": "fdd744b856d32b56ff70f539fc04cce166bc3eb450f3870bde10c00f16080f11",
+      "frozen_at_utc": "2026-11-12T10:50:35Z",
+      "endpoint_registry_sha256": "0ee0a5fcf58cbcad6c9f6149da6f022887d710baf57b77c4b84bb24a46882ccf",
+      "superseded_by": "AMEND-001"
+    },
+    {
+      "version": "1.1.0",
+      "sha256": "5e0056e118a2d633515bbaa1548a3f9fef181cc08866092bda84ad7b691f9122",
+      "frozen_at_utc": "2026-11-12T11:29:17Z",
+      "endpoint_registry_sha256": "67c171a9c9fb3536297a68d04c58af7753cda0c57ee18264c97eb7539dccb3af",
+      "superseded_by": "AMEND-002"
+    }
+  ],
+  "run_root": "VETT_R28_DIFFICULTY_20261112",
+  "workspace_root": "D:/Download/VETT_Cricket_Complete_Delivery_R19_20261017",
+  "task": {
+    "id": "t22",
+    "name": "预注册与统计分析计划（SAP）：端点、功效、停止规则、零结果契约",
+    "team_id": "vett-r27-opt",
+    "member": "data_designer",
+    "depends_on": [
+      "t3"
+    ],
+    "downstream": [
+      "t4",
+      "t8",
+      "t12",
+      "t19"
+    ]
+  },
+  "purpose": "在构建任何 R28 数据、产生任何 R28 模型输出之前，把'什么算通过'冻结为不可事后修改的文件。本文件之后只允许在 preregistration.json 之外新增证据；任何端点、阈值、判定规则、停止规则或零结果契约的改动都必须走 amendment 流程，并会触发 t8 的预注册一致性检查。",
+  "scope": {
+    "in_scope": [
+      "R28 数据集（320 题 / 64 场 / 发布版与对照版双渲染）的难度主端点与次要端点",
+      "R28 相对 R26.15 的'更难'声称的判定规则",
+      "三条无卷宗基线门槛与记录 exact 门槛",
+      "停止规则、预算熔断、零结果报告契约、多重比较与有效 n 规则",
+      "Brier 与边指标的报告口径（t2 修正版）"
+    ],
+    "out_of_scope": [
+      "把 R26.15 的 25 题或 L1–L5 等级当作难度证据或重设计依据",
+      "任何付费推理 API（硬约束：¥0；任何付费调用即合约违规）",
+      "修改 R26.15 任何字节",
+      "对前沿模型的外推声明（本地 7B 是弱基线）",
+      "人工双标金标（本轮不执行，只承认其为发表阻断项）"
+    ],
+    "claim_unit": "数据集难度主张（paired_accuracy_drop）与机制/解释主张（次要端点）；两者分开判定，不得互相替代。"
+  },
+  "provenance_protocol": {
+    "zero_paid_api": {
+      "rule": "全程零付费推理 API；主模型为本地 Ollama 服务。任何付费调用（金额 > ¥0）立即触发 BUDGET_STOP 并按合约违规记录。",
+      "enforcement": "本地优先断言：白名单任务若检测到走云端直接抛异常；成本账本逐次记录 amount_cny，累计 > 0 即失败。"
+    },
+    "zero_network": "预注册冻结阶段不联网；本文件的输入全部来自本机已落盘工件。",
+    "r26_15_immutable": {
+      "rule": "不修改 R26.15 任何字节（165 文件 / 93,346,177 字节 / tree aggregate 343afde4c91d7785f42296074ecea685d5d466260674ab5a8c3bc37323d851bd）。",
+      "authority": "_BACKUPS/VETT_R28_PRE_CHANGE_20261112/PROTECTED_PATHS.json（逐文件 sha256 + vett-tree-aggregate-v1 聚合）",
+      "legacy_note": "历史聚合 2cb1ea2c62d1b8d57b6c20bbc3c22ed7ad0440ca73f68946d24fcbf0ebab9417 已由 t1 证实不可复现，任何下游文书引用它即为 FAIL。"
+    },
+    "budget": {
+      "paid_api_hard_cap_cny": 0,
+      "cloud_sampling_soft_cap_cny": 3,
+      "agent_tokens_soft_cap_cny": 70,
+      "total_hard_cap_cny": 100,
+      "stop_code": "BUDGET_STOP"
+    }
+  },
+  "bindings": {
+    "content_addressed": [
+      {
+        "id": "baselines",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/BASELINES.json",
+        "role": "三条基线门槛与记录 exact 门槛的数值出处",
+        "bytes": 27012,
+        "sha256": "e40b1760fb59bbf0e9571009540370355ee4c9a4c223d861711b86b09cc63861"
+      },
+      {
+        "id": "gate_a_decision",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/gate_A_decision.json",
+        "role": "A1/A2/A3 门判定、8 条 findings、6 条硬约束",
+        "bytes": 45286,
+        "sha256": "5901c0344b85903f1d32f79439446ece4b90a86125b5e4f5e18c24b9819ae269"
+      },
+      {
+        "id": "gate_b_decision",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/gate_B_decision.json",
+        "role": "B1 两半判定、机制状态、HYP-R28-DOSE 条款",
+        "bytes": 7786,
+        "sha256": "ca0a511ba6611f999374dc90657e266eb5d34f96ef403ddce4c73b435897ef1b"
+      },
+      {
+        "id": "mechanism_registry",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/MECHANISM_REGISTRY.json",
+        "role": "9 条机制登记（VERIFIED 0 / UNTESTED 6 / REJECTED 3）",
+        "bytes": 31285,
+        "sha256": "9d469fad1b3213817eff8fae7d0375e5fa567eaa95be602c8d8d9de8373b26d4"
+      },
+      {
+        "id": "hypothesis_registry",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/HYPOTHESIS_REGISTRY.md",
+        "role": "H1–H6 与 HYP-R28-DOSE 登记、B1 限制、不得据 25 题重设计等级",
+        "bytes": 11886,
+        "sha256": "5504fe77e03504ddade4ef6eeb7680159cd2cc8ba8660bac74c6c69b9634f47a"
+      },
+      {
+        "id": "measurement_validity_note",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/MEASUREMENT_VALIDITY_NOTE.md",
+        "role": "Brier 四项 / 边五分列 / 逐级先验 / 族重复的权威口径",
+        "bytes": 24746,
+        "sha256": "8a41e76d84bc8f13422cfb429bc6e226bdac9daa33b9a81a90e1fa80507ebdd4"
+      },
+      {
+        "id": "a_results",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/A_RESULTS.json",
+        "role": "A 阶段复算原始数字",
+        "bytes": 30185,
+        "sha256": "1b7be1f3a7aa0cf76fe70e7ce4bcd2ff5c51bab60fc25ea10f50fd89d3c93503"
+      },
+      {
+        "id": "b1_recheck",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/B1_RECHECK.json",
+        "role": "B1 复算与机制证据底座",
+        "bytes": 61477,
+        "sha256": "684431def606de5961057607cf377da1d1a3e995000098474ee4e86f95ddf207"
+      },
+      {
+        "id": "difficulty_proxies",
+        "path": "VETT_R28_DIFFICULTY_20261112/01_measurement/DIFFICULTY_PROXIES.json",
+        "role": "因子共线证据（bridge depth 双射等）",
+        "bytes": 98679,
+        "sha256": "78e575c8321927cf78ff1c8c73a5fd6aad3ac888f668cfe4ce866a094142b033"
+      },
+      {
+        "id": "routing_card",
+        "path": "VETT_R28_DIFFICULTY_20261112/03_build/local/routing_card.json",
+        "role": "本地 ALLOW/DENY 白名单（E5/E6 与本地标注的边界）",
+        "bytes": 11961,
+        "sha256": "e76d5858fdbfc7661c10d4b67dc1449a127a1727586bec629a66323b9d07da00"
+      },
+      {
+        "id": "capability_matrix",
+        "path": "VETT_R28_DIFFICULTY_20261112/03_build/local/capability_matrix.json",
+        "role": "H6 的冻结前参照证据（本地能力矩阵）",
+        "bytes": 96856,
+        "sha256": "d8156f6f8a94a3c4363def69edaedbde42903b8a33286db36ff215cb550164c9"
+      },
+      {
+        "id": "service_snapshot",
+        "path": "VETT_R28_DIFFICULTY_20261112/03_build/local/service_snapshot.json",
+        "role": "主模型 tag / 量化 / temperature / seed / num_ctx 的冻结出处",
+        "bytes": 3732,
+        "sha256": "e711e2c1bc5d8c1802c60619dbeeb7196873d3b82da17456afea89f263dc8e35"
+      },
+      {
+        "id": "protected_paths",
+        "path": "_BACKUPS/VETT_R28_PRE_CHANGE_20261112/PROTECTED_PATHS.json",
+        "role": "R26.15 零漂移权威清单（338 文件，含 r26_15 组 165 文件与聚合）",
+        "bytes": 74570,
+        "sha256": "8944d494c7b9007f43740a214ce84518288387581351b8bc9302d4f228f1dff1"
+      }
+    ],
+    "reference_snapshots": [
+      {
+        "id": "strategy_doc",
+        "path": "VETT_UPGRADE_STRATEGY_V2_20261112.md",
+        "role": "任务书",
+        "bytes": 29266,
+        "sha256": "d1421aec9cfbe23b3232519be58be2b762f5afcee155c23a8bf053c95a3176df",
+        "binding_strength": "reference_snapshot_only"
+      },
+      {
+        "id": "proposal",
+        "path": "VETT_R28_DIFFICULTY_20261112/PROPOSAL_VETT_R28_DIFFICULTY_AND_INTERPRETABILITY.md",
+        "role": "端点与实验矩阵提案（可能被后续编辑，不作内容寻址约束）",
+        "bytes": 35441,
+        "sha256": "f44695e77136e9b91426bca24d13097adf0df55413bd054e19fb241edda45911",
+        "binding_strength": "reference_snapshot_only"
+      },
+      {
+        "id": "team_plan",
+        "path": "VETT_R28_DIFFICULTY_20261112/TEAM_ROLES_AND_AUTOMATION_PLAN.md",
+        "role": "交付物、预算与停止表",
+        "bytes": 15506,
+        "sha256": "664f9d17cce6dc5d569ba4bed7ef0a0cd32e048fd25d11fc19f8c20836dd22f3",
+        "binding_strength": "reference_snapshot_only"
+      },
+      {
+        "id": "audit_goal",
+        "path": "VETT_R28_DIFFICULTY_20261112/AUDIT_GOAL_AND_DESIGN_20261112.md",
+        "role": "设计审计（可能被后续编辑，不作内容寻址约束）",
+        "bytes": 12426,
+        "sha256": "033397fce7291313c899f85df522becb7c2360ba251b96895c08383803411a5d",
+        "binding_strength": "reference_snapshot_only"
+      }
+    ]
+  },
+  "data_state_at_freeze": {
+    "r28_items_exist": false,
+    "r28_model_outputs_exist": false,
+    "r28_dataset_built": false,
+    "checks": [
+      {
+        "check": "R28 运行根下不存在 r28_candidate/ 或等价发布目录",
+        "method": "目录扫描",
+        "result": "absent"
+      },
+      {
+        "check": "R28 运行根下不存在 eval_runs/、certificates/、variants/",
+        "method": "目录扫描",
+        "result": "absent"
+      },
+      {
+        "check": "03_build/local 仅包含 t18 的本地推理基础设施与能力矩阵产物，不含任何 R28 题目或评分",
+        "method": "目录扫描 + 文件清单",
+        "result": "confirmed"
+      },
+      {
+        "check": "01_measurement 下的产物全部是 R26.15 的测量（A 阶段 / B1 / 代理量 / 基线），不是 R28 数据",
+        "method": "内容抽样核对",
+        "result": "confirmed"
+      },
+      {
+        "check": "R26.15 冻结前快照（_BACKUPS）与 live 目录逐文件 sha256 一致",
+        "method": "_BACKUPS/VETT_R28_PRE_CHANGE_20261112/PROTECTED_PATHS.json 逐文件复核",
+        "result": "verified_by_scripts/prereg_verify.py"
+      }
+    ],
+    "declaration": "冻结时不存在任何 R28 题面、金标、证书或模型输出；本预注册的所有判定规则在看到任何 R28 结果之前写成。"
+  },
+  "design": {
+    "estimand": "在固定模型、固定金标、题内配对的条件下，发布版（hard）相对对照版（shallow）在信息字段准确率上的平均下降：paired_accuracy_drop = acc(control) − acc(published)。",
+    "n_pairs": 320,
+    "n_published_items": 320,
+    "n_control_renderings": 320,
+    "n_model_inferences_e1": 640,
+    "scenes": 64,
+    "items_per_scene": 5,
+    "blocks": [
+      {
+        "id": "factor_core",
+        "n": 128,
+        "design": "2^4 × 8",
+        "description": "D1/D2/D3/D4 各 0/1，16 个因子格，每格 8 题",
+        "purpose": "主效应与二阶交互可识别（H3）"
+      },
+      {
+        "id": "dose_ladder",
+        "n": 192,
+        "design": "4 机制 × 3 剂量 × 16",
+        "description": "D1–D4 各自 0/1/2 剂量阶梯，其余机制固定为对照水平；每格 16 题",
+        "purpose": "剂量-反应斜率与单调性（H2 / HYP-R28-DOSE）"
+      }
+    ],
+    "mechanisms": [
+      {
+        "id": "D1",
+        "name": "证据跳数（跨文档别名）",
+        "param": "alias_hops",
+        "doses": [
+          0,
+          1,
+          2
+        ],
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "D2",
+        "name": "修订链",
+        "param": "temporal_joins",
+        "doses": [
+          0,
+          1,
+          2
+        ],
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "D3",
+        "name": "权威裁决",
+        "param": "scope_decisions",
+        "doses": [
+          0,
+          1,
+          2
+        ],
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "D4",
+        "name": "干扰同构度",
+        "param": "isomorphic_distractors",
+        "doses": [
+          0,
+          1,
+          2
+        ],
+        "status_at_freeze": "UNTESTED"
+      }
+    ],
+    "arms": {
+      "published": {
+        "id": "hard",
+        "definition": "同一 solver_facts 与同一 decision_record_flat 渲染为 R28 指派结构元组的卷宗：因子核按 0/1 指派，剂量阶梯按 0/1/2 指派。",
+        "prompt": "与对照版同一模板、同一参数、同一顺序策略"
+      },
+      "control": {
+        "id": "shallow",
+        "definition": "同一 solver_facts 与同一 decision_record_flat 渲染为四剂量全 0 的最小卷宗：alias_hops=0、temporal_joins=0、scope_decisions=0、isomorphic_distractors=0。",
+        "prompt": "与发布版同一模板、同一参数、同一顺序策略"
+      }
+    },
+    "model": {
+      "primary": {
+        "id": "local_qwen25_7b_q4km",
+        "provider": "local_ollama",
+        "model_tag": "qwen2.5:7b-instruct-q4_K_M",
+        "quantization": "Q4_K_M",
+        "runtime": "Ollama 0.40.16",
+        "temperature": 0.0,
+        "seed": 20261112,
+        "num_ctx": 8192,
+        "device": "RTX 3070 8GB，100% GPU",
+        "source": "VETT_R28_DIFFICULTY_20261112/03_build/local/service_snapshot.json",
+        "weak_baseline_disclaimer": "7B Q4 是弱基线，结论不外推到前沿模型。"
+      },
+      "e5_panel": {
+        "target": [
+          "local_qwen25_7b_q4km",
+          "local_model_2",
+          "cloud_model_1",
+          "cloud_anchor_1"
+        ],
+        "n_items": 64,
+        "zero_paid_api_note": "零付费硬约束优先于 E5 完整性。若可执行的模型数 < 2，E5 记为 DEGRADED/UNTESTED，区分度主张撤回，不得把降级面板当作通过。"
+      }
+    },
+    "design_invariants": [
+      {
+        "id": "D1",
+        "statement": "每一对两臂的 solver_facts 逐字节相同",
+        "check": "sha256(canonical_json(solver_facts_published)) == sha256(canonical_json(solver_facts_control))，320/320"
+      },
+      {
+        "id": "D2",
+        "statement": "每一对两臂的 decision_record_flat 逐字节相同（12 字段）",
+        "check": "sha256(canonical_json(record_flat_published)) == sha256(canonical_json(record_flat_control))，320/320"
+      },
+      {
+        "id": "D3",
+        "statement": "发布集一题一记录：320 题对应 320 个互异 12 字段记录",
+        "check": "distinct_record_ratio == 1.0"
+      },
+      {
+        "id": "D4",
+        "statement": "发布集每族至多 1 题：320 个互异 scenario_family",
+        "check": "max_items_per_family == 1 且 n_families == 320"
+      },
+      {
+        "id": "D5",
+        "statement": "对照版是同一实例的配对渲染，不构成独立题、不进入任何独立统计",
+        "check": "pair_id 一一对应 320/320，且 private gold 只有一份"
+      },
+      {
+        "id": "D6",
+        "statement": "两臂只有呈现层不同；文档数/span 数/证书字段由同一确定性 solver 产出；两臂 token 长度差逐对记录为协变量",
+        "check": "length_delta recorded for all 320 pairs；证书字段来自同一 solver 调用记录"
+      },
+      {
+        "id": "D7",
+        "statement": "发布版至少存在一个剂量维度严格高于对照版；若存在结构性空配对（发布版=对照版），必须显式报告数量与构成，不得事后剔除",
+        "check": "n_null_pairs reported；n_active_pairs = 160 − n_null_pairs"
+      },
+      {
+        "id": "D8",
+        "statement": "不修改 R26.15 任何字节",
+        "check": "PROTECTED_PATHS r26_15 组 165 文件逐文件 sha256 + 聚合 343afde4...51bd，冻结前后两次一致"
+      },
+      {
+        "id": "D9",
+        "statement": "held_out_test 40 题不进公开包，任何评估集不得与训练/基线拟合集按族交叉",
+        "check": "split 审计 + 按族 5 折基线复算"
+      }
+    ],
+    "structural_null_pairs": {
+      "definition": "发布版结构元组与对照版四剂量全 0 相同的配对；按构造其预期配对差为 0，用作操作检查（placebo）。",
+      "expected_count": 72,
+      "composition": {
+        "factor_core_all_off_cell": 8,
+        "dose_ladder_dose0_items": 64
+      },
+      "expected_active_pairs": 248,
+      "expected_note": "72 = 8 + 64（N=320）：因子核全 0 格 8 题 + 剂量阶梯 dose=0 共 4×16=64 题；数量以 t4 合同 v1.1.0 为准。",
+      "handling": "主端点仍在全部 320 对上计算（ITT）；placebo 检查 |drop_placebo| ≤ 5pp；active-pair（预计 248 对）作为预注册敏感性分析 V1；空配对不得被静默剔除，也不得被当作独立证据。",
+      "power_impact": "若 n_active=248，40% 不一致率下 SE=4.02pp、95% CI 半宽 ±7.87pp；已在 power_analysis 表中列明，不得隐瞒。"
+    },
+    "execution_order": {
+      "pair_order": "每对先跑对照版、再跑发布版（固定顺序，避免顺序随机化带来的额外方差）",
+      "order_effect_check": "从 320 对中按 pair_id 排序取前 40 对反向顺序复跑（80 次本地推理，成本 ¥0），检验顺序效应；|order_effect| > 5pp → DEGRADED（S13）。"
+    },
+    "cost": {
+      "e1_inferences": 640,
+      "e1_reversed_subset": 80,
+      "e2_inferences": 192,
+      "e3_inferences": 128,
+      "e4_inferences": 40,
+      "ablation_placebo_inferences": 80,
+      "estimated_cost_cny": 0,
+      "note": "全部为本地推理；云端抽样只允许在 ¥3 软顶内且不得触碰 ¥0 付费 API 硬顶。"
+    }
+  },
+  "primary_endpoint": {
+    "id": "paired_accuracy_drop",
+    "name": "配对准确率下降（唯一主端点）",
+    "role": "confirmatory",
+    "n_pairs": 320,
+    "unit": "题内配对（pair = instance = scenario_family）；不是 640 个独立样本",
+    "formula": "paired_accuracy_drop = acc(control) − acc(published)",
+    "accuracy_definition": {
+      "metric": "decision_informative_field_accuracy（t2/A2 冻结口径）",
+      "informative_fields": [
+        "batter_runs",
+        "bowler_runs",
+        "counts_in_over",
+        "delivery_status",
+        "dismissal",
+        "ledger.BATTER",
+        "ledger.NO_BALL_EXTRA",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "denominator": "320 × 9 = 2880 个 (题, 信息字段) cells，两臂各自计算",
+      "itt": "意向治疗（ITT）：解析失败、缺失、非法值、弃权一律按该题全部 12 字段判错（信息字段 9 个全错）；不剔除任何配对。",
+      "same_gold": "两臂金标逐字节相同；不一致只可能来自呈现层。",
+      "same_model": "两臂使用同一模型、同一 temperature、同一 seed、同一 num_ctx、同一 prompt 模板。",
+      "formerly_constant_fields_note": "ledger.BYE / ledger.LEG_BYE / ledger.PENALTY 在 R26.15 恒为 0，在 R28 必须非恒定且非零；这属于数据健康要求（G3），不改变信息字段的 9 字段分母，也不得用 12 字段准确率替代主端点。"
+    },
+    "statistics": {
+      "point_estimate": "Δ = (b − c) / 320，其中 b = 对照对而发布错的配对数，c = 对照错而发布对的配对数",
+      "discordance": "b + c，同时报告不一致率 = (b + c) / 320",
+      "mcnemar": "精确 McNemar 检验（二项精确检验，b | b+c ~ Binomial(b+c, 0.5)）；报告双侧 p 与方向一致的单侧 p",
+      "ci_primary": "配对 bootstrap，按题重抽 10,000 次（seed=20261112），percentile 95% CI",
+      "ci_secondary": "按族聚类 bootstrap（320 个族 cluster；R28 一题一族，故与按题等价）10,000 次，percentile 95% CI",
+      "ci_decision_rule": "判定使用两个 95% CI 下界中更小的一个（更保守）；若两者方向矛盾，按更保守者判定并在报告中披露。",
+      "effect_size": "以百分点（pp）报告点估计与 CI，不以 p 值替代效应量"
+    },
+    "decision_rules": [
+      {
+        "outcome": "HARDER",
+        "condition": "point_estimate ≥ +10.0pp 且 min(CI_lower_item, CI_lower_family) > 0（严格不含 0）且全部 claim_gates 通过",
+        "conclusion": "可以声称'更难'（仅当 G1–G9 全 PASS）"
+      },
+      {
+        "outcome": "DIRECTION_ONLY",
+        "condition": "point_estimate > 0 且（point_estimate < +10.0pp 或 min(CI_lower_item, CI_lower_family) ≤ 0），且 ≥1 个 claim gate 未通过时同样降级到本行",
+        "conclusion": "只能报告'方向一致但不显著'或'效应低于预注册阈值'；不得声称'更难'"
+      },
+      {
+        "outcome": "NOT_HARDER",
+        "condition": "point_estimate ≤ 0",
+        "conclusion": "预注册结论为'未变难'；不得用其他指标改写"
+      }
+    ],
+    "decision_rule_source": "PROPOSAL §7.1 + H1 证伪条件 + t22 任务书；'CI 跨 0 → 不扩量不换指标'写入 stopping_rules.S1。",
+    "claim_gates": [
+      "G1",
+      "G1r",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9"
+    ],
+    "mandatory_reporting": [
+      "b、c、discordance、n_pairs、两臂信息字段准确率、两臂记录 exact",
+      "点估计 + 两种 95% CI + McNemar 精确 p（双侧与单侧）",
+      "三条基线同表对照（G1 表）与记录 exact 对照（G1r）",
+      "placebo 配对结果、active-pair 敏感性、长度协变量敏感性",
+      "所有 9 个次要端点，无论显著与否"
+    ]
+  },
+  "secondary_endpoints": [
+    {
+      "id": "dose_slope",
+      "name": "剂量-反应斜率",
+      "role": "secondary_exploratory",
+      "hypothesis": "H2 / HYP-R28-DOSE",
+      "definition": "在 E2 剂量阶梯 192 题（4 机制 × 3 剂量 × 16 题）上拟合 logit P(correct) ~ β0 + β_dose·dose + mechanism FE（family-cluster robust SE）；β_dose 为每剂量步的 log-odds 斜率；同时报告每机制斜率与 acc(dose0) − acc(dose2)（pp）。",
+      "data_source": "E2（t19）",
+      "unit": "题（一题一族）",
+      "statistic": "单侧 Wald 检验 H1: β_dose < 0；10,000 次按族 bootstrap 95% CI；单调性用观察到的逐剂量准确率判定（acc0 ≥ acc1 ≥ acc2 且至少一个严格不等）",
+      "decision_rule": "机制层：单调 + acc0−acc2 ≥ 10pp + 斜率 95% CI 不含 0（上界 < 0），三者同时满足 → 该机制支持；任一不满足 → 该机制判不成立（非单调 / 反向 / 效应 <10pp / CI 含 0）。整体 H2 支持当且仅当 ≥2/4 机制成立；禁止用 pooled 斜率掩盖单个机制失败。",
+      "multiplicity": {
+        "outer_holm_member": true,
+        "outer_statistic": "pooled β_dose 的单侧 p",
+        "inner_holm_family": "4 个机制的斜率（探索性）"
+      },
+      "failure_meaning": "该机制未使任务变难；如实报告'该机制未使任务变难'并公开配对差与 CI。"
+    },
+    {
+      "id": "mechanism_effect",
+      "name": "机制主效应与二阶交互",
+      "role": "secondary_exploratory",
+      "hypothesis": "H3",
+      "definition": "在 E3 因子核 128 题上拟合 logit P(correct) ~ D1*D2*D3*D4，报告 4 个主效应 + 6 个二阶交互的 log-odds、边际 pp 与 95% CI（family-cluster bootstrap）；3 阶/4 阶交互仅在不稳定时作描述性统计，不作为判定。",
+      "data_source": "E3（t19）",
+      "unit": "题（一题一族）",
+      "statistic": "每个系数 Wald z（双侧）；族聚类稳健 SE；内层 Holm 校正 10 个系数",
+      "decision_rule": "H3 成立当且仅当 ≥1 个主效应经内层 Holm 校正后 95% CI 不含 0；若全部含 0 → 报'难度不可归因到预注册机制'，不得把整体下降说成某个机制的作用。",
+      "multiplicity": {
+        "outer_holm_member": true,
+        "outer_statistic": "10 个系数中内层 Holm 校正后的最小 p",
+        "inner_holm_family": "10 个系数（4 主效应 + 6 二阶交互）"
+      },
+      "failure_meaning": "难度归因不成立；只能报告整体配对差，不得声称机制解释。"
+    },
+    {
+      "id": "informative_field_skill",
+      "name": "信息字段相对先验的 skill（逐条件重算先验）",
+      "role": "secondary_exploratory",
+      "hypothesis": "构念效度 / A2 修正（防止用先验位移冒充变难）",
+      "definition": "对每个条件 c 计算 skill_c = (acc_c − prior_c) / (1 − prior_c)；prior_c 为条件内逐字段众数先验：n_c ≥ 30 时用条件内 leave-one-item-out 众数；8 ≤ n_c < 30 时用同剂量层 pooled 先验并标注为 pooled；n_c < 8 时用全局 LOFO 先验且仅作描述。条件 = 两臂整体、3 个剂量层（n≈64）、4 个机制（n≈48）、因子核各格（n=8，仅描述）。",
+      "data_source": "E1 320 对 + E2 192 题",
+      "unit": "题（一题一族）",
+      "statistic": "按族 bootstrap 95% CI；同时报告两臂 skill 与 Δskill = skill_hard − skill_shallow",
+      "decision_rule": "门条件 G2：skill_hard_overall < 0（严格）。若 skill_hard ≥ 0，禁止使用'越过先验/击败常数先验'表述；逐条件结果一律报告，n<30 的条件不进入门判定。",
+      "multiplicity": {
+        "outer_holm_member": true,
+        "outer_statistic": "skill_hard < 0 的单侧 bootstrap p",
+        "inner_holm_family": null
+      },
+      "failure_meaning": "模型在发布版上未低于常数先验 → '更难'的绝对难度主张不成立（与 G1 常数先验分量一致）。",
+      "note": "两臂共享同一金标，先验相同，故 Δskill = drop/(1−prior)；skill 的角色是报告绝对难度，而不是解释配对差。禁止用 L1–L5 等级先验替代 R28 条件先验。"
+    },
+    {
+      "id": "distinct_record_ratio",
+      "name": "互异记录率",
+      "role": "gate_threshold",
+      "hypothesis": "数据健康（A 阶段族重复发现的修复验证）",
+      "definition": "发布集 320 题的 12 字段记录去重后数量 / 320。",
+      "data_source": "R28 发布集",
+      "unit": "题",
+      "statistic": "比例；报告互异记录数、重复组大小分布",
+      "decision_rule": "distinct_record_ratio == 1.0（320/320）为 PASS；否则 BLOCK_DATA（S7）。",
+      "multiplicity": {
+        "outer_holm_member": false,
+        "note": "确定性阈值，无零假设，不进入 Holm。"
+      },
+      "failure_meaning": "记录层面有效 n 被虚高，与 R26.15 的 16 个互异记录同类错误；不得发布。"
+    },
+    {
+      "id": "family_only_baseline",
+      "name": "仅族名基线（泄漏检验）",
+      "role": "gate_threshold",
+      "hypothesis": "泄漏检验（t2 族分类器 100% 的修复验证）",
+      "definition": "只用 scenario_family 字符串（字符 3–5 gram TF-IDF + 多项式逻辑回归）预测 12 字段；按族分组 5 折交叉，fold = int(sha256(family_id)[0:8],16) mod 5；报告五项并列：value_balanced_accuracy、lift_over_marginal、permutation_p、per_cell_accuracy、marginal_mode。",
+      "data_source": "R28 发布集 320 题",
+      "unit": "题（折按族分组，无族泄漏）",
+      "statistic": "lift_over_marginal（主泄漏统计量）+ value_balanced_accuracy（绝对门）+ permutation_p（置换检验）",
+      "decision_rule": "两条同时成立才 PASS：① lift_over_marginal = per_cell_accuracy − marginal_mode ≤ 0（族名不得优于押众数）；② value_balanced_accuracy ≤ 0.40 且 permutation_p > 0.05。五项并列报告，缺一不可。",
+      "multiplicity": {
+        "outer_holm_member": false,
+        "note": "确定性阈值，不进入 Holm。"
+      },
+      "failure_meaning": "族名携带答案信息，任务可被字符串捷径解决；不得发布。",
+      "per_cell_status": {
+        "per_cell_threshold_met": false,
+        "per_cell_is_not_a_leakage_statistic": true,
+        "per_cell_accuracy": 0.514931,
+        "marginal_mode": 0.550347
+      },
+      "measured_at_amend002": {
+        "n_items": 320,
+        "per_cell_accuracy": 0.514931,
+        "marginal_mode": 0.550347,
+        "lift_over_marginal": -0.035416,
+        "value_balanced_accuracy": 0.10387,
+        "permutation_p": 0.146341,
+        "record_exact_accuracy": 0.00625,
+        "delta_balanced_vs_marginal": 0.002746
+      },
+      "reason": "per-cell accuracy conflates marginal skew with leakage; the leakage statistic is lift-over-marginal",
+      "reason_forbidden": [
+        "the threshold is unreachable",
+        "阈值不可达",
+        "任何数据都不可能达标"
+      ],
+      "captain_ruling": "captain 于 2026-11-12 裁决：接受口径修正，拒绝 'the threshold is unreachable' 的理由。",
+      "family_name_encoding_check": {
+        "checked_at_utc": "2026-11-12T12:42:42Z",
+        "format": "rfam_[0-9a-f]{12}（中性哈希）",
+        "n_public": 320,
+        "n_unique_families": 320,
+        "contains_design_tokens": false,
+        "tokens_checked": [
+          "D1",
+          "D2",
+          "D3",
+          "D4",
+          "M1",
+          "M2",
+          "M3",
+          "M4",
+          "F-",
+          "L-D",
+          "factor",
+          "dose",
+          "block",
+          "cell",
+          "level",
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+          "L5"
+        ],
+        "exposure": "public_instance.json 含 scenario_family；盲包已剥离。族名本身是中性哈希，不编码 block/cell/mechanism/dose。",
+        "impact": "无设计元信息编码 → 族名基线不受设计标签混杂；族名唯一且随机 → 族名模型没有可学习信号，lift 负值是边际噪声的预期表现。"
+      }
+    },
+    {
+      "id": "certificate_validity",
+      "name": "证书有效性（覆盖率 + solver 重推一致性）",
+      "role": "gate_threshold",
+      "hypothesis": "H4 前半",
+      "definition": "证书覆盖率 = 320 题中具备完整证书的题数 / 320；重推一致性 = 由 solver 从 solver_facts 重算的 decision_record_flat 与 minimum_evidence_spans / rule_path / authority_decision / revision_chain / why_not_distractor / derivation_check 与私藏金标逐字节一致的比例（320 题）。",
+      "data_source": "R28 发布集 + private gold + solver 重推日志",
+      "unit": "题",
+      "statistic": "两个比例；失败题清单与失败原因分类",
+      "decision_rule": "覆盖率 == 100% 且重推一致性 == 100% 为 PASS；任一 < 100% → BLOCK_RELEASE（S3）。",
+      "multiplicity": {
+        "outer_holm_member": false,
+        "note": "确定性阈值，不进入 Holm。"
+      },
+      "failure_meaning": "证书不可机械验证，解释主张不成立；发布阻断。"
+    },
+    {
+      "id": "ablation_flip",
+      "name": "证据删除翻转率",
+      "role": "secondary_exploratory",
+      "hypothesis": "H4 后半（解释忠实度）",
+      "definition": "在 E4 的 40 题上，删除 gold minimum_evidence_spans 引用的全部 span（保留其余文本与题面），同模型同参数重跑；flip = 9 个信息字段向量发生变化（主），记录 exact 翻转（次）。placebo：删除等长、随机选取且未被引用的 span，同样重跑。",
+      "data_source": "E4（t19）40 题 × (cited, placebo) 两次推理 + 基线一次",
+      "unit": "题",
+      "statistic": "cited flip rate 与 placebo flip rate；精确二项单侧检验（H1: p ≥ 0.90）；Wilson 95% CI；配对 McNemar 比较 cited vs placebo",
+      "decision_rule": "cited flip ≥ 90%（≥36/40）且 placebo flip ≤ 10%（≤4/40）→ H4 证据支持；任一不达 → 解释忠实度不成立（S12，不阻断数据发布，但阻断'解释可验证'主张）。",
+      "multiplicity": {
+        "outer_holm_member": true,
+        "outer_statistic": "cited flip ≥ 0.90 的单侧精确二项 p",
+        "inner_holm_family": null
+      },
+      "failure_meaning": "模型未依赖被引证据；证书的忠实度主张撤回。"
+    },
+    {
+      "id": "risk_coverage_auc",
+      "name": "风险-覆盖 AUC 与置信度排序",
+      "role": "secondary_exploratory",
+      "hypothesis": "部署价值（探索性）",
+      "definition": "按每题 confidence 降序构造 selective risk 曲线（risk = 1 − 记录 exact 准确率），coverage 0→1 的梯形积分记 risk_coverage_auc（越低越好）；同时报告 AUROC(confidence, record exact)（越高越好）。两臂分别报告。",
+      "data_source": "E1 640 次推理的 confidence 与记录 exact",
+      "unit": "题",
+      "statistic": "risk_coverage_auc（bootstrap 95% CI）；AUROC 单侧 Mann-Whitney 检验 H1: AUC > 0.5；与随机排序参照（risk = 整体错误率）和 oracle 参照并列",
+      "decision_rule": "AUROC > 0.5 且 95% CI 不含 0.5 → 置信度具有区分度（探索性结论）；否则报'置信度不可用于弃权'。不得据此宣称部署价值。",
+      "multiplicity": {
+        "outer_holm_member": true,
+        "outer_statistic": "AUROC 单侧 p",
+        "inner_holm_family": null
+      },
+      "failure_meaning": "弃权通道无价值；不得作为卖点。",
+      "missing_confidence_policy": "confidence 缺失或不可解析按 conformance 不服从处理；若两臂 confidence 全部退化为同一值 → UNTESTED，不判 PASS。"
+    },
+    {
+      "id": "conformance_rate",
+      "name": "输出格式服从率",
+      "role": "data_quality",
+      "hypothesis": "测量质量（独立轴，不进主分）",
+      "definition": "符合冻结输出契约的响应比例：可解析 JSON、12 字段齐全、类型/枚举合法、confidence ∈ [0,1]、evidence_spans 为合法 span id 列表。统计 E1 640 次响应，分臂报告。",
+      "data_source": "E1（640）+ E2/E3/E4 全部模型响应",
+      "unit": "响应（一次推理）",
+      "statistic": "比例 + Wilson 95% CI；不服从原因分类（解析失败 / 缺字段 / 枚举非法 / span 非法 / confidence 非法）",
+      "decision_rule": "报告并作为 ITT 依据；conformance_rate < 90% → DEGRADED（G8），且必须同时报告 conforming-only 敏感性（V5）；不得静默剔除不服从样本。",
+      "multiplicity": {
+        "outer_holm_member": false,
+        "note": "数据质量端点，无零假设，不进入 Holm。"
+      },
+      "failure_meaning": "准确率估计被格式服从性主导，难度结论的可解释性下降。"
+    }
+  ],
+  "baseline_gate": {
+    "id": "three_baseline_gate",
+    "statement": "任何'更难'的声称必须同时越过三条无卷宗基线；仅越过常数先验不算成立。",
+    "direction_definition": "'更难' = 准确率更低。'越过基线 b' = 发布版（hard）在 320 题上的信息字段准确率严格低于基线 b 的准确率。禁止反向解释，禁止把'高于基线'当作'更难'。",
+    "thresholds": [
+      {
+        "id": "constant_prior",
+        "name": "常数先验（逐字段众数）",
+        "reference_rate": 0.5288888888888889,
+        "reference_display": "52.89%",
+        "reference_source": "01_measurement/BASELINES.json#/baselines/constant_75_to_25/field_accuracy_informative/rate",
+        "definition": "用训练池逐字段众数预测，75→25；R26.15 参考值",
+        "same_set_remeasure": "R28 320 题：逐字段众数的 leave-one-family-out（LOFO）预测，在同一 9 信息字段口径下计算",
+        "gate_component": "G1.constant_prior"
+      },
+      {
+        "id": "question_text_tfidf_logreg",
+        "name": "只看题面 TF-IDF + 逻辑回归（不读卷宗）",
+        "reference_rate": 0.5422222222222223,
+        "reference_display": "54.22%",
+        "reference_source": "01_measurement/BASELINES.json#/baselines/tfidf_logreg_question_text_75_to_25/field_accuracy_informative/rate",
+        "definition": "只用 answer-free 题面文本的 TF-IDF + 逐字段多项式逻辑回归，75→25；R26.15 参考值",
+        "same_set_remeasure": "R28 320 题：按族分组 5 折 OOF（fold = int(sha256(family_id)[0:8],16) mod 5），同一口径",
+        "gate_component": "G1.question_text_tfidf_logreg"
+      },
+      {
+        "id": "anchor_mode",
+        "name": "anchor 众数（只查锚，不读证据）",
+        "reference_rate": 0.7333333333333333,
+        "reference_display": "73.33%",
+        "reference_source": "01_measurement/BASELINES.json#/baselines/anchor_classifier_75_to_25/field_accuracy_informative/rate",
+        "definition": "cross_level_anchor_family → 各字段众数金标记录（75 训练 → 25 应用）；R26.15 参考值",
+        "same_set_remeasure": "R28 320 题：在同一 anchor 内做 leave-one-family-out 众数预测，同一口径",
+        "gate_component": "G1.anchor_mode"
+      }
+    ],
+    "record_exact_threshold": {
+      "id": "anchor_record_exact",
+      "name": "anchor 众数记录 exact",
+      "reference_rate": 0.32,
+      "reference_display": "32%",
+      "reference_source": "01_measurement/BASELINES.json#/baselines/anchor_classifier_75_to_25/record_exact/rate",
+      "same_set_remeasure": "R28 320 题：anchor 内 LOFO 众数记录的 exact 准确率",
+      "gate_component": "G1r"
+    },
+    "rule": "G1 PASS 当且仅当对三条基线 b 均满足：acc_hard_informative < min(reference_rate_b, same_set_rate_b)（严格小于）。G1r PASS 当且仅当：acc_hard_record_exact < min(0.32, anchor_same_set_record_exact)（严格小于）。",
+    "double_threshold_rationale": "同时使用 R26.15 冻结参考值与 R28 同集重测值并取更严者：审稿人只需指出其中任一个未被越过，即可推翻'更难'结论。",
+    "single_baseline_forbidden": "仅 constant_prior 分量通过而 question_text_tfidf_logreg 或 anchor_mode 未通过 → G1 FAIL；禁止只用'vs 常数先验'作判定。",
+    "fail_safe": "任一 same-set 基线因数据/资源原因无法在相同口径下测量 → G1 = UNTESTED，不得声称'更难'，必须报告 DEGRADED。",
+    "reference_context_only": [
+      {
+        "id": "glm_reference",
+        "rate": 0.551111,
+        "record_exact": 0.28,
+        "note": "R26.15 GLM-5.3-Flash 仅比常数先验高 0.89pp（信息字段），且低于 anchor 众数 18.22pp；仅作背景，不构成门槛，也不得用来声称'读卷宗有效'。"
+      }
+    ],
+    "data_source": "01_measurement/BASELINES.json（sha256 钉在 bindings.content_addressed）",
+    "per_table": [
+      {
+        "baseline": "constant_prior",
+        "frozen_reference": "52.89%",
+        "same_set_remeasured": "G1 表必填",
+        "hard_arm": "G1 表必填",
+        "pass_condition": "hard < 两者较小值"
+      },
+      {
+        "baseline": "question_text_tfidf_logreg",
+        "frozen_reference": "54.22%",
+        "same_set_remeasured": "G1 表必填",
+        "hard_arm": "G1 表必填",
+        "pass_condition": "hard < 两者较小值"
+      },
+      {
+        "baseline": "anchor_mode",
+        "frozen_reference": "73.33%",
+        "same_set_remeasured": "G1 表必填",
+        "hard_arm": "G1 表必填",
+        "pass_condition": "hard < 两者较小值"
+      },
+      {
+        "baseline": "anchor_mode_record_exact",
+        "frozen_reference": "32%",
+        "same_set_remeasured": "G1r 表必填",
+        "hard_arm": "G1r 表必填",
+        "pass_condition": "hard exact < 两者较小值"
+      }
+    ]
+  },
+  "power_analysis": {
+    "design": "paired binary（McNemar）",
+    "formula": {
+      "se": "SE(Δ) = sqrt(p_discordant / n_pairs)",
+      "ci_half_width": "1.96 × SE",
+      "mde_80": "(1.96 + 0.8416) × SE",
+      "power_10pp": "Φ((0.10 / SE) − 1.96)，双侧 α=0.05"
+    },
+    "chosen_n": 320,
+    "assumed_discordance": 0.4,
+    "mandated_statement": "配对设计下，不一致率 40% 时 N=320 给出 SE=3.54pp、95% CI 半宽 ±6.93pp、10pp 功效 80.7%（80% 功效 MDE≈9.91pp），因此采用 320 题（用户 2026-11-12 在 t25 确认门授权 B2）。",
+    "table": [
+      {
+        "n_pairs": 160,
+        "discordance": 0.4,
+        "se_pp": 5.0,
+        "ci_half_width_pp": 9.8,
+        "mde_80_pp": 14.01,
+        "power_for_10pp": 0.516,
+        "declared": "历史基线（v1.0.0；功效不足）"
+      },
+      {
+        "n_pairs": 240,
+        "discordance": 0.4,
+        "se_pp": 4.08,
+        "ci_half_width_pp": 8.0,
+        "mde_80_pp": 11.44,
+        "power_for_10pp": 0.688,
+        "declared": "候选 B（v1.1.0 评估后未采用）"
+      },
+      {
+        "n_pairs": 320,
+        "discordance": 0.4,
+        "se_pp": 3.54,
+        "ci_half_width_pp": 6.93,
+        "mde_80_pp": 9.91,
+        "power_for_10pp": 0.807,
+        "declared": "AMEND-001 选定（用户 B2 授权）"
+      },
+      {
+        "n_pairs": 400,
+        "discordance": 0.4,
+        "se_pp": 3.16,
+        "ci_half_width_pp": 6.2,
+        "mde_80_pp": 8.86,
+        "power_for_10pp": 0.885,
+        "declared": "候选（未采用；10% 余量需求 480）"
+      },
+      {
+        "n_pairs": 248,
+        "discordance": 0.4,
+        "se_pp": 4.02,
+        "ci_half_width_pp": 7.87,
+        "mde_80_pp": 11.25,
+        "power_for_10pp": 0.702,
+        "declared": "N=320 的 active-pair 敏感性（预期 72 个结构性空配对）"
+      }
+    ],
+    "honest_power_note": "上表是精度与功效计算。按双侧 α=0.05、Δ=10pp、N=320、40% 不一致率，SE=3.54pp，10pp 功效 80.7%，80% 功效 MDE≈9.91pp；预期 active 248 对时 SE=4.02pp、10pp 功效约 70.2%。因此：非显著结果仍只能报'未检出预注册阈值的效应，且研究对该阈值功效不足'；扩量已按用户授权完成，除非再走 amendment，不得继续扩量或更换端点。 v1.0.0 注记（N=160：10pp 功效约 51.6%、MDE 14.01pp）保留为历史记录，不再适用于当前设计。",
+    "post_hoc_reporting": "若实际不一致率与 40% 偏离，报告实际 SE、CI 与实现功效；不得因此改用单侧检验、修改 α、继续扩量或更换端点。",
+    "floor_effect_note": "若发布版准确率接近 0，配对差将受地板效应限制；报告两臂绝对准确率与 95% Wilson CI，不得只报差值。"
+  },
+  "effective_n_rules": {
+    "statement": "统计单位是题（一题一族），不是字段；任何按字段独立计算的 CI 都作废。",
+    "rules": [
+      {
+        "id": "EN1",
+        "rule": "发布集每族至多 1 题，且一题一记录（distinct_record_ratio = 1.0）。"
+      },
+      {
+        "id": "EN2",
+        "rule": "R28 的有效 n = 320 题 / 320 族 / 320 个互异记录；任何分析必须同时打印 n_items、n_families、n_distinct_records。"
+      },
+      {
+        "id": "EN3",
+        "rule": "与 R26.15 的任何比较必须按族聚类：n_eff 上限 = 25 族（仅 16 个互异记录），并使用按族 bootstrap（25 个 cluster）或按族置换检验；禁止把 100 题当作 100 个独立样本。"
+      },
+      {
+        "id": "EN4",
+        "rule": "禁止同族跨 split；所有基线拟合使用按族分组 5 折或 leave-one-family-out。"
+      },
+      {
+        "id": "EN5",
+        "rule": "对照版是同一实例的配对渲染，不增加有效 n；不得把 640 次推理当作 640 个独立样本。"
+      },
+      {
+        "id": "EN6",
+        "rule": "R28 vs R26.15 的跨数据集比较不是确认性端点，只能作为探索性描述，且必须同时报两边的 n_eff 与聚类方式。"
+      }
+    ],
+    "r26_15_reference": {
+      "n_questions": 100,
+      "n_families": 25,
+      "n_distinct_records": 16,
+      "family_classifier_field_accuracy": 1.0,
+      "family_classifier_record_exact": 1.0,
+      "per_level_n": 20,
+      "record_exact_ci_wilson": [
+        0.143,
+        0.476
+      ],
+      "source": "t2 findings F1 + MEASUREMENT_VALIDITY_NOTE.md",
+      "implication": "R26.15 的记录级有效 n 至多 25（族）/ 16（互异记录）；按题独立的 CI 会高估精度。"
+    }
+  },
+  "multiplicity": {
+    "primary": {
+      "tests": 1,
+      "alpha": 0.05,
+      "sided": "双侧（McNemar 精确）；方向一致的单侧 p 仅作辅助报告",
+      "correction": "无（主端点单一，是预先设计的优点，不是遗漏）"
+    },
+    "secondary_holm": {
+      "method": "Holm–Bonferroni（逐步向下，FWER 控制）",
+      "alpha": 0.05,
+      "m": 5,
+      "family": [
+        "dose_slope",
+        "mechanism_effect",
+        "informative_field_skill",
+        "ablation_flip",
+        "risk_coverage_auc"
+      ],
+      "label": "exploratory",
+      "rule": "按 p 升序，第 k 个与 α/(m−k+1) 比较；拒绝后停止。报告原始 p 与 Holm 校正 p。"
+    },
+    "inner_holm": [
+      {
+        "family": "mechanism_effect 的 10 个系数",
+        "m": 10,
+        "label": "exploratory"
+      },
+      {
+        "family": "dose_slope 的 4 个机制斜率",
+        "m": 4,
+        "label": "exploratory"
+      }
+    ],
+    "threshold_endpoints": {
+      "ids": [
+        "distinct_record_ratio",
+        "family_only_baseline",
+        "certificate_validity",
+        "conformance_rate"
+      ],
+      "note": "确定性阈值，无零假设，不进入 Holm；全部作为门条件，任一 FAIL 触发对应停止规则。"
+    },
+    "reporting": "所有次要端点无论显著与否都必须报告点估计与 95% CI；所有次要结论一律标注 EXPLORATORY；不得把次要端点的显著结果升级为确认性结论。",
+    "no_family_wise_total": "主端点 + 次要 Holm 族 + 内层 Holm 族分开声明；内层 Holm 族不计入外层 FWER，因其仅用于描述性归因且明确标注探索性。"
+  },
+  "stopping_rules": [
+    {
+      "id": "S1",
+      "code": "STOP_NO_EXPANSION",
+      "trigger": "主端点 min(CI_lower_item, CI_lower_family) ≤ 0（CI 跨 0）或 point_estimate < +10.0pp",
+      "action": "不扩量、不加题、不更换端点、不重跑基线、不改模型或 prompt；按零结果契约报告。",
+      "owner": "t19 → t11",
+      "resume_condition": "无；该假设本轮结束。"
+    },
+    {
+      "id": "S2",
+      "code": "STOP_REDESIGN",
+      "trigger": "E5 已执行面板（≥2 个模型）最强−最弱信息字段准确率跨度 < 25pp",
+      "action": "任务无区分度 → 停止扩量，回设计阶段；不得继续以'有区分度'对外描述。若可执行模型数 < 2（零付费约束导致降级），判 DEGRADED/UNTESTED 并撤回区分度主张，不得判 PASS。",
+      "owner": "t19 → t11",
+      "resume_condition": "人工裁决新设计。"
+    },
+    {
+      "id": "S3",
+      "code": "BLOCK_RELEASE",
+      "trigger": "证书覆盖率 < 100% 或 solver 重推金标成功率 < 100%",
+      "action": "阻断发布；修 solver 后重推；在 100% 之前不得定稿任何难度或解释结论。",
+      "owner": "t5/t6 → t8",
+      "resume_condition": "重推 100% 且 t8 复验通过。"
+    },
+    {
+      "id": "S4",
+      "code": "BLOCK_RELEASE",
+      "trigger": "泄漏审计任一项失败（public/private 白名单、答案字符串出现在公开卷宗、跨集近重复、gold/level/difficulty_vector 进入公开包、held_out 泄漏）",
+      "action": "阻断发布；定位泄漏源并修复；修复后重跑完整泄漏审计。",
+      "owner": "t6 → t8",
+      "resume_condition": "泄漏审计全项 PASS。"
+    },
+    {
+      "id": "S5",
+      "code": "BUDGET_STOP",
+      "trigger": "累计成本 ≥ ¥100 硬顶；或出现任何金额 > ¥0 的付费推理 API 调用；或云端抽样超过 ¥3 软顶",
+      "action": "立即落盘并停止，不自动续跑；付费调用按合约违规单独记录；软顶超限则关闭云端、保留本地链路并标 DEGRADED。",
+      "owner": "t13",
+      "resume_condition": "仅人工裁决；不得自动续跑。"
+    },
+    {
+      "id": "S6",
+      "code": "BLOCK_DATA",
+      "trigger": "任一配对的 solver_facts 或 decision_record_flat 在两臂之间不逐字节相同",
+      "action": "阻断数据发布与分析；定位渲染层污染；修复后重建并重新计算 MANIFEST 聚合。",
+      "owner": "t5/t6 → t8",
+      "resume_condition": "320/320 逐字节一致且确定性重建通过。"
+    },
+    {
+      "id": "S7",
+      "code": "BLOCK_DATA",
+      "trigger": "distinct_record_ratio < 1.0；或存在恒定字段；或 ledger.BYE / ledger.LEG_BYE / ledger.PENALTY 任一在全集无非零值；或某族 > 1 题",
+      "action": "阻断数据发布；按合同硬验收修复后重建。",
+      "owner": "t6 → t8",
+      "resume_condition": "全部数据健康硬指标 PASS。"
+    },
+    {
+      "id": "S8",
+      "code": "BLOCK_RELEASE",
+      "trigger": "family_only_baseline 信息字段准确率 > 40%",
+      "action": "阻断发布（族名等价于答案的泄漏风险）；重设计族名或抽样。",
+      "owner": "t6 → t8",
+      "resume_condition": "族名基线 ≤ 40%。"
+    },
+    {
+      "id": "S9",
+      "code": "ESCALATED_HUMAN",
+      "trigger": "同一门连续 2 轮修复后仍 FAIL（第 3 轮）",
+      "action": "ESCALATED：停止链路，落盘现场，等待人工裁决；禁止无限重试或自动改设计。",
+      "owner": "t13",
+      "resume_condition": "人工给出新指令。"
+    },
+    {
+      "id": "S10",
+      "code": "EMERGENCY_STOP",
+      "trigger": "R26.15 任何字节漂移（逐文件 sha256 或 tree aggregate 与 PROTECTED_PATHS 不符）",
+      "action": "立即停止全部工作；用 _BACKUPS/VETT_R28_PRE_CHANGE_20261112/restore.ps1 回滚；提交事故报告。",
+      "owner": "全员",
+      "resume_condition": "回滚验证通过且人工批准恢复。"
+    },
+    {
+      "id": "S11",
+      "code": "BLOCK_ANALYSIS",
+      "trigger": "设计偏离：n_pairs ≠ 320、缺配对、两臂模型/参数不一致、存在事后剔除或事后换指标",
+      "action": "阻断分析；恢复设计后重跑；若不可恢复 → 主端点判 UNTESTED 并如实报告，不得用替代端点。",
+      "owner": "t19 → t8",
+      "resume_condition": "设计完整性复验 PASS。"
+    },
+    {
+      "id": "S12",
+      "code": "EXPLANATION_CLAIM_NOT_ESTABLISHED",
+      "trigger": "E4：flip⁺ < 2× 随机翻转率，或 stability⁻ < 80%，或 stability⁰ < 90%，或 ablation cited flip < 90% / placebo > 10%",
+      "action": "解释忠实度主张撤回；不得把证书当作'模型依赖证据'的证明；数据发布不受影响但须在报告中写'解释主张不成立'。",
+      "owner": "t19 → t11",
+      "resume_condition": "无；本轮结论固定。"
+    },
+    {
+      "id": "S13",
+      "code": "DEGRADED_FLAG",
+      "trigger": "placebo 配对 |drop| > 5pp，或反向顺序复跑的顺序效应 |order_effect| > 5pp，或 conformance_rate < 90%",
+      "action": "标记 DEGRADED；报告不确定性来源；不得静默通过。",
+      "owner": "t19 → t8",
+      "resume_condition": "定位原因后重跑受影响子集。"
+    }
+  ],
+  "zero_result_contract": {
+    "principle": "若数据没有变难，必须如实报告。禁止改用其他指标制造结论。",
+    "obligations": [
+      {
+        "id": "ZR1",
+        "rule": "若主端点不是 HARDER，摘要与结论必须直接写出配对差点估计、95% CI、b/c 与判定（DIRECTION_ONLY 或 NOT_HARDER），不得只写在附录。"
+      },
+      {
+        "id": "ZR2",
+        "rule": "以下'制造结论'的动作一律禁止，且 t8 会按预注册一致性检查判 FAIL：更换主端点定义；用全字段准确率或记录 exact 替代信息字段主端点作为标题结论；静默剔除结构性空配对或 placebo 配对；更换模型、prompt、seed 或温度以寻找显著；把 per-field p 值或事后子组当作确认性证据；把'趋势一致'写成'更难'；用 R26.15 的旧表述（63.3/60.0/51.7、0.7696 '给定正确节点'、Brier vs 0.25）作为支持。"
+      },
+      {
+        "id": "ZR3",
+        "rule": "9 个次要端点无论显著与否都必须完整报告（点估计 + 95% CI + 判定），不得选择性报告。"
+      },
+      {
+        "id": "ZR4",
+        "rule": "若某个机制不成立，必须报告'该机制未使任务变难'并公开其配对差与 CI；不得把不成立的机制计入'更难'。"
+      },
+      {
+        "id": "ZR5",
+        "rule": "若主端点不显著，禁止用'样本量不足'作为唯一解释而不报告实现功效；必须同时报告实现 SE、实际不一致率与 MDE（见 power_analysis.honest_power_note）。"
+      },
+      {
+        "id": "ZR6",
+        "rule": "任何零结果都必须写进报告与（若适用）论文摘要，并引用原始数据路径与命令；t11 的决策报告必须包含零结果契约履行声明。"
+      }
+    ],
+    "allowed_headlines": {
+      "HARDER": "在 320 对题内配对中，发布版信息字段准确率比对照版低 {drop_pp}pp（95% CI [{lo_pp}, {hi_pp}]，McNemar 精确 p={p}），并同时越过常数先验、只看题面 TF-IDF+LR 与 anchor 众数三条基线（发布版 {acc_hard}% vs {b1}% / {b2}% / {b3}%）→ 可以声称'更难'。",
+      "DIRECTION_ONLY": "配对差为 {drop_pp}pp（95% CI [{lo_pp}, {hi_pp}]），方向与假设一致但未达到预注册的'显著且 ≥10pp'标准 → 只能报告'方向一致但不显著'，不得声称'更难'。",
+      "NOT_HARDER": "配对差为 {drop_pp}pp（95% CI [{lo_pp}, {hi_pp}]）→ 预注册结论为'未变难'。",
+      "GATE_FAIL": "配对差成立（{drop_pp}pp），但未同时越过三条无卷宗基线中的 {failed_n} 条（未越过：{failed_list}）→ 预注册结论为'未建立相对无卷宗基线的区分度'，不得声称'更难'。",
+      "BLOCKED": "存在阻断项（{blockers}）→ 本轮不发布任何难度结论。",
+      "ZERO_RESULT": "本轮未获得支持'更难'的证据；该结果与'数据未变难'和'功效不足'均相容，不能据此宣称任一方向。"
+    },
+    "language_mapping": "报告与论文只能使用 allowed_headlines 中的模板或其等价直译；禁止自创更强表述。"
+  },
+  "reporting_contract": {
+    "metric_definitions_frozen": {
+      "informative_fields": [
+        "batter_runs",
+        "bowler_runs",
+        "counts_in_over",
+        "delivery_status",
+        "dismissal",
+        "ledger.BATTER",
+        "ledger.NO_BALL_EXTRA",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "all_fields": [
+        "batter_runs",
+        "bowler_runs",
+        "counts_in_over",
+        "delivery_status",
+        "dismissal",
+        "ledger.BATTER",
+        "ledger.BYE",
+        "ledger.LEG_BYE",
+        "ledger.NO_BALL_EXTRA",
+        "ledger.PENALTY",
+        "ledger.WIDE_EXTRA",
+        "total_runs"
+      ],
+      "formerly_constant_fields": [
+        "ledger.BYE",
+        "ledger.LEG_BYE",
+        "ledger.PENALTY"
+      ],
+      "record_exact": "12 个扁平字段全部等于金标才算 exact；分母为题数。",
+      "itt": "解析失败、缺失、非法值、弃权均按该题全部 12 字段判错；不剔除样本。",
+      "primary_metric": "decision_informative_field_accuracy（9 字段，ITT）",
+      "descriptive_only": "decision_field_macro_accuracy（全字段）仅作描述，不得作为主端点或标题结论。"
+    },
+    "brier": {
+      "form": "four_parallel_items",
+      "required_items": [
+        {
+          "id": "per_record_brier",
+          "definition": "(1/n) Σ (confidence_i − 1[record_exact_i])²，按题计算",
+          "r26_15_reference": 0.626796
+        },
+        {
+          "id": "base_rate",
+          "definition": "record exact 的基率 = (1/n) Σ 1[record_exact_i]",
+          "r26_15_reference": 0.28
+        },
+        {
+          "id": "brier_skill",
+          "definition": "1 − per_record_brier / [base_rate × (1 − base_rate)]；参考类固定为 record-exact 基率的气候学常数（R26.15 = 0.2016）",
+          "r26_15_reference": -2.11,
+          "climatology_reference": 0.2016
+        },
+        {
+          "id": "per_cell_brier",
+          "definition": "以 (题, 字段) 为 cell 的 (confidence_i − 1[field_correct])² 均值；全字段与信息字段分列",
+          "r26_15_reference": {
+            "all_fields": 0.2956,
+            "informative_fields": 0.3927
+          }
+        }
+      ],
+      "frozen_rule": "四项必须并列出现；参考类固定为 record-exact 基率的气候学常数；禁止出现'vs 0.25'，禁止把 0.25 当作常数预测器 Brier；禁止用 0.627 vs 0.25 的旧对比。",
+      "values_note": "R26.15 的数值仅作口径示例；R28 必须用自己的评估结果按同一形式重算并报告。",
+      "source": "01_measurement/MEASUREMENT_VALIDITY_NOTE.md §2.2 + gate_A_decision.json F4"
+    },
+    "edges": {
+      "form": "five_separate_columns",
+      "required_columns": [
+        {
+          "id": "minimal_evidence_edge_f1",
+          "definition": "端到端：预测边集合 vs gold 最小证据边的 P/R/F1",
+          "r26_15_reference": 0.299264
+        },
+        {
+          "id": "conditional_f1_given_recovered_nodes",
+          "definition": "precision 与 recall 都以模型恢复的端点为条件（一致条件）",
+          "r26_15_reference": 0.4886
+        },
+        {
+          "id": "conditional_f1_given_gold_nodes",
+          "definition": "precision 与 recall 都以 gold 端点为条件（一致条件）",
+          "r26_15_reference": 0.3857
+        },
+        {
+          "id": "gold_edge_endpoint_recovery_rate",
+          "definition": "gold 边端点被恢复的比例",
+          "r26_15_reference": 0.325284
+        },
+        {
+          "id": "content_dependency_edge_f1",
+          "definition": "内容依赖边子集上的 F1",
+          "r26_15_reference": 0.092308
+        }
+      ],
+      "legacy_mixed_condition": {
+        "id": "conditional_edge_link_f1_as_coded",
+        "r26_15_reference": 0.769556,
+        "label": "LEGACY_MIXED_CONDITION_NOT_INTERPRETABLE_AS_GIVEN_CORRECT_NODES",
+        "rule": "只能在五分列之后作为脚注出现，且必须标注 precision 以 gold 节点为条件、recall 以模型恢复节点为条件；禁止写成'给定正确节点 77%'。"
+      },
+      "frozen_rule": "五分列必须齐备；禁止用 as-coded 0.7696 作为'给定正确节点'的主报告；禁止只报 as-coded 而不报五分列。",
+      "source": "01_measurement/MEASUREMENT_VALIDITY_NOTE.md §2.3 + gate_A_decision.json F5"
+    },
+    "forbidden_phrasings": [
+      "Brier 0.627 vs 0.25",
+      "vs 0.25",
+      "conditional_edge_link_f1 = 0.7696 表示给定正确节点",
+      "给定正确节点 77%",
+      "63.3 / 60.0 / 51.7 证明剂量杠杆已验证",
+      "GLM 55.11% 证明模型在读卷宗",
+      "R28 已变难（在主端点未通过时）",
+      "仅凭常数先验对照即声称更难"
+    ],
+    "required_result_tables": [
+      "E1 主表：b/c、discordance、两臂信息字段准确率、两臂记录 exact、Δ、两种 CI、McNemar p",
+      "G1/G1r 基线表：三条基线 + anchor exact，冻结参考值与 R28 同集重测值并列，发布版与对照版并列",
+      "次要端点表：9 个端点全部列出（点估计 + 95% CI + 判定 + 是否进入 Holm）",
+      "数据健康表：互异记录、恒数字段、ledger 非零计数、族名基线、证书覆盖率、双渲染一致性、确定性重建",
+      "假设表：H1–H6 + HYP-R28-DOSE 的判定与证据",
+      "成本表：实际支出 vs 预算（¥0 付费 API）、DEGRADED 与 ESCALATED 事件清单",
+      "有效 n 表：每张表都带 n_items / n_families / n_distinct_records"
+    ]
+  },
+  "hypotheses": {
+    "registry": [
+      {
+        "id": "H1",
+        "rq": "RQ1 难度能否被构造而非调参",
+        "statement": "同一金标下，发布版（hard）信息字段准确率显著低于对照版（shallow）",
+        "support_condition": "配对差 ≥ 10pp 且 95% CI 不含 0（min CI lower > 0）且 G1–G9 通过",
+        "reject_condition": "CI 跨 0 → 只能报'方向一致但不显著'；点估计 < 0 → '未变难'",
+        "experiment": "E1（320 对，本地 7B）",
+        "endpoint": "paired_accuracy_drop",
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "H2",
+        "rq": "RQ2 难度是否随机制剂量单调上升",
+        "statement": "剂量 0/1/2 上准确率单调递减且斜率显著",
+        "support_condition": "见 dose_slope 的机制层判定；整体需 ≥2/4 机制成立",
+        "reject_condition": "非单调 / 反向 / 0→2 < 10pp / 斜率 CI 含 0，任一命中即该机制不成立",
+        "experiment": "E2（192 题）",
+        "endpoint": "dose_slope",
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "H3",
+        "rq": "RQ3 失败能否归因到具体机制",
+        "statement": "混合效应模型中至少 1 个机制主效应 CI 不含 0",
+        "support_condition": "≥1 个主效应经内层 Holm 校正后 95% CI 不含 0",
+        "reject_condition": "全部 CI 含 0 → '难度不可归因'",
+        "experiment": "E3（2^4 因子核 128 题）",
+        "endpoint": "mechanism_effect",
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "H4",
+        "rq": "RQ4 解释是否可被机械验证",
+        "statement": "证书重推金标成功率 100%，删被引证据后答案翻转率 ≥90%",
+        "support_condition": "certificate_validity = 100% 且 ablation_flip cited ≥ 90%（placebo ≤ 10%）",
+        "reject_condition": "任一不达 → 解释主张不成立",
+        "experiment": "E4（40 题 × 3 孪生 + 证书重推）",
+        "endpoint": "certificate_validity + ablation_flip",
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "H5",
+        "rq": "RQ5 数据集是否真有区分度",
+        "statement": "多模型面板最强−最弱 ≥ 25pp",
+        "support_condition": "已执行面板跨度 ≥ 25pp",
+        "reject_condition": "不达 → 任务无区分度，停止扩量；面板因零付费降级 → UNTESTED",
+        "experiment": "E5（4 模型 × 64 题子集）",
+        "endpoint": "E5 spread",
+        "status_at_freeze": "UNTESTED"
+      },
+      {
+        "id": "H6",
+        "rq": "RQ6 本地小模型能否承担规模化标注",
+        "statement": "白名单任务上本地与机械真值一致率 ≥ 0.85",
+        "support_condition": "冻结前 t18 能力矩阵：T1 0.933 / T2 1.000 / S1 1.000 / C1 1.000（R1 0.667 → DENY）",
+        "reject_condition": "不达 → 降级回云端并记 DEGRADED",
+        "experiment": "E6（t18 已完成；R28 只作路由一致性验证）",
+        "endpoint": "capability_matrix（参照）",
+        "status_at_freeze": "REFERENCE_ONLY_T18"
+      }
+    ],
+    "hyp_r28_dose": {
+      "id": "HYP-R28-DOSE",
+      "version": "v1",
+      "registered_at": "2026-11-12",
+      "statement": "同一模型上，语义机制剂量↑ → 字段准确率单调下降。",
+      "scope": "仅 D1–D4：alias_hops、temporal_joins、scope_decisions、isomorphic_distractors。明确排除 REJECTED 机制（文档数/分散度、上下文长度、bridge depth）；推导深度/算子数暂不纳入（UNTESTED，待 t5 验证）。",
+      "manipulation": "同一 solver_facts 与同一 decision_record_flat（逐字节相同），只改一个机制的剂量 0/1/2；发布集与对照集配对渲染。",
+      "primary_endpoint": "paired_accuracy_drop = acc(control) − acc(published)（信息字段，逐条件重算先验）",
+      "secondary_endpoints": [
+        "dose_slope",
+        "informative_field_skill"
+      ],
+      "support_conditions": [
+        "0→1→2 单调递减（任一步不得反向或持平）",
+        "0→2 总效应 ≥ 10pp",
+        "斜率 95% CI 不含 0",
+        "在 E2 的 192 题（4 机制 × 3 剂量 × 16 题）上执行"
+      ],
+      "reject_conditions": [
+        "任一步非单调",
+        "方向反向（准确率上升）",
+        "总效应 < 10pp",
+        "斜率 CI 含 0"
+      ],
+      "reject_rule": "满足任一即判该机制不成立，不得计为'更难'。",
+      "status_at_freeze": "UNTESTED",
+      "responsible_experiment": "E2（t19，本地 7B）；E3 提供机制归因旁证。",
+      "failure_report_contract": "若拒绝，如实报告'该机制未使任务变难'，公开配对差与 CI；不得改端点/换指标制造更难结论。",
+      "prior_evidence": {
+        "refuted_claim": "63.3 / 60.0 / 51.7 的等级落差 = 剂量杠杆已验证",
+        "reason": "那三个数是整级宏准确率，混杂了场景、比赛与抽样误差",
+        "true_reading": "同事实组跨族的 10 对配对：5 降 / 4 升 / 1 平，均值 −3.3pp，符号检验 p = 0.50",
+        "consequence": "剂量效应降级为 UNTESTED；唯一裁决实验是 E2。"
+      }
+    },
+    "mechanism_status": {
+      "VERIFIED": 0,
+      "UNTESTED": 6,
+      "REJECTED": 3,
+      "statement": "设计时没有任何机制被证实；不得把设计意图当作证据（VERIFIED = 0）。",
+      "untested": [
+        {
+          "id": "D1",
+          "mechanism": "证据跳数（跨文档别名）",
+          "param": "alias_hops",
+          "evidence": "横断面 rho = −0.520，p_holm = 0.064（边缘）；无剂量阶梯实测",
+          "next_test": "E2"
+        },
+        {
+          "id": "D2",
+          "mechanism": "修订链",
+          "param": "temporal_joins",
+          "evidence": "横断面 rho = −0.353（ns）",
+          "next_test": "E2"
+        },
+        {
+          "id": "D3",
+          "mechanism": "权威裁决",
+          "param": "scope_decisions",
+          "evidence": "横断面 rho = −0.320（ns）",
+          "next_test": "E2"
+        },
+        {
+          "id": "D4",
+          "mechanism": "干扰同构度",
+          "param": "isomorphic_distractors",
+          "evidence": "横断面 rho = −0.524，p_holm = 0.064（边缘）",
+          "next_test": "E2"
+        },
+        {
+          "id": "M-M5",
+          "mechanism": "推导深度 / 算子数",
+          "param": "rule_operators / derivation_depth",
+          "evidence": "t3 发现同事实组内 rule_operators 1→2、2→3、3→4 而金标逐字节相同；原 REJECTED 理由被推翻",
+          "next_test": "t5 用 solver 验证多出的算子是否必要；在验证前不得作为 R28 机制；若验证通过并要使用，必须走 amendment（v2）"
+        },
+        {
+          "id": "M-M8",
+          "mechanism": "证据位置",
+          "param": "span position",
+          "evidence": "尚无剂量阶梯实测",
+          "next_test": "t5 可行性验证"
+        }
+      ],
+      "rejected": [
+        {
+          "id": "M-M6",
+          "mechanism": "证据文档数 / 分散度",
+          "evidence": "本地 7B 实测 2→6→13 文档：信息字段 4.033→4.200→4.552（反向上升）；速度 71.9→65.4→33.0 t/s；配对 80K−15K = +0.552",
+          "consequence": "禁止写入 R28 加难机制；'加文档'不是加难。"
+        },
+        {
+          "id": "M-M7",
+          "mechanism": "上下文长度",
+          "evidence": "同一实验：80K 比 15K 仅高 0.55/9，却慢约 4 倍",
+          "consequence": "禁止作为加难机制。"
+        },
+        {
+          "id": "M-M9",
+          "mechanism": "bridge depth",
+          "evidence": "与等级双射（eta² = 1.0），无法独立操纵",
+          "consequence": "禁止作为 R28 因子；因子必须由生成器独立赋值。"
+        }
+      ],
+      "level_collinearity_warning": "R26.15 的 bridge_depth 与等级双射（eta²=1.0）；distractor_count、temporal_joins 是等级的确定性函数；derivation_depth 0.90、temporal_depth 0.77、active_source V=0.707 强混杂；仅 anchor 与 context_band 与等级正交。因此四剂量必须由 R28 生成器独立赋值构造，禁止从 R26.15 的 difficulty_vector 反推因子水平。"
+    },
+    "b1_limits": {
+      "descriptive": "PASS",
+      "predictive": "UNTESTED",
+      "reason": "75 题没有任何模型的评分；零付费 pilot 不可执行",
+      "can_redesign_levels_from_25_questions": false,
+      "composite": "NOT_MET_PENDING_PREDICTIVE",
+      "statement": "不得据 25 题重设等级。等级只保留为描述性标签（每级 n=5，记录 exact 95% CI [14.3%, 47.6%]）；R28 不使用 L1–L5 作为难度因子或抽样单位；加难只能由机制剂量实验（同金标双渲染、题内配对）判定。"
+    },
+    "t3_falsification_record": {
+      "claim": "63.3 / 60.0 / 51.7 的等级落差 = 剂量杠杆已验证",
+      "status": "REFUTED",
+      "true_reading": "同事实组跨族 = 10 对配对：5 降 / 4 升 / 1 平、均值 −3.3pp、符号检验 p = 0.50",
+      "consequence": "剂量效应降级为 UNTESTED；唯一裁决实验 E2。"
+    }
+  },
+  "validity_checks": [
+    {
+      "id": "V1",
+      "name": "active-pair 敏感性（排除结构性空配对）",
+      "definition": "在发布版结构元组 ≠ 对照版（四剂量非全 0）的配对上重算 paired_accuracy_drop 与 CI；预计 n_active = 248。",
+      "role": "预注册敏感性分析；不进 Holm；必须报告 n_null_pairs 与 active 结果",
+      "contradiction_rule": "若 320 对结果判 HARDER 而 active-pair 结果不满足同一判定，报告冲突并以 active-pair 为准（更保守），同时披露。"
+    },
+    {
+      "id": "V2",
+      "name": "长度协变量敏感性",
+      "definition": "以两臂 token 长度差为协变量，拟合 logit P(correct) ~ arm + length_delta + arm×length_delta（族聚类稳健 SE）；报告调整后配对效应与 95% CI。",
+      "role": "内部效度检查（防止'只是变长'）",
+      "contradiction_rule": "若调整后效应 < 未调整效应的 50%，或调整后效应 CI 含 0 → 必须报告'长度混杂不能排除'，把难度结论降级为 DIRECTION_ONLY。"
+    },
+    {
+      "id": "V3",
+      "name": "placebo 配对操作检查",
+      "definition": "结构性空配对（发布版=对照版）的配对差；预期为 0（仅受温度=0 非逐位确定性影响）。",
+      "role": "操作检查与噪声估计",
+      "contradiction_rule": "若 |drop_placebo| > 5pp（>2/72 或按实际 n_null）→ DEGRADED（S13），需先排除顺序/非确定性伪影再解释主结果。"
+    },
+    {
+      "id": "V4",
+      "name": "顺序效应检查",
+      "definition": "取前 40 对反向顺序复跑（80 次本地推理），比较每个 pair 的两臂结果与正向顺序的差异；order_effect = 平均 |Δacc_reversed − Δacc_forward|。",
+      "role": "评估固定执行顺序的偏倚",
+      "contradiction_rule": "|order_effect| > 5pp → DEGRADED（S13）。"
+    },
+    {
+      "id": "V5",
+      "name": "conforming-only 敏感性",
+      "definition": "在 conformance 通过的子集上重算两臂准确率与配对差。",
+      "role": "格式服从性检查",
+      "contradiction_rule": "若 conforming-only 与 ITT 方向相反 → 两者都报告，主结论用 ITT；并标记 DEGRADED（G8）。"
+    },
+    {
+      "id": "V6",
+      "name": "R26.15 跨数据集比较（探索性）",
+      "definition": "R28 发布版 vs R26.15 的 100 题（n_eff = 25 族 / 16 记录）在相同 9 字段口径下的描述性比较；按族聚类 bootstrap。",
+      "role": "探索性；不是确认性端点",
+      "contradiction_rule": "不得用 R26.15 的单题级 CI；不得把跨数据集比较作为'更难'的唯一证据。"
+    },
+    {
+      "id": "V7",
+      "name": "子组报告（探索性）",
+      "definition": "按剂量、机制、因子格、场景族报告准确率与配对差。",
+      "role": "描述性；不做确认性推断；不用于替换主端点",
+      "contradiction_rule": "任何子组显著不得升级为标题结论。"
+    }
+  ],
+  "claim_decision_matrix": [
+    {
+      "primary_outcome": "HARDER",
+      "gates": "G1–G9 全 PASS",
+      "allowed_headline": "HARDER",
+      "note": "唯一允许声称'更难'的组合"
+    },
+    {
+      "primary_outcome": "HARDER",
+      "gates": "G1 或 G1r FAIL",
+      "allowed_headline": "GATE_FAIL",
+      "note": "配对差成立但未越过无卷宗基线；不得声称'更难'或'有区分度'"
+    },
+    {
+      "primary_outcome": "HARDER",
+      "gates": "G2–G9 任一 FAIL",
+      "allowed_headline": "DIRECTION_ONLY",
+      "note": "配对差成立但构念/数据健康/解释门槛未过；按对应停止规则处理"
+    },
+    {
+      "primary_outcome": "DIRECTION_ONLY",
+      "gates": "任意",
+      "allowed_headline": "DIRECTION_ONLY",
+      "note": "不得声称'更难'"
+    },
+    {
+      "primary_outcome": "NOT_HARDER",
+      "gates": "任意",
+      "allowed_headline": "NOT_HARDER",
+      "note": "零结果契约生效"
+    },
+    {
+      "primary_outcome": "任意",
+      "gates": "G3/G4/G5/G6 任一 FAIL（阻断项）",
+      "allowed_headline": "BLOCKED",
+      "note": "不发布任何难度结论"
+    }
+  ],
+  "amendments": {
+    "frozen": true,
+    "policy": [
+      {
+        "id": "AM1",
+        "rule": "允许：错别字、格式、补充出处链接、不改变含义的措辞澄清。此类改动必须写入 prereg_amendments.jsonl（append-only），并重新生成 prereg_freeze.json。"
+      },
+      {
+        "id": "AM2",
+        "rule": "禁止（必须人工批准 + 版本号升级 + t8 告警）：修改主端点定义、次要端点清单或定义、判定阈值（含 10pp、25pp、40%、90%、100%、32%、52.89%、54.22%、73.33%）、停止规则、零结果契约、多重比较方案、有效 n 规则、Brier/边指标口径。"
+      },
+      {
+        "id": "AM3",
+        "rule": "在看到任何 R28 结果之后，端点与判定规则不得再改；任何事后分析只能标注为 EXPLORATORY，且不得替换主端点。"
+      },
+      {
+        "id": "AM4",
+        "rule": "t8 一致性检查：重算 preregistration.json 与 PREREGISTRATION.md 的 sha256、endpoint_registry_sha256，与 prereg_freeze.json 比对；任一不符 → FAIL 并输出 diff。"
+      },
+      {
+        "id": "AM5",
+        "rule": "人工门：预注册冻结后的任何端点修改必须由 captain 上报用户批准；批准前不得执行对应分析。"
+      }
+    ],
+    "log_path": "VETT_R28_DIFFICULTY_20261112/prereg_amendments.jsonl",
+    "current_log_entries": 2,
+    "executed": [
+      {
+        "id": "AMEND-001",
+        "date": "2026-11-12",
+        "authorization": "用户于 2026-11-12 在 t25 确认门授权 B2：n_published = 320（10pp 功效 80.7%、MDE 9.91pp、CI 半宽 ±6.93pp；记录需求 392 ≤ 可达下界 761）",
+        "reason": "Q1=B2：v1.0.0 在 N=160 下 10pp 功效仅 51.6%（MDE 14.01pp）；用户选择扩到 N=320（10pp 功效 80.7%，MDE 9.91pp，CI 半宽 ±6.93pp），记录需求 392 ≤ 可达下界 761。",
+        "fields_changed": [
+          {
+            "path": "design.n_pairs",
+            "label": "题内配对数",
+            "before": 160,
+            "after": 320
+          },
+          {
+            "path": "design.n_published_items",
+            "label": "发布集题数",
+            "before": 160,
+            "after": 320
+          },
+          {
+            "path": "design.n_control_renderings",
+            "label": "对照集渲染数",
+            "before": 160,
+            "after": 320
+          },
+          {
+            "path": "design.n_model_inferences_e1",
+            "label": "E1 推理次数",
+            "before": 320,
+            "after": 640
+          },
+          {
+            "path": "design.scenes",
+            "label": "场数",
+            "before": 32,
+            "after": 64
+          },
+          {
+            "path": "design.blocks[0].n",
+            "label": "因子核题数",
+            "before": 64,
+            "after": 128
+          },
+          {
+            "path": "design.blocks[0].design",
+            "label": "因子核每格题数",
+            "before": "2^4 × 4",
+            "after": "2^4 × 8"
+          },
+          {
+            "path": "design.blocks[0].description",
+            "label": "",
+            "before": "D1/D2/D3/D4 各 0/1，16 个因子格，每格 4 题",
+            "after": "D1/D2/D3/D4 各 0/1，16 个因子格，每格 8 题"
+          },
+          {
+            "path": "design.blocks[1].n",
+            "label": "剂量阶梯题数",
+            "before": 96,
+            "after": 192
+          },
+          {
+            "path": "design.blocks[1].design",
+            "label": "剂量阶梯每格题数",
+            "before": "4 机制 × 3 剂量 × 8",
+            "after": "4 机制 × 3 剂量 × 16"
+          },
+          {
+            "path": "design.blocks[1].description",
+            "label": "",
+            "before": "D1–D4 各自 0/1/2 剂量阶梯，其余机制固定为对照水平",
+            "after": "D1–D4 各自 0/1/2 剂量阶梯，其余机制固定为对照水平；每格 16 题"
+          },
+          {
+            "path": "design.cost.e1_inferences",
+            "label": "E1 推理",
+            "before": 320,
+            "after": 640
+          },
+          {
+            "path": "design.cost.e2_inferences",
+            "label": "E2 推理（=剂量阶梯题数）",
+            "before": 96,
+            "after": 192
+          },
+          {
+            "path": "design.cost.e3_inferences",
+            "label": "E3 推理（=因子核题数）",
+            "before": 64,
+            "after": 128
+          },
+          {
+            "path": "design.structural_null_pairs.expected_count",
+            "label": "结构性空配对数 9N/40",
+            "before": 36,
+            "after": 72
+          },
+          {
+            "path": "design.structural_null_pairs.composition.factor_core_all_off_cell",
+            "label": "因子核全 0 格",
+            "before": 4,
+            "after": 8
+          },
+          {
+            "path": "design.structural_null_pairs.composition.dose_ladder_dose0_items",
+            "label": "剂量阶梯 dose0 题数",
+            "before": 32,
+            "after": 64
+          },
+          {
+            "path": "design.structural_null_pairs.expected_active_pairs",
+            "label": "active 配对 31N/40",
+            "before": 124,
+            "after": 248
+          },
+          {
+            "path": "design.structural_null_pairs.expected_note",
+            "label": "",
+            "before": "36 = 4 + 32 是提案 §4.2 两块结构在'其余机制固定为对照水平'解释下的直接推论；最终数量以 t4 合同为准，若不同必须在合同中登记并重算功效。",
+            "after": "72 = 8 + 64（N=320）：因子核全 0 格 8 题 + 剂量阶梯 dose=0 共 4×16=64 题；数量以 t4 合同 v1.1.0 为准。"
+          },
+          {
+            "path": "design.structural_null_pairs.power_impact",
+            "label": "",
+            "before": "若 n_active=124，40% 不一致率下 SE=5.7pp、95% CI 半宽 ±11.1pp；这一点已在 power_analysis 表中列明，不得在报告中隐瞒。",
+            "after": "若 n_active=248，40% 不一致率下 SE=4.02pp、95% CI 半宽 ±7.87pp；已在 power_analysis 表中列明，不得隐瞒。"
+          },
+          {
+            "path": "design.structural_null_pairs.handling",
+            "label": "",
+            "before": "主端点仍在全部 160 对上计算（ITT）；placebo 检查 |drop_placebo| ≤ 5pp；active-pair（预计 124 对）作为预注册敏感性分析 V1；空配对不得被静默剔除，也不得被当作独立证据。",
+            "after": "主端点仍在全部 320 对上计算（ITT）；placebo 检查 |drop_placebo| ≤ 5pp；active-pair（预计 248 对）作为预注册敏感性分析 V1；空配对不得被静默剔除，也不得被当作独立证据。"
+          },
+          {
+            "path": "design.execution_order.order_effect_check",
+            "label": "",
+            "before": "从 160 对中按 pair_id 排序取前 40 对反向顺序复跑（80 次本地推理，成本 ¥0），检验顺序效应；|order_effect| > 5pp → DEGRADED（S13）。",
+            "after": "从 320 对中按 pair_id 排序取前 40 对反向顺序复跑（80 次本地推理，成本 ¥0），检验顺序效应；|order_effect| > 5pp → DEGRADED（S13）。"
+          },
+          {
+            "path": "design.design_invariants[0].check",
+            "label": "不变量 0 的 n 引用",
+            "before": "sha256(canonical_json(solver_facts_published)) == sha256(canonical_json(solver_facts_control))，160/160",
+            "after": "sha256(canonical_json(solver_facts_published)) == sha256(canonical_json(solver_facts_control))，320/320"
+          },
+          {
+            "path": "design.design_invariants[1].check",
+            "label": "不变量 1 的 n 引用",
+            "before": "sha256(canonical_json(record_flat_published)) == sha256(canonical_json(record_flat_control))，160/160",
+            "after": "sha256(canonical_json(record_flat_published)) == sha256(canonical_json(record_flat_control))，320/320"
+          },
+          {
+            "path": "design.design_invariants[3].check",
+            "label": "不变量 3 的 n 引用",
+            "before": "max_items_per_family == 1 且 n_families == 160",
+            "after": "max_items_per_family == 1 且 n_families == 320"
+          },
+          {
+            "path": "design.design_invariants[4].check",
+            "label": "不变量 4 的 n 引用",
+            "before": "pair_id 一一对应 160/160，且 private gold 只有一份",
+            "after": "pair_id 一一对应 320/320，且 private gold 只有一份"
+          },
+          {
+            "path": "design.design_invariants[5].check",
+            "label": "不变量 5 的 n 引用",
+            "before": "length_delta recorded for all 160 pairs；证书字段来自同一 solver 调用记录",
+            "after": "length_delta recorded for all 320 pairs；证书字段来自同一 solver 调用记录"
+          },
+          {
+            "path": "design.design_invariants[2].statement",
+            "label": "",
+            "before": "发布集一题一记录：160 题对应 160 个互异 12 字段记录",
+            "after": "发布集一题一记录：320 题对应 320 个互异 12 字段记录"
+          },
+          {
+            "path": "design.design_invariants[3].statement",
+            "label": "",
+            "before": "发布集每族至多 1 题：160 个互异 scenario_family",
+            "after": "发布集每族至多 1 题：320 个互异 scenario_family"
+          },
+          {
+            "path": "primary_endpoint.n_pairs",
+            "label": "主端点配对数",
+            "before": 160,
+            "after": 320
+          },
+          {
+            "path": "primary_endpoint.unit",
+            "label": "",
+            "before": "题内配对（pair = instance = scenario_family）；不是 320 个独立样本",
+            "after": "题内配对（pair = instance = scenario_family）；不是 640 个独立样本"
+          },
+          {
+            "path": "primary_endpoint.accuracy_definition.denominator",
+            "label": "",
+            "before": "160 × 9 = 1440 个 (题, 信息字段) cells，两臂各自计算",
+            "after": "320 × 9 = 2880 个 (题, 信息字段) cells，两臂各自计算"
+          },
+          {
+            "path": "primary_endpoint.statistics.point_estimate",
+            "label": "",
+            "before": "Δ = (b − c) / 160，其中 b = 对照对而发布错的配对数，c = 对照错而发布对的配对数",
+            "after": "Δ = (b − c) / 320，其中 b = 对照对而发布错的配对数，c = 对照错而发布对的配对数"
+          },
+          {
+            "path": "primary_endpoint.statistics.discordance",
+            "label": "",
+            "before": "b + c，同时报告不一致率 = (b + c) / 160",
+            "after": "b + c，同时报告不一致率 = (b + c) / 320"
+          },
+          {
+            "path": "primary_endpoint.statistics.ci_secondary",
+            "label": "",
+            "before": "按族聚类 bootstrap（160 个族 cluster；R28 一题一族，故与按题等价）10,000 次，percentile 95% CI",
+            "after": "按族聚类 bootstrap（320 个族 cluster；R28 一题一族，故与按题等价）10,000 次，percentile 95% CI"
+          },
+          {
+            "path": "secondary_endpoints[0].definition",
+            "label": "",
+            "before": "在 E2 剂量阶梯 96 题（4 机制 × 3 剂量 × 8 题）上拟合 logit P(correct) ~ β0 + β_dose·dose + mechanism FE（family-cluster robust SE）；β_dose 为每剂量步的 log-odds 斜率；同时报告每机制斜率与 acc(dose0) − acc(dose2)（pp）。",
+            "after": "在 E2 剂量阶梯 192 题（4 机制 × 3 剂量 × 16 题）上拟合 logit P(correct) ~ β0 + β_dose·dose + mechanism FE（family-cluster robust SE）；β_dose 为每剂量步的 log-odds 斜率；同时报告每机制斜率与 acc(dose0) − acc(dose2)（pp）。"
+          },
+          {
+            "path": "secondary_endpoints[1].definition",
+            "label": "",
+            "before": "在 E3 因子核 64 题上拟合 logit P(correct) ~ D1*D2*D3*D4，报告 4 个主效应 + 6 个二阶交互的 log-odds、边际 pp 与 95% CI（family-cluster bootstrap）；3 阶/4 阶交互仅在不稳定时作描述性统计，不作为判定。",
+            "after": "在 E3 因子核 128 题上拟合 logit P(correct) ~ D1*D2*D3*D4，报告 4 个主效应 + 6 个二阶交互的 log-odds、边际 pp 与 95% CI（family-cluster bootstrap）；3 阶/4 阶交互仅在不稳定时作描述性统计，不作为判定。"
+          },
+          {
+            "path": "secondary_endpoints[2].data_source",
+            "label": "",
+            "before": "E1 160 对 + E2 96 题",
+            "after": "E1 320 对 + E2 192 题"
+          },
+          {
+            "path": "secondary_endpoints[2].definition",
+            "label": "",
+            "before": "对每个条件 c 计算 skill_c = (acc_c − prior_c) / (1 − prior_c)；prior_c 为条件内逐字段众数先验：n_c ≥ 30 时用条件内 leave-one-item-out 众数；8 ≤ n_c < 30 时用同剂量层 pooled 先验并标注为 pooled；n_c < 8 时用全局 LOFO 先验且仅作描述。条件 = 两臂整体、3 个剂量层（n≈32）、4 个机制（n≈24）、因子核各格（n=4，仅描述）。",
+            "after": "对每个条件 c 计算 skill_c = (acc_c − prior_c) / (1 − prior_c)；prior_c 为条件内逐字段众数先验：n_c ≥ 30 时用条件内 leave-one-item-out 众数；8 ≤ n_c < 30 时用同剂量层 pooled 先验并标注为 pooled；n_c < 8 时用全局 LOFO 先验且仅作描述。条件 = 两臂整体、3 个剂量层（n≈64）、4 个机制（n≈48）、因子核各格（n=8，仅描述）。"
+          },
+          {
+            "path": "secondary_endpoints[3].definition",
+            "label": "",
+            "before": "发布集 160 题的 12 字段记录去重后数量 / 160。",
+            "after": "发布集 320 题的 12 字段记录去重后数量 / 320。"
+          },
+          {
+            "path": "secondary_endpoints[3].decision_rule",
+            "label": "",
+            "before": "distinct_record_ratio == 1.0（160/160）为 PASS；否则 BLOCK_DATA（S7）。",
+            "after": "distinct_record_ratio == 1.0（320/320）为 PASS；否则 BLOCK_DATA（S7）。"
+          },
+          {
+            "path": "secondary_endpoints[4].data_source",
+            "label": "",
+            "before": "R28 发布集 160 题",
+            "after": "R28 发布集 320 题"
+          },
+          {
+            "path": "secondary_endpoints[5].definition",
+            "label": "",
+            "before": "证书覆盖率 = 160 题中具备完整证书的题数 / 160；重推一致性 = 由 solver 从 solver_facts 重算的 decision_record_flat 与 minimum_evidence_spans / rule_path / authority_decision / revision_chain / why_not_distractor / derivation_check 与私藏金标逐字节一致的比例（160 题）。",
+            "after": "证书覆盖率 = 320 题中具备完整证书的题数 / 320；重推一致性 = 由 solver 从 solver_facts 重算的 decision_record_flat 与 minimum_evidence_spans / rule_path / authority_decision / revision_chain / why_not_distractor / derivation_check 与私藏金标逐字节一致的比例（320 题）。"
+          },
+          {
+            "path": "secondary_endpoints[7].data_source",
+            "label": "",
+            "before": "E1 320 次推理的 confidence 与记录 exact",
+            "after": "E1 640 次推理的 confidence 与记录 exact"
+          },
+          {
+            "path": "secondary_endpoints[8].definition",
+            "label": "",
+            "before": "符合冻结输出契约的响应比例：可解析 JSON、12 字段齐全、类型/枚举合法、confidence ∈ [0,1]、evidence_spans 为合法 span id 列表。统计 E1 320 次响应，分臂报告。",
+            "after": "符合冻结输出契约的响应比例：可解析 JSON、12 字段齐全、类型/枚举合法、confidence ∈ [0,1]、evidence_spans 为合法 span id 列表。统计 E1 640 次响应，分臂报告。"
+          },
+          {
+            "path": "secondary_endpoints[8].data_source",
+            "label": "",
+            "before": "E1（320）+ E2/E3/E4 全部模型响应",
+            "after": "E1（640）+ E2/E3/E4 全部模型响应"
+          },
+          {
+            "path": "baseline_gate.direction_definition",
+            "label": "",
+            "before": "'更难' = 准确率更低。'越过基线 b' = 发布版（hard）在 160 题上的信息字段准确率严格低于基线 b 的准确率。禁止反向解释，禁止把'高于基线'当作'更难'。",
+            "after": "'更难' = 准确率更低。'越过基线 b' = 发布版（hard）在 320 题上的信息字段准确率严格低于基线 b 的准确率。禁止反向解释，禁止把'高于基线'当作'更难'。"
+          },
+          {
+            "path": "baseline_gate.thresholds[0].same_set_remeasure",
+            "label": "基线 0 同集重测",
+            "before": "R28 160 题：逐字段众数的 leave-one-family-out（LOFO）预测，在同一 9 信息字段口径下计算",
+            "after": "R28 320 题：逐字段众数的 leave-one-family-out（LOFO）预测，在同一 9 信息字段口径下计算"
+          },
+          {
+            "path": "baseline_gate.thresholds[1].same_set_remeasure",
+            "label": "基线 1 同集重测",
+            "before": "R28 160 题：按族分组 5 折 OOF（fold = int(sha256(family_id)[0:8],16) mod 5），同一口径",
+            "after": "R28 320 题：按族分组 5 折 OOF（fold = int(sha256(family_id)[0:8],16) mod 5），同一口径"
+          },
+          {
+            "path": "baseline_gate.thresholds[2].same_set_remeasure",
+            "label": "基线 2 同集重测",
+            "before": "R28 160 题：在同一 anchor 内做 leave-one-family-out 众数预测，同一口径",
+            "after": "R28 320 题：在同一 anchor 内做 leave-one-family-out 众数预测，同一口径"
+          },
+          {
+            "path": "baseline_gate.record_exact_threshold.same_set_remeasure",
+            "label": "",
+            "before": "R28 160 题：anchor 内 LOFO 众数记录的 exact 准确率",
+            "after": "R28 320 题：anchor 内 LOFO 众数记录的 exact 准确率"
+          },
+          {
+            "path": "power_analysis.chosen_n",
+            "label": "功效分析锚定 n",
+            "before": 160,
+            "after": 320
+          },
+          {
+            "path": "power_analysis.mandated_statement",
+            "label": "",
+            "before": "配对设计下，不一致率 40% 时 n=160 给出 SE=5.0pp、95% CI 半宽 ±9.8pp，因此定 160 题。",
+            "after": "配对设计下，不一致率 40% 时 N=320 给出 SE=3.54pp、95% CI 半宽 ±6.93pp、10pp 功效 80.7%（80% 功效 MDE≈9.91pp），因此采用 320 题（用户 2026-11-12 在 t25 确认门授权 B2）。"
+          },
+          {
+            "path": "power_analysis.table",
+            "label": "功效表",
+            "before": [
+              {
+                "n_pairs": 64,
+                "discordance": 0.4,
+                "se_pp": 7.9,
+                "ci_half_width_pp": 15.5,
+                "mde_80_pp": 22.2,
+                "power_for_10pp": 0.24,
+                "declared": "不足"
+              },
+              {
+                "n_pairs": 100,
+                "discordance": 0.4,
+                "se_pp": 6.3,
+                "ci_half_width_pp": 12.4,
+                "mde_80_pp": 17.7,
+                "power_for_10pp": 0.35,
+                "declared": "不足"
+              },
+              {
+                "n_pairs": 160,
+                "discordance": 0.4,
+                "se_pp": 5.0,
+                "ci_half_width_pp": 9.8,
+                "mde_80_pp": 14.0,
+                "power_for_10pp": 0.52,
+                "declared": "选定"
+              },
+              {
+                "n_pairs": 160,
+                "discordance": 0.25,
+                "se_pp": 4.0,
+                "ci_half_width_pp": 7.8,
+                "mde_80_pp": 11.1,
+                "power_for_10pp": 0.72,
+                "declared": "更宽裕（但 10pp 仍不到 80% 功效）"
+              },
+              {
+                "n_pairs": 160,
+                "discordance": 0.55,
+                "se_pp": 5.9,
+                "ci_half_width_pp": 11.5,
+                "mde_80_pp": 16.4,
+                "power_for_10pp": 0.4,
+                "declared": "更差"
+              },
+              {
+                "n_pairs": 124,
+                "discordance": 0.4,
+                "se_pp": 5.7,
+                "ci_half_width_pp": 11.1,
+                "mde_80_pp": 15.9,
+                "power_for_10pp": 0.42,
+                "declared": "结构性空配对修正后的 active-pair 情形（见 design.structural_null_pairs）"
+              }
+            ],
+            "after": [
+              {
+                "n_pairs": 160,
+                "discordance": 0.4,
+                "se_pp": 5.0,
+                "ci_half_width_pp": 9.8,
+                "mde_80_pp": 14.01,
+                "power_for_10pp": 0.516,
+                "declared": "历史基线（v1.0.0；功效不足）"
+              },
+              {
+                "n_pairs": 240,
+                "discordance": 0.4,
+                "se_pp": 4.08,
+                "ci_half_width_pp": 8.0,
+                "mde_80_pp": 11.44,
+                "power_for_10pp": 0.688,
+                "declared": "候选 B（v1.1.0 评估后未采用）"
+              },
+              {
+                "n_pairs": 320,
+                "discordance": 0.4,
+                "se_pp": 3.54,
+                "ci_half_width_pp": 6.93,
+                "mde_80_pp": 9.91,
+                "power_for_10pp": 0.807,
+                "declared": "AMEND-001 选定（用户 B2 授权）"
+              },
+              {
+                "n_pairs": 400,
+                "discordance": 0.4,
+                "se_pp": 3.16,
+                "ci_half_width_pp": 6.2,
+                "mde_80_pp": 8.86,
+                "power_for_10pp": 0.885,
+                "declared": "候选（未采用；10% 余量需求 480）"
+              },
+              {
+                "n_pairs": 248,
+                "discordance": 0.4,
+                "se_pp": 4.02,
+                "ci_half_width_pp": 7.87,
+                "mde_80_pp": 11.25,
+                "power_for_10pp": 0.702,
+                "declared": "N=320 的 active-pair 敏感性（预期 72 个结构性空配对）"
+              }
+            ]
+          },
+          {
+            "path": "power_analysis.honest_power_note",
+            "label": "",
+            "before": "上表是精度（CI 宽度）计算，不等于 80% 功效。按双侧 α=0.05、Δ=10pp、SE=5.0pp（n=160、40% 不一致率），z=2.00，功效约 52%；80% 功效所需最小可检出效应约 14.0pp。若实际不一致率降到 25%，10pp 的 80% 功效仍不达（MDE≈11.1pp）。因此：非显著结果不能被解释为'无效应'，只能报'未检出预注册阈值的效应，且研究对该阈值功效不足'。该限制不改变主端点与判定规则，但必须写进报告 Limitations。",
+            "after": "上表是精度与功效计算。按双侧 α=0.05、Δ=10pp、N=320、40% 不一致率，SE=3.54pp，10pp 功效 80.7%，80% 功效 MDE≈9.91pp；预期 active 248 对时 SE=4.02pp、10pp 功效约 70.2%。因此：非显著结果仍只能报'未检出预注册阈值的效应，且研究对该阈值功效不足'；扩量已按用户授权完成，除非再走 amendment，不得继续扩量或更换端点。"
+          },
+          {
+            "path": "power_analysis.post_hoc_reporting",
+            "label": "",
+            "before": "若实际不一致率偏离 40%，报告实际 SE、CI 与实现功效；不得因此改用单侧检验、修改 α、扩量或更换端点。",
+            "after": "若实际不一致率与 40% 偏离，报告实际 SE、CI 与实现功效；不得因此改用单侧检验、修改 α、继续扩量或更换端点。"
+          },
+          {
+            "path": "effective_n_rules.rules[1].rule",
+            "label": "",
+            "before": "R28 的有效 n = 160 题 / 160 族 / 160 个互异记录；任何分析必须同时打印 n_items、n_families、n_distinct_records。",
+            "after": "R28 的有效 n = 320 题 / 320 族 / 320 个互异记录；任何分析必须同时打印 n_items、n_families、n_distinct_records。"
+          },
+          {
+            "path": "effective_n_rules.rules[4].rule",
+            "label": "",
+            "before": "对照版是同一实例的配对渲染，不增加有效 n；不得把 320 次推理当作 320 个独立样本。",
+            "after": "对照版是同一实例的配对渲染，不增加有效 n；不得把 640 次推理当作 640 个独立样本。"
+          },
+          {
+            "path": "stopping_rules[5].resume_condition",
+            "label": "",
+            "before": "160/160 逐字节一致且确定性重建通过。",
+            "after": "320/320 逐字节一致且确定性重建通过。"
+          },
+          {
+            "path": "stopping_rules[10].trigger",
+            "label": "",
+            "before": "设计偏离：n_pairs ≠ 160、缺配对、两臂模型/参数不一致、存在事后剔除或事后换指标",
+            "after": "设计偏离：n_pairs ≠ 320、缺配对、两臂模型/参数不一致、存在事后剔除或事后换指标"
+          },
+          {
+            "path": "zero_result_contract.allowed_headlines.HARDER",
+            "label": "",
+            "before": "在 160 对题内配对中，发布版信息字段准确率比对照版低 {drop_pp}pp（95% CI [{lo_pp}, {hi_pp}]，McNemar 精确 p={p}），并同时越过常数先验、只看题面 TF-IDF+LR 与 anchor 众数三条基线（发布版 {acc_hard}% vs {b1}% / {b2}% / {b3}%）→ 可以声称'更难'。",
+            "after": "在 320 对题内配对中，发布版信息字段准确率比对照版低 {drop_pp}pp（95% CI [{lo_pp}, {hi_pp}]，McNemar 精确 p={p}），并同时越过常数先验、只看题面 TF-IDF+LR 与 anchor 众数三条基线（发布版 {acc_hard}% vs {b1}% / {b2}% / {b3}%）→ 可以声称'更难'。"
+          },
+          {
+            "path": "hypotheses.registry[0].experiment",
+            "label": "",
+            "before": "E1（160 对，本地 7B）",
+            "after": "E1（320 对，本地 7B）"
+          },
+          {
+            "path": "hypotheses.registry[1].experiment",
+            "label": "",
+            "before": "E2（96 题）",
+            "after": "E2（192 题）"
+          },
+          {
+            "path": "hypotheses.registry[2].experiment",
+            "label": "",
+            "before": "E3（2^4 因子核 64 题）",
+            "after": "E3（2^4 因子核 128 题）"
+          },
+          {
+            "path": "hypotheses.hyp_r28_dose.support_conditions[3]",
+            "label": "",
+            "before": "在 E2 的 96 题（4 机制 × 3 剂量 × 8 题）上执行",
+            "after": "在 E2 的 192 题（4 机制 × 3 剂量 × 16 题）上执行"
+          },
+          {
+            "path": "validity_checks[0].definition",
+            "label": "",
+            "before": "在发布版结构元组 ≠ 对照版（四剂量非全 0）的配对上重算 paired_accuracy_drop 与 CI；预计 n_active = 124。",
+            "after": "在发布版结构元组 ≠ 对照版（四剂量非全 0）的配对上重算 paired_accuracy_drop 与 CI；预计 n_active = 248。"
+          },
+          {
+            "path": "validity_checks[0].contradiction_rule",
+            "label": "",
+            "before": "若 160 对结果判 HARDER 而 active-pair 结果不满足同一判定，报告冲突并以 active-pair 为准（更保守），同时披露。",
+            "after": "若 320 对结果判 HARDER 而 active-pair 结果不满足同一判定，报告冲突并以 active-pair 为准（更保守），同时披露。"
+          },
+          {
+            "path": "validity_checks[2].contradiction_rule",
+            "label": "",
+            "before": "若 |drop_placebo| > 5pp（>2/36 或按实际 n_null）→ DEGRADED（S13），需先排除顺序/非确定性伪影再解释主结果。",
+            "after": "若 |drop_placebo| > 5pp（>2/72 或按实际 n_null）→ DEGRADED（S13），需先排除顺序/非确定性伪影再解释主结果。"
+          },
+          {
+            "path": "scope.in_scope[0]",
+            "label": "",
+            "before": "R28 数据集（160 题 / 32 场 / 发布版与对照版双渲染）的难度主端点与次要端点",
+            "after": "R28 数据集（320 题 / 64 场 / 发布版与对照版双渲染）的难度主端点与次要端点"
+          },
+          {
+            "path": "task_requirements_coverage[(4)].amended_by",
+            "label": "覆盖表功效项",
+            "before": null,
+            "after": "AMEND-001 → N=320"
+          }
+        ],
+        "invariants_preserved": [
+          "主端点仍为 paired_accuracy_drop（题内配对）",
+          "三条基线门槛 52.89/54.22/73.33 + exact 32 不变",
+          "HARDER 判定（≥10pp 且两 CI 下界 >0）不变",
+          "停止规则语义、零结果契约、Holm 方案、Brier/边口径不变"
+        ],
+        "approved_by": "用户（t25 确认门，2026-11-12）"
+      },
+      {
+        "id": "AMEND-002",
+        "date": "2026-11-12",
+        "authorization": "captain 于 2026-11-12 裁决：接受口径修正，拒绝 'the threshold is unreachable' 的理由。",
+        "reason": "per-cell accuracy conflates marginal skew with leakage; the leakage statistic is lift-over-marginal",
+        "rejected_reasoning": "逐单元准确率没有 55% 的数学下限；55.03% 只是'至少和众数预测器一样好的模型'的下限，不是'任何模型'的下限。",
+        "fields_changed": [
+          {
+            "path": "secondary_endpoints[4].decision_rule",
+            "before": "信息字段准确率 ≤ 40% 为 PASS（t6 硬验收）；> 40% → BLOCK_RELEASE（S8，族名等价于答案的泄漏）。记录 exact 只报告不设门槛。",
+            "after": "两条同时成立才 PASS：① lift_over_marginal = per_cell_accuracy − marginal_mode ≤ 0（族名不得优于押众数）；② value_balanced_accuracy ≤ 0.40 且 permutation_p > 0.05。五项并列报告，缺一不可。"
+          }
+        ],
+        "measured": {
+          "n_items": 320,
+          "per_cell_accuracy": 0.514931,
+          "marginal_mode": 0.550347,
+          "lift_over_marginal": -0.035416,
+          "value_balanced_accuracy": 0.10387,
+          "permutation_p": 0.146341,
+          "record_exact_accuracy": 0.00625,
+          "delta_balanced_vs_marginal": 0.002746
+        },
+        "family_name_encoding_check": {
+          "checked_at_utc": "2026-11-12T12:42:42Z",
+          "format": "rfam_[0-9a-f]{12}（中性哈希）",
+          "n_public": 320,
+          "n_unique_families": 320,
+          "contains_design_tokens": false,
+          "tokens_checked": [
+            "D1",
+            "D2",
+            "D3",
+            "D4",
+            "M1",
+            "M2",
+            "M3",
+            "M4",
+            "F-",
+            "L-D",
+            "factor",
+            "dose",
+            "block",
+            "cell",
+            "level",
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5"
+          ],
+          "exposure": "public_instance.json 含 scenario_family；盲包已剥离。族名本身是中性哈希，不编码 block/cell/mechanism/dose。",
+          "impact": "无设计元信息编码 → 族名基线不受设计标签混杂；族名唯一且随机 → 族名模型没有可学习信号，lift 负值是边际噪声的预期表现。"
+        },
+        "invariants_preserved": [
+          "family_only_baseline 仍是阈值端点（不进 Holm）",
+          "value_balanced 40% 绝对门保留",
+          "族名唯一且中性、每族 ≤1 题、盲包剥离族名，不变"
+        ]
+      }
+    ]
+  },
+  "digests": {
+    "endpoint_registry_sha256": "2462be081c9158d2944caaa738a80e51657dad6ac20061d619dbdeaae7b60c77",
+    "projection": "proj_v1：{primary_endpoint, secondary_endpoints, baseline_gate, power_analysis.formula/mandated_statement/table, effective_n_rules, multiplicity, stopping_rules, zero_result_contract, reporting_contract, hypotheses.hyp_r28_dose, claim_decision_matrix}",
+    "file_hashes_location": [
+      "VETT_R28_DIFFICULTY_20261112/prereg_freeze.json",
+      "VETT_R28_DIFFICULTY_20261112/PREREGISTRATION.sha256"
+    ],
+    "canonicalization": "JSON：sort_keys=True、ensure_ascii=False、separators=(',', ':')、UTF-8；文件字节 hash 用 SHA-256"
+  },
+  "task_requirements_coverage": [
+    {
+      "requirement": "(1) 唯一主端点 paired_accuracy_drop = acc(对照) − acc(发布)，题内配对，160 对",
+      "json_pointer": "/primary_endpoint",
+      "status": "covered"
+    },
+    {
+      "requirement": "(2) 次要端点清单（dose_slope、mechanism_effect、informative_field_skill、distinct_record_ratio、family_only_baseline、certificate_validity、ablation_flip、risk_coverage_auc、conformance_rate）",
+      "json_pointer": "/secondary_endpoints",
+      "status": "covered"
+    },
+    {
+      "requirement": "(3) 三条基线门槛：52.89% / 54.22% / 73.33%，记录 exact 32%，仅越过常数先验不算成立",
+      "json_pointer": "/baseline_gate",
+      "status": "covered"
+    },
+    {
+      "requirement": "(4) 事前功效分析：40% 不一致率、n=160、SE=5.0pp、CI 半宽 ±9.8pp",
+      "json_pointer": "/power_analysis",
+      "status": "covered",
+      "amended_by": "AMEND-001",
+      "current_value": "N=320；SE=3.54pp；CI 半宽 ±6.93pp；10pp 功效 80.7%；MDE 9.91pp；记录需求 392 ≤ 761"
+    },
+    {
+      "requirement": "(5) 有效 n 规则：每族至多 1 题且一题一记录；与 R26.15 比较按族聚类报 n_eff 并用按族 bootstrap",
+      "json_pointer": "/effective_n_rules",
+      "status": "covered"
+    },
+    {
+      "requirement": "(6) 停止规则：E1 CI 跨 0；E5 跨度 <25pp；证书重推 <100%；泄漏审计失败；预算触顶 BUDGET_STOP",
+      "json_pointer": "/stopping_rules",
+      "status": "covered"
+    },
+    {
+      "requirement": "(7) 零结果报告契约：未变难必须如实报告，禁止改用其他指标制造结论",
+      "json_pointer": "/zero_result_contract",
+      "status": "covered"
+    },
+    {
+      "requirement": "(8) 多重比较：主端点单一不校正；次要端点 Holm-Bonferroni 并标注探索性",
+      "json_pointer": "/multiplicity",
+      "status": "covered"
+    },
+    {
+      "requirement": "(9) Brier 四项并列 / 边指标五分列；不得回退到 vs 0.25 或 as-coded 0.7696",
+      "json_pointer": "/reporting_contract",
+      "status": "covered"
+    },
+    {
+      "requirement": "captain 更正 1：HYP-R28-DOSE 必须进预注册（成立/拒绝条件、UNTESTED、E2 唯一裁决实验）",
+      "json_pointer": "/hypotheses/hyp_r28_dose",
+      "status": "covered"
+    },
+    {
+      "requirement": "captain 更正 2：机制状态写死 VERIFIED 0 / UNTESTED 6 / REJECTED 3，设计时无机制被证实",
+      "json_pointer": "/hypotheses/mechanism_status",
+      "status": "covered"
+    },
+    {
+      "requirement": "captain 更正 3：B1 描述性 PASS、预测性 UNTESTED、can_redesign_levels_from_25_questions=false，不得据 25 题重设等级",
+      "json_pointer": "/hypotheses/b1_limits",
+      "status": "covered"
+    },
+    {
+      "requirement": "captain 更正 4：推导深度改为 UNTESTED 候选机制（rule_operators 同事实组内可变而金标不变），t5 用 solver 验证必要性",
+      "json_pointer": "/hypotheses/mechanism_status/untested",
+      "status": "covered"
+    }
+  ],
+  "verification": {
+    "verifier_script": "VETT_R28_DIFFICULTY_20261112/scripts/prereg_verify.py",
+    "check_categories": [
+      "结构完整性：必需字段、primary 唯一、9 个次要端点 id 精确匹配",
+      "数值一致性：效率表重算、阈值与 BASELINES.json 逐位一致、冻结参考值未被改写",
+      "规则完整性：5 条强制停止规则、BUDGET_STOP、零结果契约 6 条、Holm m=5、有效 n 6 条、claim gates 10 条",
+      "报告口径：Brier 四项、边五分列、禁止表述清单",
+      "假设与机制：HYP-R28-DOSE 拒绝条件、VERIFIED 0 / UNTESTED 6 / REJECTED 3、B1 限制、推导深度 UNTESTED",
+      "文件绑定：content_addressed 输入 sha256 与冻结记录一致；reference_snapshots 只校验存在性",
+      "R26.15 零漂移：PROTECTED_PATHS r26_15 组 165 文件 / 93,346,177 字节 / 聚合 343afde4...51bd",
+      "冻结一致性：JSON 与 MD 的 sha256 与 prereg_freeze.json 一致；endpoint_registry_sha256 重算一致"
+    ],
+    "output": "VETT_R28_DIFFICULTY_20261112/prereg_verify_result.json"
+  },
+  "amendment_id": "AMEND-002",
+  "amended_at_utc": "2026-11-12T12:42:42Z",
+  "amended_at_local": "2026-11-12T20:42:42+08:00"
+}

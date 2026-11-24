@@ -1,0 +1,80 @@
+{
+  "contract_version": "VETT-R26.16-UNKNOWN-EVIDENCE-PREREG-1.0",
+  "frozen_before_implementation": true,
+  "decision_date": "2026-10-21",
+  "status": "PREREGISTERED_IMPLEMENTATION_PENDING",
+  "motivation": "A complete non-truncated Edge-6 response used one syntactically valid s_<24hex> identifier that was absent from the public dossier. Treating that one citation as a batch transport failure discarded four other questions and conflated evidence hallucination with serialization validity.",
+  "scope": {
+    "task_type": "r26_decision",
+    "required_evidence_role_protocol": "edge_derived_v3",
+    "required_response_envelope_protocol": "request_bound_v2",
+    "new_unknown_evidence_protocol": "semantic_false_positive_v2",
+    "new_evaluation_contract_version": "R26-C3-EDGE-7-SEMANTIC-UNKNOWN-EVIDENCE"
+  },
+  "frozen_classification": {
+    "transport_or_envelope_failure": [
+      "provider error or timeout",
+      "truncation or max-token termination",
+      "unparseable JSON",
+      "wrong or missing request-bound question set",
+      "duplicate question IDs",
+      "malformed record/state/edge structures",
+      "unsupported relation labels",
+      "malformed node syntax",
+      "foreign query IDs or foreign decision nodes"
+    ],
+    "semantic_evidence_failure": [
+      "a syntactically valid span-shaped ID absent from documents[].spans[].span_id",
+      "an evidence edge incident to such an unknown span-shaped ID"
+    ]
+  },
+  "frozen_scoring_policy": {
+    "batch_status_for_unknown_span_only": "OK",
+    "preserve_model_text_verbatim": true,
+    "automatic_fuzzy_mapping": false,
+    "automatic_prefix_stripping": false,
+    "automatic_deletion": false,
+    "automatic_replacement": false,
+    "positive_unknown_span": "one false positive in minimal evidence-span precision and an exact-match failure for that question",
+    "rejected_unknown_span": "one false positive in rejected-evidence precision and an exact-match failure for that question",
+    "edge_touching_unknown_span": "one false positive typed edge; missing intended gold edge remains one false negative",
+    "factual_fields": "score normally and independently",
+    "other_questions_in_same_batch": "score normally and independently",
+    "joint_chain": "incorrect for every affected question",
+    "new_diagnostics": [
+      "unknown_evidence_span_count",
+      "unknown_evidence_edge_count",
+      "questions_with_unknown_evidence",
+      "unknown_evidence_question_rate",
+      "unknown_evidence_reference_rate"
+    ]
+  },
+  "closed_world_schema_decision": {
+    "enumerate_all_public_span_ids_in_provider_schema": false,
+    "reason": "An enum would add roughly 24k schema characters per match and may force or mask exact-copy behavior. Exact citation is part of evidence grounding and must remain measurable rather than decoder-corrected.",
+    "retain_shape_constraint": "^s_[0-9a-f]{24}$"
+  },
+  "non_retroactivity": {
+    "edge6_official_status_unchanged": true,
+    "edge6_response_may_be_replayed_only_as": "COUNTERFACTUAL_POLICY_DIAGNOSTIC",
+    "edge6_scores_publishable": false,
+    "future_official_runs_require_edge7_request_hash": true
+  },
+  "dataset_change_authority": {
+    "single_protocol_gate_may_change_dataset_difficulty": false,
+    "single_protocol_gate_may_change_evaluation_plumbing": true,
+    "text_or_gold_mutation_allowed_from_this_failure": false,
+    "rationale": "The public span exists and is unambiguous; the observed failure is exact citation rather than a data contradiction."
+  },
+  "acceptance_gates": [
+    "legacy batch_invalid_v1 behavior remains byte-compatible",
+    "unknown span IDs are retained verbatim under semantic_false_positive_v2",
+    "foreign query and decision nodes remain protocol-invalid",
+    "scorer counts unknown citations and incident edges as false positives",
+    "affected and unaffected questions are both scoreable",
+    "runner metadata records semantic warnings without marking the batch invalid",
+    "historical Edge-6 artifacts remain invalid and unmodified",
+    "all existing tests plus new mutation tests pass"
+  ],
+  "external_request_authorization": false
+}

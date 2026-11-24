@@ -1,0 +1,1282 @@
+{
+  "arms": {
+    "control": {
+      "definition": "同一 solver_facts + 同一 decision_record_flat 渲染为四剂量全 0 的最小卷宗",
+      "id": "shallow",
+      "location": "variants/"
+    },
+    "published": {
+      "definition": "同一 solver_facts + 同一 decision_record_flat 渲染为指派结构元组（因子核 0/1；剂量阶梯 0/1/2）",
+      "id": "hard",
+      "location": "public/ + private/"
+    }
+  },
+  "assignment": {
+    "dismissal_cost": 2,
+    "id": "balanced_heterogeneity_v1",
+    "record_order": "record_sha256 ascending within a layer",
+    "status_cost": 3,
+    "steps": [
+      "1) 按 (status_rank, dismissal_rank, mask_rank) 排序层。",
+      "2) 按层轮转发牌生成 item 序列（每层每次发 1 个），避免同一层的题连续堆积。",
+      "3) 分别对因子核与剂量阶梯做格分配：每次把 item 放到未满格中 cost 最小者，cost = 3×同 status 次数 + 2×同 dismissal 次数，tie-break 按格 ID。",
+      "4) 每格内按记录的 sha256 升序取未使用记录，保证一题一记录。"
+    ]
+  },
+  "blocks": {
+    "dose_ladder": {
+      "cell_capacity": 16,
+      "cells": 12,
+      "n": 192
+    },
+    "factor_core": {
+      "cell_capacity": 8,
+      "cells": 16,
+      "n": 128
+    }
+  },
+  "caps": {
+    "legal_dismissal_total": 11,
+    "none_share_max": 0.3875,
+    "record_safety_rule": "reachable_lower_bound >= N_published + 40(held_out) + 0.10 * N_published",
+    "safety_factor": 0.1
+  },
+  "dataset_version": "VETT-Cricket-v0.37-R28-diagnostic-pair-20261112",
+  "design_id": "R28-DOSE-DIAGNOSTIC-PAIR",
+  "dose_orthogonality": "四剂量由生成器按实例独立赋值；因子核取 2^4 全因子（0/1），剂量阶梯只让一个机制取 0/1/2、其余固定 0。",
+  "doses": [
+    {
+      "extra_spans_by_level": [
+        0,
+        1,
+        2
+      ],
+      "gold_effect": "无：dossier 层只改绑定路径，solver_facts 与 decision_record_flat 不变",
+      "id": "D1",
+      "level_semantics": {
+        "0": "事实直接以 CASE 编号命名主体；无 locator/bridge span",
+        "1": "1 个 locator span（register → observation token）；事实以 token 命名主体",
+        "2": "locator + bridge span（token → packet + 时间/over）；需两跳绑定"
+      },
+      "levels": [
+        0,
+        1,
+        2
+      ],
+      "name_zh": "证据跳数（跨文档别名）",
+      "param": "alias_hops",
+      "status": "UNTESTED"
+    },
+    {
+      "extra_spans_by_level": [
+        0,
+        1,
+        2
+      ],
+      "gold_effect": "无：现行值即金标，版本只改变'如何找到现行值'",
+      "id": "D2",
+      "level_semantics": {
+        "0": "无修订：干预字段只有一条当前值陈述",
+        "1": "2 个版本：被替代值 + 现行值；按 HIGHEST_REVISION 或 LAST_PRE_LOCK 规则选一条",
+        "2": "3 个版本（跨 2 个字段）：需沿链回放两次；证书 revision_chain 含 3 个版本身份与生效时间"
+      },
+      "levels": [
+        0,
+        1,
+        2
+      ],
+      "name_zh": "修订链",
+      "param": "temporal_joins",
+      "status": "UNTESTED"
+    },
+    {
+      "extra_spans_by_level": [
+        0,
+        1,
+        2
+      ],
+      "gold_effect": "无：被选中的源值即金标；冲突值只作为可排除的干扰",
+      "id": "D3",
+      "level_semantics": {
+        "0": "单一权威：无冲突、无 policy span",
+        "1": "2 源冲突：1 个冲突 span + 1 个 policy span；authority_decision 记录裁决依据",
+        "2": "≥2 冲突（3 源）：2 个冲突 span + 1 个 policy span + 1 个 masked cell（值被遮盖，只能按版本/时间选源）；authority_decision 记录逐对裁决"
+      },
+      "levels": [
+        0,
+        1,
+        2
+      ],
+      "name_zh": "权威裁决",
+      "param": "scope_decisions",
+      "status": "UNTESTED"
+    },
+    {
+      "extra_spans_by_level": [
+        0,
+        1,
+        2
+      ],
+      "gold_effect": "无：干扰 span 不进入决策记录；why_not_distractor 必须逐条给出排除理由",
+      "id": "D4",
+      "level_semantics": {
+        "0": "无同构干扰",
+        "1": "1 个同注册表 shadow 事件（同文体、异主体/时间）",
+        "2": "≥2 个同构干扰，其中 1 个是 near-miss（除 1 个事实外与目标一致）"
+      },
+      "levels": [
+        0,
+        1,
+        2
+      ],
+      "name_zh": "干扰同构度",
+      "param": "isomorphic_distractors",
+      "status": "UNTESTED"
+    }
+  ],
+  "fact_grid": {
+    "appeal_in_time": [
+      false,
+      true
+    ],
+    "appeal_made": [
+      false,
+      true
+    ],
+    "attempting_run": [
+      false,
+      true
+    ],
+    "award_run_in_progress": [
+      false,
+      true
+    ],
+    "ball_grounded_before_control": [
+      false,
+      true
+    ],
+    "boundary_allowance": [
+      0,
+      1,
+      4,
+      6
+    ],
+    "boundary_contact_before_completion": [
+      false,
+      true
+    ],
+    "boundary_mode": [
+      "NONE",
+      "NORMAL",
+      "OVERTHROW",
+      "LATER_AFTER_WICKET"
+    ],
+    "catch_complete": [
+      false,
+      true
+    ],
+    "completed_runs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "contact": [
+      "NONE",
+      "BAT",
+      "PERSON"
+    ],
+    "crossed_at_throw": [
+      false,
+      true
+    ],
+    "dead_before_wicket": [
+      false,
+      true
+    ],
+    "dismissal_candidate": [
+      "NONE",
+      "BOWLED",
+      "LBW",
+      "CAUGHT",
+      "RUN_OUT",
+      "STUMPED_OR_RUN_OUT"
+    ],
+    "early_dead_reball": [
+      false,
+      true
+    ],
+    "forced_not_count": [
+      false,
+      true
+    ],
+    "keeper_only": [
+      false,
+      true
+    ],
+    "lbw_impact_valid": [
+      false,
+      true
+    ],
+    "lbw_pitch_valid": [
+      false,
+      true
+    ],
+    "lbw_would_hit_wicket": [
+      false,
+      true
+    ],
+    "no_ball_called": [
+      false,
+      true
+    ],
+    "out_of_ground": [
+      false,
+      true
+    ],
+    "penalty_runs_batting": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "wicket_broken_by_delivery": [
+      false,
+      true
+    ],
+    "wicket_fair": [
+      false,
+      true
+    ],
+    "wide_called": [
+      false,
+      true
+    ],
+    "wilful_deception": [
+      false,
+      true
+    ]
+  },
+  "families": {
+    "pair": "配对的两臂共享同一个 family（不是两个族）。",
+    "rule": "发布集每族至多 1 题；族 ID 必须是中性哈希（rfam_<sha256(seed,index)[:12]>），不得编码 dose/level/answer。",
+    "verification": "族名基线（仅族名字符 n-gram TF-IDF+LR，按族 5 折）信息字段准确率 ≤ 40%。"
+  },
+  "family": {
+    "max_items_per_family": 1,
+    "prefix": "rfam_",
+    "rule": "发布集每族至多 1 题；族 ID 必须是中性哈希（rfam_<sha256(seed,index)[:12]>），不得编码 dose/level/answer。",
+    "token_length": 12
+  },
+  "generated_by": "03_build/scripts/make_config.py",
+  "held_out": {
+    "n": 40,
+    "per_dose_cell": 2,
+    "per_factor_cell": 1,
+    "public": false
+  },
+  "n_published": 320,
+  "notes": [
+    "All four doses are UNTESTED: the generator assigns and proves render geometry only.",
+    "No language model writes facts, gold records or certificates.",
+    "n_published is read from this file and never hardcoded in build code."
+  ],
+  "output_contract": {
+    "confidence": "标量 [0,1]",
+    "conformance": "解析失败/缺字段/非法值/弃权 → ITT 全错（预注册口径）。",
+    "counterfactual": "R28 不要求反事实输出；因果识别由同事实双渲染配对承担。",
+    "decision_record_fields": [
+      "batter_runs",
+      "bowler_runs",
+      "counts_in_over",
+      "delivery_status",
+      "dismissal",
+      "ledger.BATTER",
+      "ledger.BYE",
+      "ledger.LEG_BYE",
+      "ledger.NO_BALL_EXTRA",
+      "ledger.PENALTY",
+      "ledger.WIDE_EXTRA",
+      "total_runs"
+    ],
+    "informative_fields": [
+      "batter_runs",
+      "bowler_runs",
+      "counts_in_over",
+      "delivery_status",
+      "dismissal",
+      "ledger.BATTER",
+      "ledger.NO_BALL_EXTRA",
+      "ledger.WIDE_EXTRA",
+      "total_runs"
+    ],
+    "required_fields": [
+      "decision_record",
+      "evidence_spans",
+      "confidence"
+    ]
+  },
+  "prompt": {
+    "chars_per_token": 4,
+    "hard_context_cap": 8192,
+    "max_documents": 12,
+    "max_spans": 80,
+    "max_tokens": 7000
+  },
+  "provenance": {
+    "contract_id": "VETT-R28-CONTRACT-20261112-v1",
+    "contract_path": "02_contract/r28_contract.json",
+    "contract_sha256": "7f10f9833ec0edc88a713fc77e34833a1503b2573a77e7ed0d7407782075a94b",
+    "contract_version": "1.1.0",
+    "prereg_id": "VETT-R28-PREREG-20261112-v1",
+    "prereg_path": "preregistration.json",
+    "prereg_sha256": "5e0056e118a2d633515bbaa1548a3f9fef181cc08866092bda84ad7b691f9122",
+    "prereg_version": "1.1.0",
+    "quota_table_sha256": "4c55666dac907dd33ac9c0ddbb9f4d351e1e32a6d4e7972b0abee6fb3b8150ad"
+  },
+  "quota_layers": [
+    {
+      "dismissal": "NONE",
+      "mask": "000",
+      "n_dose_ladder": 7,
+      "n_factor_core": 5,
+      "quota": 12,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "001",
+      "n_dose_ladder": 6,
+      "n_factor_core": 4,
+      "quota": 10,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "010",
+      "n_dose_ladder": 6,
+      "n_factor_core": 4,
+      "quota": 10,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "011",
+      "n_dose_ladder": 6,
+      "n_factor_core": 4,
+      "quota": 10,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        0,
+        3
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "100",
+      "n_dose_ladder": 6,
+      "n_factor_core": 4,
+      "quota": 10,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        0,
+        4
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "101",
+      "n_dose_ladder": 6,
+      "n_factor_core": 4,
+      "quota": 10,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        0,
+        5
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "000",
+      "n_dose_ladder": 5,
+      "n_factor_core": 3,
+      "quota": 8,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "001",
+      "n_dose_ladder": 5,
+      "n_factor_core": 3,
+      "quota": 8,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "010",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "011",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "100",
+      "n_dose_ladder": 6,
+      "n_factor_core": 4,
+      "quota": 10,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "101",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        1,
+        5
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "000",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "001",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "010",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        2,
+        2
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "011",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "100",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        2,
+        4
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "101",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        2,
+        5
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "000",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "001",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        3,
+        1
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "010",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        3,
+        2
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "011",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        3,
+        3
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "100",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        3,
+        4
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "101",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        3,
+        5
+      ]
+    },
+    {
+      "dismissal": "BOWLED",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        4,
+        0
+      ]
+    },
+    {
+      "dismissal": "BOWLED",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        4,
+        1
+      ]
+    },
+    {
+      "dismissal": "LBW",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        5,
+        0
+      ]
+    },
+    {
+      "dismissal": "LBW",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        5,
+        1
+      ]
+    },
+    {
+      "dismissal": "CAUGHT",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        6,
+        0
+      ]
+    },
+    {
+      "dismissal": "CAUGHT",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        6,
+        1
+      ]
+    },
+    {
+      "dismissal": "STUMPED",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        7,
+        0
+      ]
+    },
+    {
+      "dismissal": "STUMPED",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "LEGAL",
+      "stratum_rank": [
+        0,
+        7,
+        1
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "000",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "001",
+      "n_dose_ladder": 5,
+      "n_factor_core": 3,
+      "quota": 8,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "010",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "011",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        0,
+        3
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "100",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        0,
+        4
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "101",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        0,
+        5
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "000",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "001",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "010",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        1,
+        2
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "011",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        1,
+        3
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "100",
+      "n_dose_ladder": 5,
+      "n_factor_core": 3,
+      "quota": 8,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        1,
+        4
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "101",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        1,
+        5
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        2,
+        1
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "010",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        2,
+        2
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "011",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "100",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "101",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        2,
+        5
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        3,
+        0
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        3,
+        1
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "010",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        3,
+        2
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "011",
+      "n_dose_ladder": 1,
+      "n_factor_core": 1,
+      "quota": 2,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        3,
+        3
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "100",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "101",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "NO_BALL",
+      "stratum_rank": [
+        1,
+        3,
+        5
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "000",
+      "n_dose_ladder": 7,
+      "n_factor_core": 4,
+      "quota": 11,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "001",
+      "n_dose_ladder": 7,
+      "n_factor_core": 5,
+      "quota": 12,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "000",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "dismissal": "RUN_OUT",
+      "mask": "001",
+      "n_dose_ladder": 4,
+      "n_factor_core": 2,
+      "quota": 6,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "000",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        2,
+        0
+      ]
+    },
+    {
+      "dismissal": "OBSTRUCTING_FIELD",
+      "mask": "001",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        2,
+        1
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "000",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "dismissal": "HIT_BALL_TWICE",
+      "mask": "001",
+      "n_dose_ladder": 2,
+      "n_factor_core": 2,
+      "quota": 4,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        3,
+        1
+      ]
+    },
+    {
+      "dismissal": "STUMPED",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        7,
+        0
+      ]
+    },
+    {
+      "dismissal": "STUMPED",
+      "mask": "001",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "WIDE",
+      "stratum_rank": [
+        2,
+        7,
+        1
+      ]
+    },
+    {
+      "dismissal": "NONE",
+      "mask": "000",
+      "n_dose_ladder": 1,
+      "n_factor_core": 0,
+      "quota": 1,
+      "status": "DEAD_REBALL",
+      "stratum_rank": [
+        3,
+        0,
+        0
+      ]
+    }
+  ],
+  "quota_source": "02_contract/evidence/quota_assignment_check_n320.json",
+  "required_combinations": [
+    "appeal_made_false_with_lbw",
+    "appeal_in_time_false_with_caught",
+    "contact_person_with_wide_called",
+    "dead_before_wicket_with_run_out",
+    "penalty_five_with_overthrow"
+  ],
+  "scenes": {
+    "item_dossier": true,
+    "items_per_scene": 5,
+    "n": 64
+  },
+  "schema": "vett.r28.build_config.v1",
+  "seed": 20261112,
+  "solver_reference": {
+    "module": "vett_r25.solver",
+    "path": "src/vett_r25/solver.py",
+    "scenarios_path": "src/vett_r25/scenarios.py",
+    "scenarios_sha256": "d695252cb5a0c4b0183fbdd4764d1b52177187b50c7483b690e5b9e413b5b45a",
+    "sha256": "4fcd8a10fe5cb7c8de422c2357ebefc13fe82d3e69020cfcada955b4a5fe3362"
+  },
+  "splits": {
+    "calibration": {
+      "n": 0,
+      "reason": "R28 不做任何模型/提示调参（模型与 prompt 由预注册冻结），因此不设 calibration 划分，避免把评测题用于选择。"
+    },
+    "held_out_test": {
+      "n": 40,
+      "public": false,
+      "rule": "16 个因子格 × 1 + 12 个剂量格 × 2 = 40；与发布集记录互异；不进入公开包",
+      "split": "held_out_test"
+    },
+    "published": {
+      "n": 320,
+      "public": true,
+      "split": "development"
+    },
+    "record_requirement": {
+      "held_out": 40,
+      "published": 320,
+      "total_distinct": 360
+    }
+  },
+  "twin_identity": {
+    "allowed_to_differ": [
+      "dossier 文档集合与 span 文本/顺序",
+      "每臂证书的 minimum_evidence_spans / rule_path / revision_chain / authority_decision / why_not_distractor",
+      "token 长度",
+      "state.active_source（若 D3 引入策略；state 不进入 12 字段主端点）"
+    ],
+    "forbidden_to_differ": [
+      "12 字段记录值",
+      "delivery_status / dismissal / run_ledger",
+      "金标或任何字段答案",
+      "question_text",
+      "scenario_family（配对两臂共享同一 family）"
+    ],
+    "required_byte_identical": [
+      "solver_facts（canonical JSON 字节）",
+      "decision_record_flat（12 字段）",
+      "question_text",
+      "output schema",
+      "ruleset title/effective_date"
+    ],
+    "verification": "逐对比较 canonical JSON sha256：solver_facts 与 decision_record_flat 必须 320/320 相同；question_text 320/320 相同。"
+  }
+}

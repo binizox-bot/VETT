@@ -1,0 +1,10 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic match facts remain visible without calculation. | Ridgefield won by 53 runs and qualified; Owen Clarke was Player of the Match. |
+| L1 | Key player identification | Main performers can be extracted directly from batting and bowling tables. | Owen Clarke made 68; Blake Morgan made 52; Caleb Frost took 5 wickets. |
+| L2 | Batting total arithmetic | Requires checking batting runs plus extras. | Ridgefield batting runs add to 211 and extras add 13, giving 224; Westport batting runs add to 165 and extras add 6, giving 171. |
+| L2 | Result-margin logic | Requires subtracting innings totals. | 224 minus 171 gives a 53-run Ridgefield win. |
+| L2 | Partnership/FOW consistency | Requires cumulative verification. | Ridgefield partnerships reach 31, 80, 86, 98, 128, 132, 149, 190, 214, 224; Westport partnerships reach 74, 99, 105, 130, 137, 143, 163, 163, 165, 171. |
+| L2 | Bowling reconciliation | Requires knowing byes and leg-byes are not charged to bowlers. | Ridgefield total is 224, while Westport bowlers concede 220 charged runs because 4 came as byes/leg-byes; Westport total is 171, while Ridgefield bowlers concede 169 charged runs because 2 came as byes/leg-byes. |
+| L3 | Commentary-hidden inference | Key scorecard facts are embedded into match flow instead of listed mechanically. | Owen Clarke’s rescue, the opening chase platform, and Caleb Frost’s collapse spell are described through pressure shifts and partnership shape. |
+| L3 | Narrative-to-table validation | Requires connecting commentary events to table evidence. | The “captain’s long repair” maps to Owen Clarke’s 68; the “opening chase that made Westport look ahead” maps to the 74-run first stand; the “middle-order collapse” maps to Caleb Frost’s five wickets. |

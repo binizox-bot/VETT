@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vett-cricket.org/schema/instance-v1.json",
+  "title": "VETT-Cricket benchmark instance",
+  "type": "object",
+  "required": [
+    "instance_id",
+    "root_id",
+    "view",
+    "track",
+    "release_status",
+    "language",
+    "style",
+    "instruction",
+    "documents",
+    "gold",
+    "difficulty",
+    "private_metadata"
+  ],
+  "properties": {
+    "instance_id": {"type": "string"},
+    "root_id": {"type": "string"},
+    "view": {"enum": ["V0", "V1", "V2", "V3", "V3C", "V4SDC"]},
+    "track": {
+      "enum": [
+        "natural_supported_table",
+        "evidence_complete_reconstruction",
+        "versioned_state_correction",
+        "latent_schema_multisource"
+      ]
+    },
+    "release_status": {
+      "enum": [
+        "RELEASE_CANDIDATE",
+        "NEEDS_SUPPORT_ANNOTATION",
+        "BLOCKED_ROOT_CONFLICT",
+        "BLOCKED_CONSTRUCTION_LEAK"
+      ]
+    },
+    "language": {"const": "en"},
+    "style": {"type": "string"},
+    "instruction": {"type": "string"},
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["document_id", "source_label", "source_tier", "arrival_index", "text"],
+        "properties": {
+          "document_id": {"type": "string"},
+          "source_label": {"type": "string"},
+          "source_tier": {"enum": ["official", "trusted", "unofficial", "unknown"]},
+          "arrival_index": {"type": "integer", "minimum": 0},
+          "text": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "gold": {
+      "type": "object",
+      "required": ["tables", "cell_provenance", "scored_cell_ids"],
+      "properties": {
+        "tables": {"type": "array", "items": {"type": "object"}},
+        "cell_provenance": {"type": "array", "items": {"type": "object"}},
+        "scored_cell_ids": {"type": "array", "items": {"type": "string"}},
+        "event_graph": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "difficulty": {
+      "type": "object",
+      "required": ["tier", "axes"],
+      "properties": {
+        "tier": {"type": "integer", "minimum": 0, "maximum": 5},
+        "axes": {"type": "object", "additionalProperties": {"type": "number"}}
+      },
+      "additionalProperties": false
+    },
+    "private_metadata": {
+      "type": "object",
+      "required": ["operator_recipe", "generator", "validation"],
+      "properties": {
+        "operator_recipe": {"type": "array", "items": {"type": "string"}},
+        "generator": {"type": "object"},
+        "validation": {"type": "object"},
+        "revision_claims": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VETT R28 人工核验工具 (human verification kit)</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0; background: #f5f6f8; color: #17202a; }
+  header { background: #102a43; color: #fff; padding: 10px 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+  header h1 { font-size: 16px; margin: 0; }
+  header span { font-size: 12px; opacity: .85; }
+  nav { display: flex; gap: 6px; padding: 10px 18px 0; }
+  nav button { border: 1px solid #b8c4d0; background: #fff; padding: 7px 14px; border-radius: 6px 6px 0 0; cursor: pointer; }
+  nav button.active { background: #dbeafe; border-bottom-color: #dbeafe; font-weight: 600; }
+  main { padding: 0 18px 24px; }
+  section.mode { display: none; }
+  section.mode.active { display: block; }
+  fieldset { border: 1px solid #c9d4df; border-radius: 8px; background: #fff; margin: 12px 0; padding: 10px 14px; }
+  legend { font-weight: 600; padding: 0 6px; }
+  label { display: inline-block; margin: 3px 10px 3px 0; font-size: 13px; }
+  input[type=text], input[type=number], select, textarea { font: inherit; font-size: 13px; padding: 3px 5px; border: 1px solid #b8c4d0; border-radius: 4px; background: #fff; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 54px; font-family: Consolas, monospace; }
+  button { font: inherit; font-size: 13px; padding: 5px 10px; border: 1px solid #8fa2b5; border-radius: 4px; background: #f8fafc; cursor: pointer; }
+  button.primary { background: #1d4ed8; border-color: #1d4ed8; color: #fff; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 16px; }
+  .itemlist { display: flex; flex-wrap: wrap; gap: 4px; max-height: 190px; overflow: auto; padding: 4px; }
+  .itemlist button { font-size: 11px; padding: 3px 6px; }
+  .itemlist button.done { background: #dcfce7; border-color: #4ade80; }
+  .itemlist button.current { outline: 2px solid #1d4ed8; }
+  .doc { border-top: 1px dashed #cbd5e1; padding: 6px 0; }
+  .doc h4 { margin: 2px 0; font-size: 13px; }
+  .span { font-size: 12px; margin: 2px 0 2px 12px; }
+  .span code { background: #eef2f6; padding: 0 3px; border-radius: 3px; }
+  .hint { color: #475569; font-size: 12px; }
+  .warn { color: #b91c1c; font-size: 12px; }
+  .ok { color: #15803d; font-size: 12px; }
+  table.record { border-collapse: collapse; font-size: 12px; }
+  table.record th, table.record td { border: 1px solid #d5dde5; padding: 3px 6px; text-align: left; }
+  table.record th { background: #eef2f6; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 9px; background: #e2e8f0; margin-left: 6px; }
+  .row { margin: 4px 0; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+  #status { font-size: 12px; min-height: 18px; color: #334155; }
+  footer { padding: 10px 18px; color: #64748b; font-size: 11px; border-top: 1px solid #d5dde5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>VETT R28 人工核验工具</h1>
+  <span>VETT-R28-HUMAN-VERIFICATION-KIT-20261112-v1 · 离线单文件 · 无网络 · 不产生人工金标</span>
+</header>
+<nav>
+  <button data-mode="derive" class="active">① 盲推导（DERIVE）</button>
+  <button data-mode="verify">② 金标揭示与判定（VERIFY）</button>
+  <button data-mode="adjudicate">③ 仲裁（ADJUDICATE）</button>
+</nav>
+<main>
+  <div id="status" aria-live="polite"></div>
+
+  <!-- ================= DERIVE ================= -->
+  <section id="mode-derive" class="mode active">
+    <fieldset>
+      <legend>阶段 1：盲推导（金标文件此时不应被加载）</legend>
+      <div class="toolbar">
+        <label>标注者 ID <input id="annotator-id" type="text" size="10" placeholder="A 或 B"></label>
+        <label>public 卷宗包 <input id="bundle-file" type="file" accept=".json"></label>
+        <label>已锁定派生 JSONL（恢复用） <input id="derived-file" type="file" accept=".jsonl,.json"></label>
+        <button id="export-derived">导出 DERIVED JSONL</button>
+      </div>
+      <p class="hint">规则：先独立推导 12 字段记录 + 范围（scope）+ 规则版本 + 最小证明 span 集合，然后锁定。锁定后不可修改派生值；阶段 2 只允许记录“与金标是否一致”的判定。</p>
+      <div id="derive-progress" class="hint"></div>
+      <div id="derive-list" class="itemlist"></div>
+    </fieldset>
+    <fieldset>
+      <legend id="derive-title">题目</legend>
+      <div id="derive-item" class="hint">请先加载 public 卷宗包。</div>
+      <form id="derive-form" onsubmit="return false;">
+        <fieldset>
+          <legend>12 字段记录（decision_record_flat）</legend>
+          <div id="record-fields" class="grid"></div>
+          <div id="record-check" class="hint"></div>
+          <div class="toolbar"><button id="check-record">检查记录一致性（本地规则）</button></div>
+        </fieldset>
+        <fieldset>
+          <legend>范围（scope）</legend>
+          <div class="row"><label>决定来源文档 <select id="scope-source-doc"></select></label>
+            <label>决定来源 span <input id="scope-source-span" type="text" size="28"></label></div>
+          <div class="row"><label>在卷范围内的文档</label><span id="scope-doc-checks"></span></div>
+          <div class="row"><label>冲突处理（JSON 数组）<br><textarea id="scope-conflicts" placeholder='[{"conflict_id":"C1","chosen_span_id":"s_...","rejected_span_ids":["s_..."]}]'></textarea></label></div>
+          <div class="row"><label>被遮蔽 cell（JSON 数组）<br><textarea id="scope-masked" placeholder='[{"document_id":"doc-x","span_id":"s_..."}]'></textarea></label></div>
+        </fieldset>
+        <fieldset>
+          <legend>规则版本（rule_version）</legend>
+          <div class="grid">
+            <label>ruleset title <input id="rule-title" type="text" size="36"></label>
+            <label>effective date <input id="rule-date" type="text" size="12" placeholder="YYYY-MM-DD"></label>
+            <label>selected revision <input id="rule-revision" type="text" size="12"></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>最小证明（proof）：勾选“必要且充分”的 span 集合</legend>
+          <div id="proof-spans" class="hint"></div>
+        </fieldset>
+        <div class="toolbar">
+          <button id="lock-btn" class="primary">锁定并保存本题</button>
+          <span class="hint">锁定后本题进入阶段 2；派生值不可再改。</span>
+        </div>
+      </form>
+    </fieldset>
+  </section>
+
+  <!-- ================= VERIFY ================= -->
+  <section id="mode-verify" class="mode">
+    <fieldset>
+      <legend>阶段 2：金标揭示与逐维判定（只有本阶段可以加载 gold 包）</legend>
+      <div class="toolbar">
+        <label>gold 金标包 <input id="gold-file" type="file" accept=".json"></label>
+        <label>public 卷宗包 <input id="verify-bundle-file" type="file" accept=".json"></label>
+        <label>DERIVED JSONL <input id="verify-derived-file" type="file" accept=".jsonl,.json"></label>
+        <button id="export-verify">导出 VERIFY JSONL</button>
+      </div>
+      <p class="hint">工具会把“已锁定派生值”与 solver 金标并排显示。你的判定只针对金标是否正确：MATCH/CONFIRMED 表示你复算后同意；MISMATCH/SCOPE_ERROR/VERSION_ERROR/INSUFFICIENT/FABRICATED 表示你认为金标有错（会被仲裁复核）。</p>
+      <div id="verify-list" class="itemlist"></div>
+    </fieldset>
+    <fieldset>
+      <legend id="verify-title">题目</legend>
+      <div id="verify-item" class="hint">请先加载 gold 包、public 包与 DERIVED JSONL。</div>
+      <form id="verify-form" onsubmit="return false;">
+        <div id="verify-value-table"></div>
+        <fieldset>
+          <legend>逐维判定</legend>
+          <div class="grid">
+            <label>scope <select id="verify-scope"></select></label>
+            <label>rule_version <select id="verify-rule"></select></label>
+            <label>proof <select id="verify-proof"></select></label>
+            <label>说明 <input id="verify-note" type="text" size="40"></label>
+          </div>
+          <div id="verify-value-verdict" class="hint"></div>
+        </fieldset>
+        <div class="toolbar"><button id="save-verify" class="primary">保存本题判定</button></div>
+      </form>
+    </fieldset>
+  </section>
+
+  <!-- ================= ADJUDICATE ================= -->
+  <section id="mode-adjudicate" class="mode">
+    <fieldset>
+      <legend>阶段 3：仅对分歧进行仲裁（第三人，不得是标注者 A/B）</legend>
+      <div class="toolbar">
+        <label>A VERIFY JSONL <input id="a-file" type="file" accept=".jsonl,.json"></label>
+        <label>B VERIFY JSONL <input id="b-file" type="file" accept=".jsonl,.json"></label>
+        <label>gold 金标包 <input id="adj-gold-file" type="file" accept=".json"></label>
+        <button id="export-adjudication">导出 ADJUDICATION JSONL</button>
+      </div>
+      <p class="hint">仲裁规则：先重放卷宗与证书；无法裁决时选 UNDECIDABLE + UNRESOLVED，禁止为了“通过”强行选 CONFIRMED。最终判定为金标错误时必须使用 attribution=GOLD_DEFECT。</p>
+      <div id="adj-list" class="itemlist"></div>
+    </fieldset>
+    <fieldset>
+      <legend>分歧详情</legend>
+      <div id="adj-item" class="hint">请先加载 A/B VERIFY 与 gold 包。</div>
+      <form id="adj-form" onsubmit="return false;">
+        <div class="grid">
+          <label>最终标签 <select id="adj-final"></select></label>
+          <label>归因 <select id="adj-attribution"></select></label>
+          <label>仲裁者 ID <input id="adj-annotator" type="text" size="10"></label>
+        </div>
+        <div class="row"><label>理由（必须引用卷宗/规则/证书）<br><textarea id="adj-rationale"></textarea></label></div>
+        <div class="toolbar"><button id="save-adj" class="primary">保存仲裁</button></div>
+      </form>
+    </fieldset>
+  </section>
+</main>
+<footer>
+  本工具不联网、不调用任何外部服务、不产生人工金标。金标始终是确定性 solver 输出；人工判定只用于确认或隔离金标。
+  输出 JSONL 必须经 scripts/validate_export.py 校验后才能进入 agreement.py / adjudicate.py。
+</footer>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ */
+/* frozen constants (must match scripts/common.py)                     */
+/* ------------------------------------------------------------------ */
+const KIT_VERSION = "VETT-R28-HUMAN-VERIFICATION-KIT-20261112-v1";
+const SCHEMA_PREFIX = "vett.r28.human_kit";
+const RECORD_FIELDS = ["batter_runs", "bowler_runs", "counts_in_over", "delivery_status", "dismissal",
+  "ledger.BATTER", "ledger.BYE", "ledger.LEG_BYE", "ledger.NO_BALL_EXTRA", "ledger.PENALTY", "ledger.WIDE_EXTRA", "total_runs"];
+const INT_FIELDS = RECORD_FIELDS.filter(f => !["counts_in_over", "delivery_status", "dismissal"].includes(f));
+const ENUMS = {
+  delivery_status: ["LEGAL", "NO_BALL", "WIDE", "DEAD_REBALL"],
+  dismissal: ["NONE", "BOWLED", "LBW", "CAUGHT", "STUMPED", "RUN_OUT", "OBSTRUCTING_FIELD", "HIT_BALL_TWICE"]
+};
+const DIM_LABELS = {
+  value: ["MATCH", "MISMATCH", "UNDECIDABLE"],
+  scope: ["CONFIRMED", "SCOPE_ERROR", "UNDECIDABLE"],
+  rule_version: ["CONFIRMED", "VERSION_ERROR", "UNDECIDABLE"],
+  proof: ["CONFIRMED", "NOT_MINIMAL", "INSUFFICIENT", "FABRICATED", "UNDECIDABLE"]
+};
+const ATTRIBUTIONS = ["ANNOTATORS_AGREE", "A_ERROR", "B_ERROR", "BOTH_ERROR", "GOLD_DEFECT", "UNRESOLVED"];
+const CRITICAL_NEGATIVE = { value: ["MISMATCH"], scope: ["SCOPE_ERROR"], rule_version: ["VERSION_ERROR"], proof: ["INSUFFICIENT", "FABRICATED"] };
+
+/* ------------------------------------------------------------------ */
+/* state + helpers                                                     */
+/* ------------------------------------------------------------------ */
+const state = {
+  mode: "derive",
+  annotatorId: "",
+  publicBundle: null,
+  publicHash: "",
+  goldBundle: null,
+  goldHash: "",
+  derivedRows: {},       // item_id -> row
+  verifyRows: {},        // item_id -> row
+  deriveIndex: 0,
+  verifyIndex: 0,
+  adjudications: {},     // "item|dimension|field" -> row
+  aRows: null, bRows: null,
+  adjIndex: 0,
+  disagreements: []
+};
+
+const $ = (id) => document.getElementById(id);
+function setStatus(text, cls) { const el = $("status"); el.textContent = text || ""; el.className = cls || ""; }
+function canonicalJson(obj) {
+  if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
+  if (Array.isArray(obj)) return "[" + obj.map(canonicalJson).join(",") + "]";
+  return "{" + Object.keys(obj).sort().map(k => JSON.stringify(k) + ":" + canonicalJson(obj[k])).join(",") + "}";
+}
+function download(filename, text) {
+  const blob = new Blob([text], { type: "application/x-ndjson" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+}
+function readFile(input, cb, asText) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => cb(reader.result);
+  if (asText) reader.readAsText(file, "utf-8"); else reader.readAsText(file, "utf-8");
+}
+function parseJsonlText(text) {
+  return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => JSON.parse(line));
+}
+function esc(value) {
+  return String(value === undefined || value === null ? "" : value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+function fieldId(field) { return "f-" + field.replace(/\./g, "_"); }
+function itemById(bundle, itemId) { return (bundle && bundle.items || []).find(item => item.item_id === itemId); }
+function itemIdsOf(bundle) { return (bundle && bundle.items || []).map(item => item.item_id); }
+function saveLocal(key, value) { try { localStorage.setItem("r28hv:" + key, JSON.stringify(value)); } catch (e) { /* storage is optional */ } }
+function loadLocal(key, fallback) { try { const raw = localStorage.getItem("r28hv:" + key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; } }
+function nowIso() { return new Date().toISOString().replace(/\.\d{3}Z$/, "Z"); }
+function lineageKey(itemId, dimension, field) { return itemId + "|" + dimension + "|" + (field || ""); }
+function adoptAnnotator(rows) {
+  if (state.annotatorId || !rows.length) return;
+  const id = rows[0].annotator_id;
+  if (id) { state.annotatorId = id; $("annotator-id").value = id; saveLocal("annotator", id); }
+}
+
+/* ------------------------------------------------------------------ */
+/* record consistency (mirror of scripts/common.py)                    */
+/* ------------------------------------------------------------------ */
+function recordErrors(record) {
+  const errors = [];
+  if (!record || typeof record !== "object") return ["record 不是对象"];
+  RECORD_FIELDS.forEach(field => { if (!(field in record)) errors.push("缺少字段 " + field); });
+  INT_FIELDS.forEach(field => {
+    const value = record[field];
+    if (!Number.isInteger(value) || value < 0) errors.push(field + " 必须是非负整数");
+  });
+  if (typeof record.counts_in_over !== "boolean") errors.push("counts_in_over 必须是布尔值");
+  if (!ENUMS.delivery_status.includes(record.delivery_status)) errors.push("delivery_status 非法");
+  if (!ENUMS.dismissal.includes(record.dismissal)) errors.push("dismissal 非法");
+  if (record.delivery_status === "WIDE") {
+    if (record["ledger.BYE"] !== 0 || record["ledger.LEG_BYE"] !== 0) errors.push("WIDE 时 BYE/LEG_BYE 必须为 0");
+  }
+  if (record.delivery_status === "DEAD_REBALL") {
+    RECORD_FIELDS.filter(f => f.startsWith("ledger.")).forEach(f => { if (record[f] !== 0) errors.push("DEAD_REBALL 时 " + f + " 必须为 0"); });
+    if (record.dismissal !== "NONE") errors.push("DEAD_REBALL 时 dismissal 必须为 NONE");
+  }
+  if (record["ledger.BYE"] > 0 && record["ledger.LEG_BYE"] > 0) errors.push("BYE 与 LEG_BYE 互斥");
+  return errors;
+}
+
+/* ------------------------------------------------------------------ */
+/* shared renderers                                                    */
+/* ------------------------------------------------------------------ */
+function renderItemDossier(item) {
+  let html = "<div class='hint'>ruleset: " + esc(item.ruleset && item.ruleset.title) + " | effective: " + esc(item.ruleset && item.ruleset.effective_date) + "</div>";
+  html += "<div class='row'><b>question</b><br>" + esc(item.question_text) + "</div>";
+  (item.documents || []).forEach(doc => {
+    html += "<div class='doc'><h4>" + esc(doc.document_id) + " <span class='hint'>(" + esc(doc.genre || "") + ")</span></h4>";
+    if (doc.text) html += "<div class='span' style='white-space:pre-wrap'>" + esc(doc.text.slice(0, 4000)) + (doc.text.length > 4000 ? "…" : "") + "</div>";
+    (doc.spans || []).forEach(span => {
+      html += "<div class='span'><code>" + esc(span.span_id) + "</code> " + esc(span.text) + "</div>";
+    });
+    html += "</div>";
+  });
+  return html;
+}
+function allSpans(item) {
+  const spans = [];
+  (item.documents || []).forEach(doc => (doc.spans || []).forEach(span => spans.push({ document_id: doc.document_id, span_id: span.span_id, text: span.text })));
+  return spans;
+}
+function renderDeriveForm(item) {
+  const fields = $("record-fields");
+  fields.innerHTML = "";
+  RECORD_FIELDS.forEach(field => {
+    const wrap = document.createElement("label");
+    wrap.appendChild(document.createTextNode(field + " "));
+    let input;
+    if (field === "delivery_status" || field === "dismissal") {
+      input = document.createElement("select");
+      ENUMS[field].forEach(value => { const opt = document.createElement("option"); opt.value = value; opt.textContent = value; input.appendChild(opt); });
+      input.value = field === "delivery_status" ? "LEGAL" : "NONE";
+    } else if (field === "counts_in_over") {
+      input = document.createElement("select");
+      ["true", "false"].forEach(value => { const opt = document.createElement("option"); opt.value = value; opt.textContent = value; input.appendChild(opt); });
+      input.value = "true";
+    } else {
+      input = document.createElement("input");
+      input.type = "number"; input.min = "0"; input.step = "1"; input.value = "0";
+    }
+    input.id = fieldId(field);
+    wrap.appendChild(input);
+    fields.appendChild(wrap);
+  });
+  const docs = item.documents || [];
+  const sourceDoc = $("scope-source-doc");
+  sourceDoc.innerHTML = "";
+  docs.forEach(doc => { const opt = document.createElement("option"); opt.value = doc.document_id; opt.textContent = doc.document_id; sourceDoc.appendChild(opt); });
+  $("scope-doc-checks").innerHTML = "";
+  docs.forEach(doc => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox"; checkbox.className = "scope-doc"; checkbox.value = doc.document_id; checkbox.checked = true;
+    label.appendChild(checkbox); label.appendChild(document.createTextNode(" " + doc.document_id + " "));
+    $("scope-doc-checks").appendChild(label);
+  });
+  $("scope-source-span").value = "";
+  $("scope-conflicts").value = "[]";
+  $("scope-masked").value = "[]";
+  $("rule-title").value = (item.ruleset && item.ruleset.title) || "";
+  $("rule-date").value = (item.ruleset && item.ruleset.effective_date) || "";
+  $("rule-revision").value = "";
+  const proof = $("proof-spans");
+  proof.innerHTML = "";
+  allSpans(item).forEach(span => {
+    const label = document.createElement("label");
+    label.style.display = "block";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox"; checkbox.className = "proof-span"; checkbox.value = span.span_id;
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(" " + span.span_id + " — " + (span.text || "").slice(0, 160)));
+    proof.appendChild(label);
+  });
+  $("record-check").textContent = "";
+}
+function collectRecord() {
+  const record = {};
+  RECORD_FIELDS.forEach(field => {
+    const el = $(fieldId(field));
+    let value = el.value;
+    if (field === "counts_in_over") value = value === "true";
+    else if (INT_FIELDS.includes(field)) value = parseInt(value, 10);
+    record[field] = value;
+  });
+  return record;
+}
+function collectDerived() {
+  const conflicts = JSON.parse($("scope-conflicts").value || "[]");
+  const masked = JSON.parse($("scope-masked").value || "[]");
+  const inScope = Array.from(document.querySelectorAll(".scope-doc")).filter(c => c.checked).map(c => c.value);
+  const proof = Array.from(document.querySelectorAll(".proof-span")).filter(c => c.checked).map(c => c.value);
+  return {
+    record: collectRecord(),
+    scope: {
+      source_document_id: $("scope-source-doc").value,
+      source_span_id: $("scope-source-span").value.trim(),
+      in_scope_document_ids: inScope,
+      conflict_resolution: conflicts,
+      masked_cells: masked
+    },
+    rule_version: {
+      ruleset_title: $("rule-title").value.trim(),
+      effective_date: $("rule-date").value.trim(),
+      selected_revision: $("rule-revision").value.trim()
+    },
+    proof: { span_ids: proof, rule_path_ids: [], revision_chain_ids: [] }
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* DERIVE                                                              */
+/* ------------------------------------------------------------------ */
+function deriveBundleLoaded() {
+  const bundle = state.publicBundle;
+  if (!bundle || bundle.kind !== "PUBLIC") { setStatus("public 卷宗包必须是 kind=PUBLIC 的 bundle。", "warn"); return; }
+  state.annotatorId = ($("annotator-id").value || "").trim();
+  const saved = loadLocal("derive:" + (state.annotatorId || "anonymous"), {});
+  Object.keys(saved).forEach(key => { if (!state.derivedRows[key]) state.derivedRows[key] = saved[key]; });
+  const list = $("derive-list");
+  list.innerHTML = "";
+  itemIdsOf(bundle).forEach((itemId, index) => {
+    const button = document.createElement("button");
+    button.textContent = itemId.replace("syn-", "").slice(-14);
+    button.title = itemId;
+    if (state.derivedRows[itemId]) button.classList.add("done");
+    button.onclick = () => { state.deriveIndex = index; renderDeriveItem(); };
+    list.appendChild(button);
+  });
+  renderDeriveItem();
+}
+function renderDeriveItem() {
+  const bundle = state.publicBundle;
+  if (!bundle) return;
+  const ids = itemIdsOf(bundle);
+  if (!ids.length) return;
+  state.deriveIndex = Math.max(0, Math.min(state.deriveIndex, ids.length - 1));
+  const itemId = ids[state.deriveIndex];
+  const item = itemById(bundle, itemId);
+  $("derive-title").textContent = "题目 " + (state.deriveIndex + 1) + " / " + ids.length + " — " + itemId;
+  $("derive-item").innerHTML = renderItemDossier(item);
+  renderDeriveForm(item);
+  if (state.derivedRows[itemId]) {
+    const derived = state.derivedRows[itemId].derived;
+    RECORD_FIELDS.forEach(field => {
+      const el = $(fieldId(field));
+      if (!el) return;
+      if (field === "counts_in_over") el.value = String(derived.record[field]);
+      else el.value = derived.record[field];
+    });
+    $("scope-source-doc").value = derived.scope.source_document_id || "";
+    $("scope-source-span").value = derived.scope.source_span_id || "";
+    Array.from(document.querySelectorAll(".scope-doc")).forEach(c => { c.checked = (derived.scope.in_scope_document_ids || []).includes(c.value); });
+    $("scope-conflicts").value = JSON.stringify(derived.scope.conflict_resolution || [], null, 0);
+    $("scope-masked").value = JSON.stringify(derived.scope.masked_cells || [], null, 0);
+    $("rule-title").value = derived.rule_version.ruleset_title || "";
+    $("rule-date").value = derived.rule_version.effective_date || "";
+    $("rule-revision").value = derived.rule_version.selected_revision || "";
+    const spanSet = new Set(derived.proof.span_ids || []);
+    Array.from(document.querySelectorAll(".proof-span")).forEach(c => { c.checked = spanSet.has(c.value); });
+    setStatus("本题已锁定；派生值不可修改。进入阶段 2 做一致性判定。", "ok");
+  } else {
+    setStatus("本题尚未锁定。请完成四部分后点击“锁定并保存本题”。", "");
+  }
+  const done = Object.keys(state.derivedRows).length;
+  $("derive-progress").textContent = "已锁定 " + done + " / " + ids.length + " 题";
+  Array.from($("derive-list").children).forEach((button, index) => {
+    button.classList.toggle("current", index === state.deriveIndex);
+    button.classList.toggle("done", !!state.derivedRows[ids[index]]);
+  });
+}
+function checkRecordClick() {
+  const errors = recordErrors(collectRecord());
+  $("record-check").textContent = errors.length ? "记录不合法：" + errors.join("；") : "记录通过契约级一致性检查（仅结构/CEIL 规则；算术恒等式由证书负责）。";
+  $("record-check").className = errors.length ? "warn" : "ok";
+}
+function lockDerive() {
+  const itemId = itemIdsOf(state.publicBundle)[state.deriveIndex];
+  if (state.derivedRows[itemId]) { setStatus("本题已锁定，派生值不可修改。", "warn"); return; }
+  let derived;
+  try { derived = collectDerived(); } catch (e) { setStatus("JSON 输入有误：" + e.message, "warn"); return; }
+  const errors = recordErrors(derived.record);
+  if (errors.length) { setStatus("记录不合法，无法锁定：" + errors.join("；"), "warn"); return; }
+  if (!derived.scope.source_document_id || !derived.scope.source_span_id) { setStatus("必须填写决定来源文档与 span。", "warn"); return; }
+  if (!derived.rule_version.ruleset_title || !derived.rule_version.effective_date || !derived.rule_version.selected_revision) { setStatus("规则版本三项都必须填写。", "warn"); return; }
+  if (!derived.proof.span_ids.length) { setStatus("必须选择至少一个最小证明 span。", "warn"); return; }
+  const row = {
+    schema: SCHEMA_PREFIX + ".annotation.v1", kind: "DERIVED", kit_version: KIT_VERSION,
+    protocol_version: "ANNOTATION_PROTOCOL.v1", annotator_id: state.annotatorId || "anonymous",
+    item_id: itemId, public_bundle_sha256: state.publicHash || null,
+    derived: derived, derived_sha256: null, locked_at_utc: nowIso(),
+    tool: { name: "annotate.html", version: KIT_VERSION }
+  };
+  state.derivedRows[itemId] = row;
+  saveLocal("derive:" + (state.annotatorId || "anonymous"), state.derivedRows);
+  setStatus("已锁定 " + itemId + "。", "ok");
+  const ids = itemIdsOf(state.publicBundle);
+  if (state.deriveIndex < ids.length - 1) state.deriveIndex += 1;
+  renderDeriveItem();
+}
+function exportDerived() {
+  const rows = Object.values(state.derivedRows);
+  if (!rows.length) { setStatus("没有可导出的 DERIVED 记录。", "warn"); return; }
+  download("annotations_derived_" + (state.annotatorId || "anonymous") + ".jsonl", rows.map(r => JSON.stringify(r)).join("\n") + "\n");
+  setStatus("已导出 " + rows.length + " 条 DERIVED 记录。注意：derived_sha256 需由导出后脚本补齐；CLI 工具会写入该字段。", "ok");
+}
+
+/* ------------------------------------------------------------------ */
+/* VERIFY                                                              */
+/* ------------------------------------------------------------------ */
+function verifyReady() {
+  if (!state.publicBundle) { setStatus("请先在阶段 1 加载 public 卷宗包。", "warn"); return false; }
+  if (!state.goldBundle) { setStatus("请加载 gold 金标包。", "warn"); return false; }
+  if (!Object.keys(state.derivedRows).length) { setStatus("请加载 DERIVED JSONL（或先完成阶段 1 锁定）。", "warn"); return false; }
+  return true;
+}
+function renderVerifyList() {
+  if (!verifyReady()) return;
+  const ids = itemIdsOf(state.publicBundle);
+  const list = $("verify-list");
+  list.innerHTML = "";
+  ids.forEach((itemId, index) => {
+    const button = document.createElement("button");
+    button.textContent = itemId.replace("syn-", "").slice(-14);
+    button.title = itemId;
+    if (state.verifyRows[itemId]) button.classList.add("done");
+    button.onclick = () => { state.verifyIndex = index; renderVerifyItem(); };
+    list.appendChild(button);
+  });
+  renderVerifyItem();
+}
+function ensureLabels(itemId) {
+  if (!state.verifyRows[itemId]) {
+    state.verifyRows[itemId] = { fields: {}, scope: "CONFIRMED", rule: "CONFIRMED", proof: "CONFIRMED", note: "" };
+  }
+  const labels = state.verifyRows[itemId];
+  if (!labels.fields || Object.keys(labels.fields).length !== RECORD_FIELDS.length) {
+    const derived = state.derivedRows[itemId] && state.derivedRows[itemId].derived;
+    const gold = itemById(state.goldBundle, itemId);
+    labels.fields = {};
+    RECORD_FIELDS.forEach(field => {
+      labels.fields[field] = (derived && gold && derived.record[field] === gold.gold.decision_record_flat[field]) ? "MATCH" : "MISMATCH";
+    });
+  }
+  return labels;
+}
+function renderVerifyItem() {
+  if (!verifyReady()) return;
+  const ids = itemIdsOf(state.publicBundle);
+  state.verifyIndex = Math.max(0, Math.min(state.verifyIndex, ids.length - 1));
+  const itemId = ids[state.verifyIndex];
+  const item = itemById(state.publicBundle, itemId);
+  const gold = itemById(state.goldBundle, itemId);
+  const derivedRow = state.derivedRows[itemId];
+  $("verify-title").textContent = "题目 " + (state.verifyIndex + 1) + " / " + ids.length + " — " + itemId;
+  $("verify-item").innerHTML = renderItemDossier(item);
+  if (!gold || !derivedRow) { $("verify-value-table").innerHTML = "<p class='warn'>金标或派生值缺失：本题无法判定。</p>"; return; }
+  const labels = ensureLabels(itemId);
+  let html = "<table class='record'><tr><th>字段</th><th>你的派生值</th><th>solver 金标</th><th>判定</th></tr>";
+  RECORD_FIELDS.forEach(field => {
+    const options = DIM_LABELS.value.map(label => "<option value='" + label + "'" + (labels.fields[field] === label ? " selected" : "") + ">" + label + "</option>").join("");
+    const cls = derivedRow.derived.record[field] === gold.gold.decision_record_flat[field] ? "ok" : "warn";
+    html += "<tr><td>" + esc(field) + "</td><td class='" + cls + "'>" + esc(derivedRow.derived.record[field]) + "</td><td>" + esc(gold.gold.decision_record_flat[field]) + "</td><td><select data-field='" + esc(field) + "' class='value-label'>" + options + "</select></td></tr>";
+  });
+  html += "</table>";
+  html += "<details><summary class='hint'>gold 证书（proof / authority / revision 摘要）</summary><pre class='hint'>" + esc(JSON.stringify(gold.gold.proof, null, 2)) + "</pre></details>";
+  html += "<details><summary class='hint'>你的 scope / rule_version</summary><pre class='hint'>" + esc(JSON.stringify({ scope: derivedRow.derived.scope, rule_version: derivedRow.derived.rule_version }, null, 2)) + "</pre></details>";
+  $("verify-value-table").innerHTML = html;
+  $("verify-scope").innerHTML = DIM_LABELS.scope.map(label => "<option value='" + label + "'" + (labels.scope === label ? " selected" : "") + ">" + label + "</option>").join("");
+  $("verify-rule").innerHTML = DIM_LABELS.rule_version.map(label => "<option value='" + label + "'" + (labels.rule === label ? " selected" : "") + ">" + label + "</option>").join("");
+  $("verify-proof").innerHTML = DIM_LABELS.proof.map(label => "<option value='" + label + "'" + (labels.proof === label ? " selected" : "") + ">" + label + "</option>").join("");
+  $("verify-note").value = labels.note || "";
+  updateValueVerdict();
+  Array.from($("verify-list").children).forEach((button, index) => {
+    button.classList.toggle("current", index === state.verifyIndex);
+    button.classList.toggle("done", !!state.verifyRows[ids[index]] && !!state.verifyRows[ids[index]].saved);
+  });
+}
+function updateValueVerdict() {
+  const labels = Array.from(document.querySelectorAll(".value-label")).map(el => el.value);
+  let verdict = "MATCH";
+  if (labels.includes("MISMATCH")) verdict = "MISMATCH";
+  else if (labels.includes("UNDECIDABLE")) verdict = "UNDECIDABLE";
+  $("verify-value-verdict").textContent = "value 维度判定（由 12 字段自动汇总）：" + verdict;
+}
+function saveVerify() {
+  if (!verifyReady()) return;
+  const itemId = itemIdsOf(state.publicBundle)[state.verifyIndex];
+  const labels = ensureLabels(itemId);
+  const gold = itemById(state.goldBundle, itemId);
+  const derivedRow = state.derivedRows[itemId];
+  if (!gold || !derivedRow) { setStatus("金标或派生值缺失。", "warn"); return; }
+  const fieldLabels = {};
+  Array.from(document.querySelectorAll(".value-label")).forEach(el => { fieldLabels[el.dataset.field] = el.value; });
+  labels.fields = fieldLabels;
+  const values = Object.values(fieldLabels);
+  labels.value_verdict = values.includes("MISMATCH") ? "MISMATCH" : (values.includes("UNDECIDABLE") ? "UNDECIDABLE" : "MATCH");
+  labels.scope = $("verify-scope").value;
+  labels.rule = $("verify-rule").value;
+  labels.proof = $("verify-proof").value;
+  labels.note = $("verify-note").value.trim();
+  labels.saved = true;
+  const row = {
+    schema: SCHEMA_PREFIX + ".annotation.v1", kind: "VERIFY", kit_version: KIT_VERSION,
+    protocol_version: "ANNOTATION_PROTOCOL.v1", annotator_id: state.annotatorId || "anonymous",
+    item_id: itemId, public_bundle_sha256: state.publicHash || null, gold_bundle_sha256: state.goldHash || null,
+    derived_sha256: derivedRow.derived_sha256 || null,
+    derived_record_sha256: canonicalJson(derivedRow.derived.record),
+    gold_record_sha256: canonicalJson(gold.gold.decision_record_flat),
+    labels: {
+      value: { fields: fieldLabels, verdict: labels.value_verdict },
+      scope: { verdict: labels.scope, checks: {}, note: "" },
+      rule_version: { verdict: labels.rule, checks: {}, note: "" },
+      proof: { verdict: labels.proof, span_ids: derivedRow.derived.proof.span_ids, note: "" }
+    },
+    gold_revealed: true, verified_at_utc: nowIso(),
+    tool: { name: "annotate.html", version: KIT_VERSION }
+  };
+  state.verifyRows[itemId] = row;
+  saveLocal("verify:" + (state.annotatorId || "anonymous"), state.verifyRows);
+  setStatus("已保存 " + itemId + " 的判定。", "ok");
+  const ids = itemIdsOf(state.publicBundle);
+  if (state.verifyIndex < ids.length - 1) state.verifyIndex += 1;
+  renderVerifyItem();
+}
+function exportVerify() {
+  const rows = Object.values(state.verifyRows).filter(row => row && row.kind === "VERIFY");
+  if (!rows.length) { setStatus("没有可导出的 VERIFY 记录。", "warn"); return; }
+  download("annotations_verify_" + (state.annotatorId || "anonymous") + ".jsonl", rows.map(r => JSON.stringify(r)).join("\n") + "\n");
+  setStatus("已导出 " + rows.length + " 条 VERIFY 记录。", "ok");
+}
+
+/* ------------------------------------------------------------------ */
+/* ADJUDICATE                                                          */
+/* ------------------------------------------------------------------ */
+function loadVerifyForAdjudication(text, which) {
+  const rows = parseJsonlText(text).filter(row => row.kind === "VERIFY");
+  const map = {};
+  rows.forEach(row => { map[row.item_id] = row; });
+  if (which === "a") state.aRows = map; else state.bRows = map;
+  rebuildDisagreements();
+}
+function rebuildDisagreements() {
+  state.disagreements = [];
+  if (!state.aRows || !state.bRows) return;
+  const ids = Object.keys(state.aRows).filter(itemId => state.bRows[itemId]);
+  ids.forEach(itemId => {
+    ["value", "scope", "rule_version", "proof"].forEach(dimension => {
+      const a = dimension === "value" ? state.aRows[itemId].labels.value.verdict : state.aRows[itemId].labels[dimension].verdict;
+      const b = dimension === "value" ? state.bRows[itemId].labels.value.verdict : state.bRows[itemId].labels[dimension].verdict;
+      if (a !== b) state.disagreements.push({ item_id: itemId, dimension: dimension, field: null, a: a, b: b });
+    });
+    RECORD_FIELDS.forEach(field => {
+      const a = state.aRows[itemId].labels.value.fields[field];
+      const b = state.bRows[itemId].labels.value.fields[field];
+      if (a !== b) state.disagreements.push({ item_id: itemId, dimension: "value", field: field, a: a, b: b });
+    });
+  });
+  const list = $("adj-list");
+  list.innerHTML = "";
+  state.disagreements.forEach((entry, index) => {
+    const button = document.createElement("button");
+    button.textContent = entry.item_id.slice(-10) + ":" + entry.dimension + (entry.field ? "." + entry.field : "");
+    button.onclick = () => { state.adjIndex = index; renderAdjudication(); };
+    list.appendChild(button);
+  });
+  renderAdjudication();
+}
+function renderAdjudication() {
+  if (!state.disagreements.length) { $("adj-item").textContent = "没有分歧（若 A/B 文件已加载）。"; return; }
+  state.adjIndex = Math.max(0, Math.min(state.adjIndex, state.disagreements.length - 1));
+  const entry = state.disagreements[state.adjIndex];
+  const key = lineageKey(entry.item_id, entry.dimension, entry.field);
+  const gold = state.goldBundle ? itemById(state.goldBundle, entry.item_id) : null;
+  let html = "<div class='row'><b>" + esc(entry.item_id) + "</b> / " + esc(entry.dimension) + (entry.field ? " / " + esc(entry.field) : "") + "</div>";
+  html += "<div class='row'>A 判定：<code>" + esc(entry.a) + "</code> ｜ B 判定：<code>" + esc(entry.b) + "</code></div>";
+  if (gold) html += "<div class='row'>金标记录：<code>" + esc(JSON.stringify(gold.gold.decision_record_flat)) + "</code></div>";
+  html += "<div class='row'>必填：最终标签 + 归因 + 理由。只有确认金标错误时才允许 GOLD_DEFECT。</div>";
+  $("adj-item").innerHTML = html;
+  const final = $("adj-final");
+  final.innerHTML = "<option value=''>—请选择—</option>" + DIM_LABELS[entry.dimension].map(label => "<option value='" + label + "'>" + label + "</option>").join("");
+  final.value = (state.adjudications[key] && state.adjudications[key].final_label) || "";
+  $("adj-attribution").innerHTML = "<option value=''>—请选择—</option>" + ATTRIBUTIONS.map(label => "<option value='" + label + "'>" + label + "</option>").join("");
+  $("adj-attribution").value = (state.adjudications[key] && state.adjudications[key].attribution) || "";
+  $("adj-rationale").value = (state.adjudications[key] && state.adjudications[key].rationale) || "";
+}
+function saveAdjudication() {
+  if (!state.disagreements.length) return;
+  const entry = state.disagreements[state.adjIndex];
+  const finalLabel = $("adj-final").value;
+  const attribution = $("adj-attribution").value;
+  const rationale = $("adj-rationale").value.trim();
+  if (!finalLabel || !attribution) { setStatus("必须显式选择最终标签与归因。", "warn"); return; }
+  const critical = (CRITICAL_NEGATIVE[entry.dimension] || []).includes(finalLabel);
+  if (critical && attribution !== "GOLD_DEFECT") { setStatus("最终标签为金标错误时必须归因 GOLD_DEFECT。", "warn"); return; }
+  if (finalLabel === "UNDECIDABLE" && attribution !== "UNRESOLVED") { setStatus("UNDECIDABLE 必须归因 UNRESOLVED。", "warn"); return; }
+  if (!rationale) { setStatus("仲裁必须写理由。", "warn"); return; }
+  const key = lineageKey(entry.item_id, entry.dimension, entry.field);
+  state.adjudications[key] = {
+    schema: SCHEMA_PREFIX + ".adjudication.v1", kind: "ADJUDICATION", kit_version: KIT_VERSION,
+    adjudicator_id: ($("adj-annotator").value || "C").trim(), item_id: entry.item_id,
+    dimension: entry.dimension, field: entry.field, final_label: finalLabel,
+    attribution: attribution, a_label: entry.a, b_label: entry.b, rationale: rationale,
+    adjudicated_at_utc: nowIso()
+  };
+  saveLocal("adjudication", state.adjudications);
+  setStatus("已保存仲裁。", "ok");
+  if (state.adjIndex < state.disagreements.length - 1) state.adjIndex += 1;
+  renderAdjudication();
+}
+function exportAdjudication() {
+  const rows = Object.values(state.adjudications);
+  if (!rows.length) { setStatus("没有可导出的仲裁记录。", "warn"); return; }
+  download("adjudications.jsonl", rows.map(r => JSON.stringify(r)).join("\n") + "\n");
+  setStatus("已导出 " + rows.length + " 条 ADJUDICATION 记录。", "ok");
+}
+
+/* ------------------------------------------------------------------ */
+/* wiring                                                              */
+/* ------------------------------------------------------------------ */
+function switchMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll("nav button").forEach(button => button.classList.toggle("active", button.dataset.mode === mode));
+  document.querySelectorAll("section.mode").forEach(section => section.classList.toggle("active", section.id === "mode-" + mode));
+}
+document.querySelectorAll("nav button").forEach(button => { button.onclick = () => switchMode(button.dataset.mode); });
+
+$("annotator-id").value = loadLocal("annotator", "");
+$("annotator-id").onchange = () => { state.annotatorId = $("annotator-id").value.trim(); saveLocal("annotator", state.annotatorId); };
+$("bundle-file").onchange = () => readFile($("bundle-file"), text => {
+  const bundle = JSON.parse(text);
+  if (bundle.kind !== "PUBLIC") { setStatus("这不是 PUBLIC bundle。", "warn"); return; }
+  state.publicBundle = bundle;
+  state.publicHash = null;
+  deriveBundleLoaded();
+  setStatus("已加载 public 卷宗包（" + bundle.items.length + " 题）。", "ok");
+});
+$("derived-file").onchange = () => readFile($("derived-file"), text => {
+  const rows = parseJsonlText(text).filter(row => row.kind === "DERIVED");
+  rows.forEach(row => { state.derivedRows[row.item_id] = row; });
+  adoptAnnotator(rows);
+  if (state.publicBundle) deriveBundleLoaded();
+  setStatus("已恢复 " + Object.keys(state.derivedRows).length + " 条 DERIVED 记录。", "ok");
+});
+$("check-record").onclick = checkRecordClick;
+$("lock-btn").onclick = lockDerive;
+$("export-derived").onclick = exportDerived;
+
+$("gold-file").onchange = () => readFile($("gold-file"), text => {
+  const bundle = JSON.parse(text);
+  if (bundle.kind !== "GOLD") { setStatus("这不是 GOLD bundle。", "warn"); return; }
+  state.goldBundle = bundle;
+  setStatus("已加载 gold 金标包（" + bundle.items.length + " 题）。阶段 2 已开始，请勿再改动派生值。", "ok");
+  if (state.publicBundle) renderVerifyList();
+});
+$("verify-bundle-file").onchange = () => readFile($("verify-bundle-file"), text => {
+  const bundle = JSON.parse(text);
+  if (bundle.kind !== "PUBLIC") { setStatus("这不是 PUBLIC bundle。", "warn"); return; }
+  state.publicBundle = bundle;
+  if (state.goldBundle) renderVerifyList();
+});
+$("verify-derived-file").onchange = () => readFile($("verify-derived-file"), text => {
+  const rows = parseJsonlText(text).filter(row => row.kind === "DERIVED");
+  rows.forEach(row => { state.derivedRows[row.item_id] = row; });
+  adoptAnnotator(rows);
+  setStatus("已加载 " + Object.keys(state.derivedRows).length + " 条 DERIVED 记录。", "ok");
+  if (state.publicBundle && state.goldBundle) renderVerifyList();
+});
+$("export-verify").onclick = exportVerify;
+$("save-verify").onclick = saveVerify;
+$("verify-value-table").addEventListener("change", event => { if (event.target.classList.contains("value-label")) updateValueVerdict(); });
+
+$("a-file").onchange = () => readFile($("a-file"), text => loadVerifyForAdjudication(text, "a"));
+$("b-file").onchange = () => readFile($("b-file"), text => loadVerifyForAdjudication(text, "b"));
+$("adj-gold-file").onchange = () => readFile($("adj-gold-file"), text => {
+  const bundle = JSON.parse(text);
+  if (bundle.kind !== "GOLD") { setStatus("这不是 GOLD bundle。", "warn"); return; }
+  state.goldBundle = bundle;
+  rebuildDisagreements();
+});
+$("save-adj").onclick = saveAdjudication;
+$("export-adjudication").onclick = exportAdjudication;
+
+setStatus("就绪：阶段 1 只需 public 卷宗包。不要在本阶段加载 gold 包。", "");
+</script>
+</body>
+</html>

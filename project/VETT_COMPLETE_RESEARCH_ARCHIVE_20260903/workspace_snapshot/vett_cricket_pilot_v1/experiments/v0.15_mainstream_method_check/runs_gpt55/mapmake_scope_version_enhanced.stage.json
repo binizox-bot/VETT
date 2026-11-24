@@ -1,0 +1,68 @@
+{
+  "instance_id": "r10e_0001",
+  "method": "mapmake_scope_version_enhanced",
+  "stage_1_atomization_compact": {
+    "document_scope": "single public delivery commentary, arrival_index 0",
+    "retained_scopes": ["match header", "I1 delivery stream", "I2 delivery stream", "scorer revision stream", "audit/result statements"],
+    "proposition_groups": {
+      "match_header": ["venue", "toss", "umpires", "result", "player_of_match"],
+      "live_delivery_claims": "kept as marker-plus-call propositions with innings, bowler, batter, non-striker wording, legal-ball wording and arrival order",
+      "revision_claims": "kept as authority propositions tied to innings, marker, bowler, batter, repeated-marker call label and magnitude wording",
+      "duplicates": "pure replay repeats and archived highlight cards retained only as duplicate/stale signals",
+      "audit_claims": "ledger reconciliations retained as conservation checks, not additional play"
+    }
+  },
+  "stage_2_schema_extraction_compact": {
+    "schema_source": "fixed output contract",
+    "tables": [
+      "Match Summary",
+      "Innings Summary",
+      "Batting",
+      "Bowling",
+      "Partnerships",
+      "Fall of Wickets"
+    ],
+    "cross_table_constraints": [
+      "innings total = batter runs + extras",
+      "bowling runs = batter runs off bowler + wides + no-balls, excluding byes and leg-byes",
+      "legal balls determine batting balls, bowling overs, partnership overs and run rate",
+      "fall-of-wicket scores close the corresponding partnership rows",
+      "revised scorer authority overrides live ribbons; archived highlight cards do not override later rulings"
+    ]
+  },
+  "stage_3_update_summary_compact": {
+    "classification_policy": {
+      "NEW": "first live delivery/ribbon or match fact entering state",
+      "DUPLICATE": "same-delivery replays and repeated archived cards",
+      "REVISE": "scorer-authority class or magnitude change for an open scorer line",
+      "RETRACT": "superseded live class/magnitude removed by a later authority ruling",
+      "IGNORE": "ledger conservation checks and stale highlight cards as play events"
+    },
+    "critical_scope_version_updates": [
+      "I1 0.1 revised from Lucas Byrne run to legal-ball byes, magnitude 1",
+      "I1 2.5 revised to batter runs with accepted figure one lower than first ribbon",
+      "I1 2.6 revised from wide to Lucas Byrne batter runs, accepted magnitude 4",
+      "I1 16.5 revised from wide to Lucas Byrne batter runs, accepted figure first ribbon plus 2",
+      "I1 24.5 revised from wide to Lucas Byrne batter runs, accepted figure first ribbon plus 4",
+      "I2 repeated-marker first-call entries at 2.1, 3.2, 9.2, 11.6, 13.2, 14.2, 20.1, 21.1 and 23.2 retained as wides where authority classified them outside the legal-ball count",
+      "I2 11.6 fourth call revised to Daniel Cross batter runs with accepted figure first ribbon plus 3",
+      "I2 16.6 revised from leg-byes to Aaron Wells batter runs, accepted figure one higher than first ribbon"
+    ],
+    "final_arithmetic_checks": {
+      "I1": {
+        "total": "136/8",
+        "overs": "35.0",
+        "extras": 14,
+        "batter_runs": 122,
+        "ledger_checks_used_as_non-play": ["overs 1-5 = 18/1", "overs 11-15 = 18/1", "overs 21-25 = 29/0"]
+      },
+      "I2": {
+        "total": "137/6",
+        "overs": "32.1",
+        "extras": 22,
+        "batter_runs": 115,
+        "ledger_checks_used_as_non-play": ["overs 1-5 = 20/0", "overs 11-15 = 26/1", "overs 21-25 = 18/2"]
+      }
+    }
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "root_id": "match_0106",
+  "challenge_cell_ids": [
+    "match_0106.I1.batting.r001.r",
+    "match_0106.I1.batting.r005.r",
+    "match_0106.I2.batting.r004.r",
+    "match_0106.I1.bowling.r002.w",
+    "match_0106.I1.bowling.r005.w",
+    "match_0106.I2.bowling.r001.w",
+    "match_0106.I1.innings_summary.r002.value",
+    "match_0106.I2.innings_summary.r002.value",
+    "match_0106.I1.partnerships.r004.runs",
+    "match_0106.I2.partnerships.r005.runs",
+    "match_0106.I1.fall_of_wickets.r004.at",
+    "match_0106.I2.fall_of_wickets.r010.at"
+  ],
+  "query_schema": [
+    {"table_type": "Batting", "innings": "I1", "row_key": "Batter", "row_value": "Elena Cross (wk)", "target_column": "R"},
+    {"table_type": "Batting", "innings": "I1", "row_key": "Batter", "row_value": "Nora Finch (c)", "target_column": "R"},
+    {"table_type": "Batting", "innings": "I2", "row_key": "Batter", "row_value": "Emilia Shaw (c)", "target_column": "R"},
+    {"table_type": "Bowling", "innings": "I1", "row_key": "Bowler", "row_value": "Aila Rowan", "target_column": "W"},
+    {"table_type": "Bowling", "innings": "I1", "row_key": "Bowler", "row_value": "Celeste Reed", "target_column": "W"},
+    {"table_type": "Bowling", "innings": "I2", "row_key": "Bowler", "row_value": "Jade Sinclair", "target_column": "W"},
+    {"table_type": "Innings Summary", "innings": "I1", "row_key": "Field", "row_value": "Total Extras", "target_column": "Value"},
+    {"table_type": "Innings Summary", "innings": "I2", "row_key": "Field", "row_value": "Total Extras", "target_column": "Value"},
+    {"table_type": "Partnerships", "innings": "I1", "row_key": "Partnership", "row_value": "Rowan Hayes & Nora Finch", "target_column": "Runs"},
+    {"table_type": "Partnerships", "innings": "I2", "row_key": "Partnership", "row_value": "Sienna Park & Emilia Shaw", "target_column": "Runs"},
+    {"table_type": "Fall of Wickets", "innings": "I1", "row_key": "Wkt", "row_value": "4", "target_column": "At"},
+    {"table_type": "Fall of Wickets", "innings": "I2", "row_key": "Wkt", "row_value": "10", "target_column": "At"}
+  ],
+  "target_records": [
+    {
+      "cell_id": "match_0106.I1.batting.r001.r",
+      "gold_value": "10",
+      "primary_mechanism": "REVISE_DEPENDENCY",
+      "dependency_depth": 5,
+      "state_nodes": [
+        {"node_id": "EC1", "operation": "NEW", "claim": "The opening stand closes with 18 team runs.", "effect": "Fixes the partnership envelope."},
+        {"node_id": "EC2", "operation": "NEW", "claim": "Mira contributes 3 during that stand.", "effect": "Allocates one batter component."},
+        {"node_id": "EC3", "operation": "NEW", "claim": "The working extras component is 4.", "effect": "Creates a provisional remainder of 11 for Elena."},
+        {"node_id": "EC4", "operation": "REVISE", "claim": "A delayed leg-bye is restored, so the stand extras component becomes 5 without changing the stand.", "effect": "Moves one run off Elena and into extras."},
+        {"node_id": "EC5", "operation": "RETRACT", "claim": "The earlier batter ribbon is withdrawn.", "effect": "Invalidates the provisional Elena value."},
+        {"node_id": "EC6", "operation": "CONFIRM", "claim": "Elena is dismissed at the stand boundary and receives no later runs.", "effect": "Closes her innings total."}
+      ],
+      "solution_chain": ["Select the opening partnership only.", "Keep its team total fixed.", "Replace the provisional extras component with the restored component.", "Subtract Mira's contribution and final stand extras.", "Close Elena at her dismissal."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I1.batting.r005.r",
+      "gold_value": "41",
+      "primary_mechanism": "LONG_RANGE_AGGREGATION",
+      "dependency_depth": 6,
+      "state_nodes": [
+        {"node_id": "NF1", "operation": "NEW", "claim": "Nora's contribution with Rowan is provisionally logged as 30.", "effect": "Starts a provisional personal ledger."},
+        {"node_id": "NF2", "operation": "REVISE", "claim": "One replayed no-ball run belongs to partnership extras, reducing Nora's contribution in that stand to 29.", "effect": "Corrects the largest component."},
+        {"node_id": "NF3", "operation": "NEW", "claim": "Nora contributes 6 with Lena.", "effect": "Extends the personal ledger."},
+        {"node_id": "NF4", "operation": "CONFIRM", "claim": "Nora contributes nothing while Jade faces two balls.", "effect": "Prevents an inferred carry-over run."},
+        {"node_id": "NF5", "operation": "NEW", "claim": "Nora contributes 2 with Pippa and 4 with Ivy.", "effect": "Adds the two late components."},
+        {"node_id": "NF6", "operation": "REPEAT", "claim": "A later replay revisits Nora's four with Ivy.", "effect": "Must not add the boundary twice."},
+        {"node_id": "NF7", "operation": "CONFIRM", "claim": "Nora is caught at the end of the Ivy stand.", "effect": "Closes the aggregation."}
+      ],
+      "solution_chain": ["Correct the Rowan-stand component.", "Collect Nora's contributions from each non-overlapping partnership.", "Treat the replay as non-new evidence.", "Include the explicit zero interval.", "Stop at Nora's dismissal and sum the five components."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I2.batting.r004.r",
+      "gold_value": "19",
+      "primary_mechanism": "NON_MONOTONIC_REVISION",
+      "dependency_depth": 7,
+      "state_nodes": [
+        {"node_id": "ES1", "operation": "NEW", "claim": "Emilia contributes 1 with Maris and 1 with Lara.", "effect": "Creates the opening personal ledger."},
+        {"node_id": "ES2", "operation": "NEW", "claim": "The live ledger gives Emilia 10 in the Sienna stand.", "effect": "Creates a provisional middle component."},
+        {"node_id": "ES3", "operation": "REVISE", "claim": "A carried wide is reassigned to extras, changing Emilia's Sienna-stand component to 9.", "effect": "Reduces the provisional batter component."},
+        {"node_id": "ES4", "operation": "CONFIRM", "claim": "Emilia contributes 0 with Faye and 0 with Bella.", "effect": "Preserves the ledger through two wickets."},
+        {"node_id": "ES5", "operation": "NEW", "claim": "Emilia contributes 1 with Celeste and 6 with Ruth.", "effect": "Adds two later components."},
+        {"node_id": "ES6", "operation": "RETRACT", "claim": "A lower-third personal total based on the old Sienna component is removed.", "effect": "Invalidates the stale aggregate."},
+        {"node_id": "ES7", "operation": "NEW", "claim": "Emilia adds 1 in the last stand and is then dismissed.", "effect": "Adds and closes the final component."}
+      ],
+      "solution_chain": ["Partition Emilia's innings by partnership.", "Revise the Sienna component after the wide reassignment.", "Keep the two zero components.", "Add the Celeste, Ruth, and final-stand contributions.", "Reject the stale lower-third and close at dismissal."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I1.bowling.r002.w",
+      "gold_value": "2",
+      "primary_mechanism": "EVENT_IDENTITY_DEDUPLICATION",
+      "dependency_depth": 5,
+      "state_nodes": [
+        {"node_id": "AR1", "operation": "NEW", "claim": "Aila bowls Elena at 3.6.", "effect": "Adds one credited dismissal."},
+        {"node_id": "AR2", "operation": "REPEAT", "claim": "The Elena dismissal is shown again from two camera angles.", "effect": "Adds no wicket."},
+        {"node_id": "AR3", "operation": "NEW", "claim": "Aila has Tara caught at 5.5.", "effect": "Adds a distinct credited dismissal."},
+        {"node_id": "AR4", "operation": "NEW", "claim": "Nia traps Mira lbw at 7.5.", "effect": "Creates a similar new wicket for another bowler."},
+        {"node_id": "AR5", "operation": "REVISE", "claim": "A production strip temporarily attributes Mira's wicket to Aila, then the delivery identity restores it to Nia.", "effect": "Removes the false attribution from Aila."},
+        {"node_id": "AR6", "operation": "CONFIRM", "claim": "No later dismissal is delivered by Aila.", "effect": "Closes Aila's wicket ledger."}
+      ],
+      "solution_chain": ["Resolve event identity for Elena's repeated footage.", "Count Tara as a separate event.", "Use the live bowler identity for Mira.", "Undo the production-strip attribution.", "Count only distinct bowler-credited dismissals."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I1.bowling.r005.w",
+      "gold_value": "3",
+      "primary_mechanism": "CROSS_TABLE_PROPAGATION",
+      "dependency_depth": 6,
+      "state_nodes": [
+        {"node_id": "CR1", "operation": "NEW", "claim": "Celeste bowls Rowan.", "effect": "Adds a bowler-credited wicket and closes the fourth stand."},
+        {"node_id": "CR2", "operation": "NEW", "claim": "Lena is run out during Celeste's spell.", "effect": "Adds a team wicket but no bowler wicket."},
+        {"node_id": "CR3", "operation": "REVISE", "claim": "A provisional analysis assigns the run out to Celeste.", "effect": "Creates an invalid extra bowler credit."},
+        {"node_id": "CR4", "operation": "RETRACT", "claim": "The run-out credit is removed while the batting dismissal and FOW remain.", "effect": "Propagates the correction selectively across tables."},
+        {"node_id": "CR5", "operation": "NEW", "claim": "Celeste bowls Jade.", "effect": "Adds a distinct credited wicket."},
+        {"node_id": "CR6", "operation": "NEW", "claim": "Celeste has Nora caught by Bella.", "effect": "Adds a further distinct credited wicket."},
+        {"node_id": "CR7", "operation": "REPEAT", "claim": "Rowan's dismissal is replayed during Nora's exit.", "effect": "Must not create another credit."}
+      ],
+      "solution_chain": ["Count Rowan's bowled dismissal.", "Keep Lena's run out in batting/FOW but exclude it from bowling W.", "Count Jade's bowled dismissal.", "Count Nora's caught dismissal.", "Ignore the replay."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I2.bowling.r001.w",
+      "gold_value": "3",
+      "primary_mechanism": "SIMILAR_NEW_VS_REPEAT",
+      "dependency_depth": 5,
+      "state_nodes": [
+        {"node_id": "JS1", "operation": "NEW", "claim": "Jade bowls Aila at 0.4.", "effect": "Adds one credited dismissal."},
+        {"node_id": "JS2", "operation": "NEW", "claim": "Jade traps Nia lbw at 0.5.", "effect": "Adds a similar but genuinely new dismissal."},
+        {"node_id": "JS3", "operation": "REPEAT", "claim": "Aila's broken-stump footage returns while Nia's decision is being discussed.", "effect": "Adds no event."},
+        {"node_id": "JS4", "operation": "NEW", "claim": "Jade bowls Maris at 3.6.", "effect": "Adds another distinct dismissal."},
+        {"node_id": "JS5", "operation": "REPEAT", "claim": "The opening wicket is later shown under a generic Sinclair-strikes caption.", "effect": "Adds no event."},
+        {"node_id": "JS6", "operation": "REVISE", "claim": "A provisional production analysis adds Emilia because Jade takes the catch; delivery identity then moves that dismissal out of Jade's bowling column and onto Mira.", "effect": "Corrects a fielder-versus-bowler attribution error without retracting the team wicket."}
+      ],
+      "solution_chain": ["Separate consecutive live wickets from replayed footage.", "Count Aila, Nia, and Maris as distinct delivered dismissals.", "Exclude repeated Aila clips.", "Revise the provisional Emilia attribution because Jade is the fielder and Mira is the bowler."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I1.innings_summary.r002.value",
+      "gold_value": "29",
+      "primary_mechanism": "REVISED_COMPONENT_ACCOUNTING",
+      "dependency_depth": 8,
+      "state_nodes": [
+        {"node_id": "IX1", "operation": "NEW", "claim": "An early innings audit fixes the byes class at 2.", "effect": "Fixes one extras class."},
+        {"node_id": "IX2", "operation": "NEW", "claim": "The leg-bye column is provisionally 3.", "effect": "Creates a provisional second class."},
+        {"node_id": "IX3", "operation": "REVISE", "claim": "A delayed opening-over signal raises leg-byes to 4.", "effect": "Corrects the second class and the opening-stand allocation."},
+        {"node_id": "IX4", "operation": "NEW", "claim": "The no-ball worksheet provisionally contains 6 entries.", "effect": "Creates a provisional third class."},
+        {"node_id": "IX5", "operation": "REVISE", "claim": "One no-ball entry is a replay duplicate, leaving 5.", "effect": "Corrects the third class."},
+        {"node_id": "IX6", "operation": "NEW", "claim": "The wides class is independently closed at 18.", "effect": "Fixes the fourth class."},
+        {"node_id": "IX7", "operation": "CONFIRM", "claim": "The four classes are later declared non-overlapping and exhaustive.", "effect": "Permits exact recomputation."},
+        {"node_id": "IX8", "operation": "CONFIRM", "claim": "The corrected classes reconcile with the team and batter ledgers.", "effect": "Cross-checks the computed extras."}
+      ],
+      "solution_chain": ["Recover byes from the early audit.", "Revise leg-byes from the delayed signal.", "Revise no-balls after replay deduplication.", "Recover wides from its separate close.", "Use the later exhaustiveness and reconciliation checks, then combine the four classes."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I2.innings_summary.r002.value",
+      "gold_value": "9",
+      "primary_mechanism": "PARTNERSHIP_INTERVAL_ACCOUNTING",
+      "dependency_depth": 10,
+      "state_nodes": [
+        {"node_id": "CX1", "operation": "NEW", "claim": "The Aila partnership contains 1 extra.", "effect": "Fixes interval one."},
+        {"node_id": "CX2", "operation": "CONFIRM", "claim": "The Nia partnership contains 0 extras.", "effect": "Fixes interval two."},
+        {"node_id": "CX3", "operation": "NEW", "claim": "The Maris partnership contains 1 extra.", "effect": "Fixes interval three."},
+        {"node_id": "CX4", "operation": "CONFIRM", "claim": "The Lara partnership contains 0 extras.", "effect": "Fixes interval four."},
+        {"node_id": "CX5", "operation": "NEW", "claim": "The Sienna partnership is provisionally assigned 5 extras.", "effect": "Creates a provisional fifth interval."},
+        {"node_id": "CX6", "operation": "REVISE", "claim": "A carried wide reduces the fifth interval to 4.", "effect": "Corrects interval five."},
+        {"node_id": "CX7", "operation": "CONFIRM", "claim": "The Faye partnership contains 0 extras.", "effect": "Fixes interval six."},
+        {"node_id": "CX8", "operation": "NEW", "claim": "The Bella partnership contains 1 extra.", "effect": "Fixes interval seven."},
+        {"node_id": "CX9", "operation": "NEW", "claim": "The Celeste partnership contains 1 extra.", "effect": "Fixes interval eight."},
+        {"node_id": "CX10", "operation": "NEW", "claim": "The Ruth partnership contains 1 extra.", "effect": "Fixes interval nine."},
+        {"node_id": "CX11", "operation": "CONFIRM", "claim": "The final partnership contains 0 extras.", "effect": "Fixes interval ten."},
+        {"node_id": "CX12", "operation": "REPEAT", "claim": "A later wide replay creates no new delivery or extra.", "effect": "Prevents double counting."},
+        {"node_id": "CX13", "operation": "CONFIRM", "claim": "All ten wicket-bounded partnership intervals partition the chase.", "effect": "Makes the interval ledger exhaustive."}
+      ],
+      "solution_chain": ["Recover each interval only at its wicket boundary.", "Correct the fifth interval after the delayed carried-wide review.", "Keep the later zero and nonzero intervals separate.", "Ignore replayed discussion.", "Use the partition check and combine all ten non-overlapping components."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I1.partnerships.r004.runs",
+      "gold_value": "58",
+      "primary_mechanism": "MULTI_COMPONENT_REVISION",
+      "dependency_depth": 6,
+      "state_nodes": [
+        {"node_id": "RP1", "operation": "NEW", "claim": "Rowan contributes 17 in the fourth stand.", "effect": "Fixes one batter component."},
+        {"node_id": "RP2", "operation": "NEW", "claim": "Nora's contribution is first shown as 30.", "effect": "Creates a provisional batter component."},
+        {"node_id": "RP3", "operation": "REVISE", "claim": "A replayed no-ball run moves from Nora to extras, leaving Nora with 29.", "effect": "Reassigns one run without changing the stand."},
+        {"node_id": "RP4", "operation": "REVISE", "claim": "The stand extras rise from 11 to 12 under the same reassignment.", "effect": "Balances the unchanged stand."},
+        {"node_id": "RP5", "operation": "RETRACT", "claim": "A larger partnership graphic produced by duplicating that run is removed.", "effect": "Invalidates the stale stand claim."},
+        {"node_id": "RP6", "operation": "CONFIRM", "claim": "The stand starts at the third wicket and ends when Rowan is bowled.", "effect": "Fixes its non-overlapping boundaries."}
+      ],
+      "solution_chain": ["Identify the fourth partnership boundaries.", "Use Rowan's contribution.", "Apply the paired Nora-to-extras reassignment.", "Keep the stand invariant under reassignment.", "Sum the corrected components and reject the duplicate graphic."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I2.partnerships.r005.runs",
+      "gold_value": "17",
+      "primary_mechanism": "CARRIED_EVENT_REVISION",
+      "dependency_depth": 5,
+      "state_nodes": [
+        {"node_id": "SP1", "operation": "NEW", "claim": "Sienna contributes 4 in the fifth stand.", "effect": "Fixes one batter component."},
+        {"node_id": "SP2", "operation": "NEW", "claim": "Emilia is provisionally assigned 10 in the stand.", "effect": "Creates a provisional second component."},
+        {"node_id": "SP3", "operation": "REVISE", "claim": "One run is identified as a wide carried from an earlier display, reducing Emilia's component to 9.", "effect": "Corrects the batter component."},
+        {"node_id": "SP4", "operation": "CONFIRM", "claim": "The stand itself contains 4 extras after interval reconciliation.", "effect": "Fixes the third component."},
+        {"node_id": "SP5", "operation": "RETRACT", "claim": "The live stand ribbon based on the duplicated carried run is withdrawn.", "effect": "Removes the stale aggregate."},
+        {"node_id": "SP6", "operation": "CONFIRM", "claim": "Sienna's wicket at 12.1 closes the stand.", "effect": "Prevents later events entering it."}
+      ],
+      "solution_chain": ["Fix the fifth-stand boundaries.", "Correct Emilia's component for the carried wide.", "Use Sienna's contribution and the reconciled stand extras.", "Reject the stale ribbon.", "Combine only the corrected in-stand components."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I1.fall_of_wickets.r004.at",
+      "gold_value": "97/4(15.3)",
+      "primary_mechanism": "STATE_TRANSITION_WITH_LAG",
+      "dependency_depth": 7,
+      "state_nodes": [
+        {"node_id": "FW1", "operation": "CONFIRM", "claim": "Mira's dismissal closes the third wicket at 39/3.", "effect": "Fixes the incoming score state."},
+        {"node_id": "FW2", "operation": "NEW", "claim": "The Rowan-Nora stand supplies the corrected partnership increment.", "effect": "Provides the run transition."},
+        {"node_id": "FW3", "operation": "REVISE", "claim": "Its internal batter/extras allocation changes while its team increment remains invariant.", "effect": "Prevents use of provisional components."},
+        {"node_id": "FW4", "operation": "NEW", "claim": "Celeste bowls Rowan and the over sheet independently fixes the delivery at 15.3.", "effect": "Fixes the legal-ball component without publishing the wicket ordinal."},
+        {"node_id": "FW5", "operation": "REPEAT", "claim": "The board briefly retains three wickets after the dismissal.", "effect": "Marks the visible state as lagging."},
+        {"node_id": "FW6", "operation": "CONFIRM", "claim": "A later fall clerk places Rowan after Mira as the fourth dismissal.", "effect": "Fixes the ordinal separately from the delivery."},
+        {"node_id": "FW7", "operation": "CONFIRM", "claim": "Lena enters after Rowan, confirming that the wicket transition completed.", "effect": "Closes the fourth-wicket state."}
+      ],
+      "solution_chain": ["Recover the earlier third-wicket state.", "Resolve the distributed fourth-partnership increment.", "Ignore the lagging board.", "Recover Rowan's ordinal from the later fall clerk.", "Recover the legal-ball marker from the separate over sheet.", "Combine score, ordinal and ball only after all components are fixed."],
+      "direct_final_mention": false
+    },
+    {
+      "cell_id": "match_0106.I2.fall_of_wickets.r010.at",
+      "gold_value": "44/10(17.4)",
+      "primary_mechanism": "FINAL_STATE_ROLL_FORWARD",
+      "dependency_depth": 9,
+      "state_nodes": [
+        {"node_id": "FF1", "operation": "NEW", "claim": "Ruth's dismissal occurs with the team score at 38.", "effect": "Fixes the incoming run component."},
+        {"node_id": "FF2", "operation": "CONFIRM", "claim": "A later fall clerk identifies Ruth as the ninth wicket.", "effect": "Fixes the incoming wicket ordinal separately."},
+        {"node_id": "FF3", "operation": "CONFIRM", "claim": "The returned over sheet identifies Ruth's dismissal at 16.5.", "effect": "Fixes the earlier ball marker separately."},
+        {"node_id": "FF4", "operation": "NEW", "claim": "Priya contributes 5 in the last stand.", "effect": "Adds one run component."},
+        {"node_id": "FF5", "operation": "CONFIRM", "claim": "The last stand contains 0 extras.", "effect": "Fixes the non-batter component separately."},
+        {"node_id": "FF6", "operation": "NEW", "claim": "Emilia contributes 1 in the last stand.", "effect": "Completes the legitimate run increment."},
+        {"node_id": "FF7", "operation": "REPEAT", "claim": "A boundary replay repeats Priya's scoring shot.", "effect": "Must not add another boundary."},
+        {"node_id": "FF8", "operation": "REVISE", "claim": "The television ticker provisionally treats the replay as a fresh boundary and reaches 48; the scorer removes those four duplicated runs before closing the state.", "effect": "Rolls the provisional final score back to the event ledger."},
+        {"node_id": "FF9", "operation": "NEW", "claim": "Emilia is caught from Mira's delivery and the over sheet fixes the ball at 17.4.", "effect": "Fixes the terminal legal-ball component."},
+        {"node_id": "FF10", "operation": "CONFIRM", "claim": "A later fall clerk identifies Emilia as the tenth wicket.", "effect": "Fixes the terminal ordinal separately."},
+        {"node_id": "FF11", "operation": "CONFIRM", "claim": "Priya remains not out and no further legal delivery occurs.", "effect": "Closes the innings state."}
+      ],
+      "solution_chain": ["Recover the incoming score and ninth-wicket ordinal from separate passages.", "Recover the final-stand batter shares and zero extras from separated passages.", "Retract the ticker's replayed boundary increment.", "Recover the terminal ball from the over sheet.", "Recover the tenth-wicket ordinal only after play stops.", "Combine the final run, wicket and ball components."],
+      "direct_final_mention": false
+    }
+  ],
+  "commentary_text": "Brookhaven Cricket Oval has a pale late-afternoon sky and a square that still looks slightly tacky. Coral Bay Tides Women have chosen to field. The radio booth can see the venue board, the television strip and the paper ledger below them. The three sources normally agree, though the television operator publishes first and corrects later.\n\nSienna Park takes the new ball with a slip and a short cover. Elena Cross presses forward while Mira Vale waits deeper in the crease. The first over contains a disputed signal. Television places four runs outside the bat, but the square-leg official is still speaking to the scorer, who circles the entry instead of signing it.\n\nElena is the busier opener. A boundary comes through cover, several quieter balls follow, and the partnership keeps moving without a clean personal summary. At the end of 3.6, Aila Rowan straightens one through Elena and disturbs the stumps. The completed opening association is recorded as eighteen on the venue ledger.\n\nThe stump camera runs twice. First it shows the ball passing Elena's defensive push, then a tighter crop shows the same bails lifting. Tara Quinn is already crossing the rope when the second picture appears. The change of batter fixes both pictures to one event, even though the television wicket symbol flashes again.\n\nWhile Tara takes guard, a statistician mentions that the innings bye column already contains two. She does not discuss leg-byes or illegal deliveries, and she is referring to the innings-wide category rather than the opening stand. The broadcast moves back to Aila before any aggregate can be formed.\n\nTara attacks more directly than Mira. Her share of their partnership reaches seven, while Mira contributes two. Two runs in that interval are not charged to either batter. Maris Vale catches Tara from Aila at 5.5, and the live pictures stay with the fielder rather than displaying a bowling analysis.\n\nA replay package returns to Elena's dismissal during the next over. It is introduced as an example of Aila's fuller length, not as current action. Aila is now near fine leg and Nia Brooke is visibly bowling, a field-position clue that prevents the old stump shot from becoming a new delivery.\n\nThe commentators use the pause to revisit Mira's first few overs. They identify three runs as her contribution before Elena was dismissed, then switch to her running between the wickets with Tara. The opening-partner share is therefore disclosed well after the stand total and away from the unresolved extras signal.\n\nRowan Hayes joins Mira. Rowan supplies four in this short association, Mira three, and three sit in extras. At 7.5 Nia hits Mira's pad and wins lbw. The scorer's fall sheet shows thirty-nine for three at that boundary, but the bowler name is temporarily obscured on television by an older Aila caption.\n\nThe production strip initially files Mira's lbw under Aila because the replay template was not cleared. The ground desk refuses the attribution. It postpones the correction until the delivery header can be matched with the end from which Nia was operating, leaving the television bowling row provisional for several overs.\n\nNora Finch arrives after Mira. The new partnership with Rowan begins from the confirmed third-wicket state, though the broadcast does not repeat that score. Rowan settles into rotation and contributes one above sixteen during the association. Nora's component is withheld because a no-ball sequence remains under review.\n\nAn illegal-delivery worksheet appears briefly at the scorer's table. Across the innings it currently contains six no-balls. The operator calls that a working count, not a closing count, because one clip may have been ingested twice. The wide column is off screen and no extras total is announced.\n\nNora's draft partnership contribution is shown as thirty on an internal monitor. It is not read aloud. The scorer places a question mark beside the entry after noticing that one run appears both under the batter and within the no-ball package. Play continues while that allocation remains unsettled.\n\nAt 15.3 Celeste Reed bowls Rowan. The venue board is slow to move its wicket light, and Lena Moss reaches the middle while it still displays the previous count. The over sheet preserves the legal-ball marker, but the fall clerk does not yet publish Rowan's ordinal position.\n\nA partnership assistant has meanwhile written eleven in the extras box for the Rowan-Nora interval. That number is also provisional. It comes from the same no-ball sequence affecting Nora's draft contribution, so the two entries cannot be certified independently. The assistant closes the stand boundary at Rowan's dismissal and waits.\n\nLena and Nora run hard. Nora contributes six during their time together, Lena four, and four runs belong outside the bat. Emilia Shaw breaks the stumps when Lena turns late for a second. The batting card records a run out, but a fast bowling graphic adds a mark beside Celeste because she delivered earlier in the passage.\n\nThe run-out decision remains a genuine team wicket. Only its bowling ownership is disputed. Production asks whether removing Celeste's mark would also restore Lena or reopen the partnership. The scorer says no: the dismissal, fall and partnership end stay; the bowler-credit cell alone must remain blank for that event.\n\nThe innings-wide wide count reaches eighteen and the scorer underlines it. The commentary is discussing field placements at the time, so the number is never paired with the other extras classes. A later wide replay is labelled archival and does not alter the underlined category.\n\nJade Sinclair faces two balls after Lena and does not score. Nora also contributes nothing while Jade is present. Celeste then bowls Jade. A split screen places Rowan's earlier broken stumps beside Jade's new dismissal, similar pictures separated by the run out and by a change of batter.\n\nPippa Lane follows. Pippa makes six in the partnership, Nora two, and there is one extra before Nia bowls Pippa at 18.5. Nora's personal ledger now spans several partners, but the earlier thirty beside Rowan is still marked provisional and is not carried into a public total.\n\nThe leg-bye column is inspected after Pippa leaves. It had been standing at three. The scorer finds the delayed square-leg signal from the opening over, the same unresolved signal that made Elena's first ribbon uncertain, and raises the innings leg-bye class by one. The associated opening-stand extras allocation also rises from four to five.\n\nThat restoration changes no team score and no opening partnership total. It moves one run away from Elena's provisional bat entry. Because Mira's opening share was fixed elsewhere and Elena was dismissed at the stand boundary, the remaining batter value is now uniquely constrained without being spoken.\n\nAt the production desk, the earlier Mira lbw attribution is finally repaired. The delivery header names Nia, so the provisional mark is removed from Aila's row and retained for Nia. On a separate sheet the fall clerk places Rowan immediately after Mira and identifies Rowan as the fourth dismissal; no delivery marker is repeated there. The editor then shows Tara's catch again, but it is clearly an old angle and carries no new batter entrance.\n\nIvy Stone joins Nora. Ivy contributes five during their stand; Nora adds four and the interval contains one extra. Bella Marsh catches Nora from Celeste at 19.5. The gallery later reuses Nora's boundary from this partnership, but her dismissal closes the personal ledger before Ivy's final-ball scoring.\n\nThe scorer resolves Nora's question-marked Rowan-stand entry. The duplicated no-ball run is taken out of her draft contribution, leaving that component one short of thirty. Nothing is yet said about the partnership's extras box, which is handled by a different assistant.\n\nIvy and Clara Bell take two from the last ball, one to Ivy and one extra. Meadowridge close on 132 for eight after twenty overs. The close-of-innings screen shows the team total only; it does not display Nora, Elena, partnerships or the extras aggregate.\n\nDuring the interval, the partnership assistant finishes the separate side of the Rowan-Nora correction. The run removed from Nora belongs in that stand's extras, so the working eleven becomes one larger. Rowan's contribution, Nora's revised share and this corrected interval component remain scattered across three different sheets.\n\nA bowling clerk revisits Lena's run out. Celeste's provisional credit is removed while Lena's dismissal and the corresponding wicket order remain untouched. The clerk has already preserved Celeste's delivered dismissal of Rowan, but does not summarize the bowler's completed analysis.\n\nThe no-ball video check also closes. One of the six entries is traced to a replay of a delivery already present in the over log, so that category loses one. The finding is announced without mentioning byes, leg-byes or wides, which had been settled at other moments.\n\nA second scorer verifies that the revised opening leg-bye was the only missing legal signal. The innings categories are now exhaustive and non-overlapping. She checks them against the batter ledger and 132-run total, says the accounts balance, and folds the worksheet before any category sum reaches camera.\n\nOne last replay pairs two Celeste celebrations from nonconsecutive passages. Changes of batter, bowler and field between the source clips establish that the first picture is archival. The replay offers no new dismissal and no bowling-analysis total.\n\nCoral Bay begin the chase against Jade Sinclair. Aila Rowan survives three balls, then Jade bowls her at 0.4. The first partnership contains one extra and no batter runs. Television keeps the stump camera up while Nia Brooke enters, making the incoming batter a more reliable boundary than the repeated image. Jade walks past mid-off to reset her mark, while the captain moves a catcher from point to the cordon. The radio analyst talks about the damp length and does not revisit the wicket ownership.\n\nThe production truck cuts briefly to the toss interview and returns with Nia waiting over a review. No additional ball has occurred during the insert, and the score strip is deliberately hidden. Back on the live decision, Jade traps Nia lbw on the next legal ball. That partnership contains no run of any kind. The gallery then returns to Aila's broken stumps while explaining Nia's decision, so two distinct live wickets are followed by an old picture rather than by a third dismissal. Maris takes several deliveries to settle, and the commentators turn to her defensive setup and Emilia's calling. The generic replay caption disappears before the next wicket.\n\nMaris Vale and Emilia Shaw try to rebuild. Emilia contributes one in their association, Maris two, and one run lies outside the bat. Jade bowls Maris at 3.6. No bowling total is displayed, and a generic Sinclair-strikes caption appears later over Aila's old stump-camera footage.\n\nLara Holt joins Emilia. Each batter contributes one and their interval has no extras. Nora Finch catches Lara from Tara Quinn at 6.2. The live blog briefly attaches Jade's generic caption to the paragraph, but the delivery and catch sequence clearly belong to Tara.\n\nSienna Park becomes Emilia's longest-lasting partner. Sienna's batting share reaches four. A partnership operator opens an extras box at five, then marks it for review because its first entry may have crossed the previous wicket boundary. Emilia's contribution is kept on another feed.\n\nEmilia's draft component in the Sienna stand reaches ten. The scorer notices that a wide shown before the stand's settled boundary has also been credited to Emilia by the television operator. She flags the batter component but delays the decision until the over transitions can be compared.\n\nA timeout interrupts that check. Television shows Sienna defending, then Aila's opening dismissal, then Sienna again. Jade is now fielding at cover, so the inserted Aila clip cannot add to Jade's live spell. The radio team discusses the surface rather than presenting any wicket list.\n\nIvy Stone bowls Sienna at 12.1. That ball fixes the fifth partnership's endpoint. The board updates the wicket count before the partnership ribbon, and the latter remains one run above the scorer's component ledger. No replacement stand value is shown.\n\nThe batter-side correction arrives two overs later. The carried wide is removed from Emilia's draft share in the Sienna partnership, putting that component one below ten. Sienna's contribution remains unchanged. The extras-side review is still open, so the partnership cannot yet be solved locally.\n\nFaye Turner faces two balls and scores nothing; Emilia also adds nothing in that stand, which has no extras. Ivy bowls Faye. A Sienna replay occupies the screen during the next batter's walk, but the incoming Faye-to-Bella transition proves that live play has advanced.\n\nBella Marsh also contributes nothing, as does Emilia during their brief partnership. One extra occurs before Ivy bowls Bella at the end of the over. The repeated Sienna celebration is shown once more between deliveries and must remain attached to the earlier wicket.\n\nOnly after Bella leaves does the interval clerk settle the Sienna-Emilia extras component. The fifth partnership had inherited one wide from the preceding display, so its provisional five is reduced by one. That correction is separated from both batter contributions and from Sienna's dismissal marker.\n\nCeleste Reed and Emilia add a small stand. Celeste supplies one, Emilia one, and one extra occurs before Rowan catches Celeste from Tara at 14.2. The extra is assigned solely to this eighth partnership interval, away from the already corrected fifth interval.\n\nRuth Elms stays longer. Ruth contributes three, Emilia six, and the interval contains one extra. Mira Vale bowls Ruth. The team-score line at that dismissal reads thirty-eight, while the over sheet holding its ball marker is temporarily with another clerk. Priya Cove enters as the final partner. The terminal delivery has not yet occurred.\n\nA scorer now checks the chase partnership partitions. The sixth interval had no extras, the seventh had one, the eighth had one and the ninth had one. She does not revisit the first five or say what the final interval will contain, leaving the aggregate distributed across the innings. A separate fall clerk confirms that Ruth followed eight earlier dismissals and is therefore the ninth wicket, without restating the score.\n\nPriya begins with a boundary. Her contribution across the final partnership eventually reaches five, although the tight camera shows the boundary twice. Emilia's contribution is not stated at this point. The television ticker provisionally treats the second angle as fresh play and carries the chase four runs beyond its event ledger.\n\nThe scorer compares fielder positions and retracts the duplicate boundary increment. The scoreboard returns to the roll-forward built from the ninth-wicket state. This correction occurs before the last wicket and supplies no new legal ball. Much later, the over-sheet clerk returns and identifies Ruth's dismissal marker as 16.5, without repeating either its score or wicket ordinal.\n\nThe final partnership contains no extras. That zero is entered only after the replay correction, well away from the earlier partnership-extra sequence. Priya remains on strike for part of the passage, and Emilia's personal ledger is still open.\n\nEmilia adds one in the final stand. Her earlier contributions are spread over Maris, Lara, Sienna, Faye, Bella, Celeste and Ruth, including the revised Sienna component and two explicit zero intervals. No personal total is displayed.\n\nAt 17.4 Emilia drives Mira and Jade takes the catch. A provisional production analysis assigns the dismissal to Jade because its parser follows the catcher name. The ground scorer revises the bowling ownership to Mira while preserving the dismissal itself. The ball is logged at 17.4 on the over sheet, with no wicket ordinal printed beside it.\n\nPriya remains not out and no further delivery is bowled. Only after play has stopped does the fall clerk close Emilia's line as the tenth wicket, without restating the score or delivery. A live-blog footer still contains the four replay runs for several seconds, then disappears. The official state therefore depends on the earlier ninth-wicket score, the two separated batter contributions, the zero-extra final interval, the replay retraction, the tenth-wicket order and the delivery marker.\n\nThe radio closes by confirming Meadowridge's victory and Jade as player of the match, without repeating the winning margin. The broadcast signs off before the detailed cards are posted, with the scorer still carrying the reconciled worksheets toward the pavilion."
+}

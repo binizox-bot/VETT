@@ -1,0 +1,5 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic match-result and score reading | Crescent A Women made 94/9; Highland Women finished 86/7; Crescent A Women won by 8 runs; Zoe Carter was Player of the Match. |
+| L2 | Cricket-rule arithmetic | Requires checking totals, extras, balls, wickets and chase margin | Crescent batting runs add to 87 plus 7 extras, matching 94; Highland batting runs add to 78 plus 8 extras, matching 86; 94 minus 86 gives the 8-run margin. |
+| L3 | Commentary-hidden inference | Requires mapping narrative phases to scorecard structure | “Early repair through Chloe and Isla, late rescue through Zoe and Grace, Highland’s delayed final stand arriving too late” maps to 34-run second-wicket stand, 24-run eighth-wicket stand, and Highland’s 28-run seventh-wicket stand. |

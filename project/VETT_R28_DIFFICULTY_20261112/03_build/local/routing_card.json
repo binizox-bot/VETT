@@ -1,0 +1,338 @@
+{
+  "assertions": [
+    "card.task_set == TASK_SPECS ∪ DENY_ROUTES",
+    "every ALLOW verdict has measured.agreement >= 0.85 over >=30 samples",
+    "every DENY verdict has a non-empty deny_reason and reason_code",
+    "card.input_cap_tokens == TASK_SPECS[task].input_cap_tokens",
+    "assert_allowed permits ALLOW tasks and raises TaskDenied for DENY tasks",
+    "assert_allowed raises InputCapExceeded above the task cap",
+    "assert_allowed raises InputCapExceeded above the hard 8K-token ceiling",
+    "card.temperature == 0.0 and card.seed == 20261112",
+    "deny evidence cites the measured 40K/80K/confidence numbers"
+  ],
+  "deny_evidence": {
+    "confidence_expected_range": "0-1",
+    "confidence_mean": 60.53,
+    "constant_prior_40k": "4.77/9",
+    "fields_40k": "4.20/9",
+    "fields_80k": "4.55/9",
+    "hard_input_cap_tokens": 8192,
+    "json_compliance": "30/30",
+    "latency_80k_s": 17.7,
+    "latency_8k_s": 8.0,
+    "short_prompt_latency_s": 2.3,
+    "source": "_local_model_smoke/RESULTS.md (30 questions x 4 evidence budgets)",
+    "throughput_tokens_per_s": "65-77"
+  },
+  "gate": {
+    "fail_safe": "DENY when unmeasured or below threshold",
+    "metric": "agreement_with_mechanical_truth",
+    "samples_per_task_min": 30,
+    "source": "capability_matrix.json",
+    "threshold": 0.85
+  },
+  "generated_at": "2026-11-12T10:35:19Z",
+  "generated_from": {
+    "capability_matrix": "capability_matrix.json",
+    "matrix_generated_at": "2026-11-12T10:33:43Z",
+    "matrix_mode": "full"
+  },
+  "hard_limits": {
+    "keep_alive": "30m",
+    "max_input_tokens": 8192,
+    "min_free_vram_mib": 1536,
+    "num_ctx": 8192,
+    "over_limit_behaviour": "raise InputCapExceeded / DEGRADED; never truncate",
+    "retries": 2,
+    "seed": 20261112,
+    "temperature": 0.0,
+    "timeout_s": 180.0
+  },
+  "model": {
+    "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "family": "qwen2",
+    "gpu": "NVIDIA GeForce RTX 3070",
+    "ollama_version": "0.40.16",
+    "parameter_size": "7.6B",
+    "quantization_level": "Q4_K_M",
+    "tag": "qwen2.5:7b-instruct-q4_K_M"
+  },
+  "schema_version": "vett-local-routing-card/v1",
+  "tasks": {
+    "C1_cert_sentence_consistency": {
+      "deny_reason": null,
+      "downstream": [
+        "t21"
+      ],
+      "expected_seconds": {
+        "design_value": 2.0,
+        "mean": 0.218,
+        "p50": 0.216,
+        "p95": 0.236,
+        "source": "measured"
+      },
+      "fallback": "deterministic_solver_certificate",
+      "input_cap_basis": "conservative estimate: utf8_bytes/3",
+      "input_cap_tokens": 2000,
+      "measured": {
+        "agreement": 1.0,
+        "gate_metric": "agreement_with_mechanical_truth",
+        "matrix_generated_at": "2026-11-12T10:33:43Z",
+        "n": 30,
+        "parse_failure_rate": 0.0,
+        "threshold": 0.85
+      },
+      "num_predict": 96,
+      "prompt_template_version": "C1.cert_sentence_consistency.v1",
+      "reason_code": null,
+      "validator": "mechanical_truth",
+      "verdict": "ALLOW"
+    },
+    "D1_12_field_record_derivation": {
+      "deny_reason": "Local 7B must not derive the 12-field decision record: on 40K-char dossiers it scores 4.20/9 informative fields, BELOW the constant prior 4.77/9, and 80K input raises that only to 4.55/9 at 17.7 s/answer. It extracts signal but is not a solver.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "deterministic solver / private gold",
+      "input_cap_tokens": null,
+      "measured": {},
+      "measured_evidence": {
+        "constant_prior_40k": "4.77/9",
+        "fields_40k": "4.20/9",
+        "fields_80k": "4.55/9",
+        "latency_80k_s": 17.7
+      },
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "MEASURED_BELOW_PRIOR",
+      "validator": "none",
+      "verdict": "DENY"
+    },
+    "D2_confidence_output": {
+      "deny_reason": "Confidence output is unusable: the local model emitted a mean of 60.53 on a scale that should be 0-1. Any confidence produced by this model is discarded and never enters calibration, risk-coverage or statistics.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "discard confidence; calibrate mechanically if needed",
+      "input_cap_tokens": null,
+      "measured": {},
+      "measured_evidence": {
+        "confidence_expected_range": "0-1",
+        "confidence_mean": 60.53
+      },
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "UNUSABLE_OUTPUT",
+      "validator": "none",
+      "verdict": "DENY"
+    },
+    "D3_kappa_arbitration": {
+      "deny_reason": "Cross-model kappa arbitration is statistical inference and is owned by judge_architect/measurement_auditor; the local model is an annotation labourer, never an arbiter. Also excluded by the confidence prohibition.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "judge_architect / measurement_auditor",
+      "input_cap_tokens": null,
+      "measured": {},
+      "measured_evidence": {
+        "confidence_mean": 60.53
+      },
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "ROLE_ISOLATION",
+      "validator": "none",
+      "verdict": "DENY"
+    },
+    "D4_statistical_inference": {
+      "deny_reason": "No statistical inference (priors, Brier, slopes, CIs, p-values) is ever delegated to the local model; those are computed by deterministic code.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "deterministic statistics code",
+      "input_cap_tokens": null,
+      "measured": {},
+      "measured_evidence": {
+        "fields_40k": "4.20/9"
+      },
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "NOT_A_MODEL_TASK",
+      "validator": "none",
+      "verdict": "DENY"
+    },
+    "D5_contract_or_code_design": {
+      "deny_reason": "Contracts, pre-registration, code and gates are design artefacts; the local model is not allowed to author or modify them.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "data_designer / data_engineer / pipeline_engineer",
+      "input_cap_tokens": null,
+      "measured": {},
+      "measured_evidence": {},
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "ROLE_ISOLATION",
+      "validator": "none",
+      "verdict": "DENY"
+    },
+    "D6_input_over_8k_tokens": {
+      "deny_reason": "Any input above 8K tokens is DENY: 80K-character dossiers take 17.7 s and do not improve accuracy (4.55/9 vs 4.20/9 at 40K), so the extra context is pure cost. Over-limit inputs are refused, never silently truncated.",
+      "downstream": [],
+      "expected_seconds": 17.7,
+      "fallback": "reject with InputCapExceeded / DEGRADED",
+      "input_cap_tokens": 8192,
+      "measured": {},
+      "measured_evidence": {
+        "fields_80k": "4.55/9",
+        "hard_input_cap_tokens": 8192,
+        "latency_80k_s": 17.7
+      },
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "HARD_INPUT_CAP",
+      "validator": "hard refusal (no silent truncation)",
+      "verdict": "DENY"
+    },
+    "D7_draft_without_solver_check": {
+      "deny_reason": "Candidate drafts may be generated locally only as inputs to the deterministic solver; no locally generated draft may be published or scored as an answer without solver verification.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "solver check; reject unverified drafts",
+      "input_cap_tokens": 8192,
+      "measured": {},
+      "measured_evidence": {
+        "fields_40k": "4.20/9"
+      },
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "UNVERIFIED_GENERATION",
+      "validator": "deterministic solver must verify every draft",
+      "verdict": "DENY"
+    },
+    "D8_T3_adjudication": {
+      "deny_reason": "T3 adjudication needs a deep cloud model; the local 7B has no measured capability for adjudication and is not allowed to arbitrate.",
+      "downstream": [],
+      "expected_seconds": null,
+      "fallback": "annotator_alpha (cloud, sampled)",
+      "input_cap_tokens": null,
+      "measured": {},
+      "measured_evidence": {},
+      "num_predict": null,
+      "prompt_template_version": null,
+      "reason_code": "ROLE_ISOLATION",
+      "validator": "cloud annotator + judge",
+      "verdict": "DENY"
+    },
+    "R1_readability": {
+      "deny_reason": "agreement 0.667 on n=30 (threshold 0.85); discrimination_ok=False rho=-0.1672; failed checks: agreement_ge_threshold, discrimination_ok",
+      "downstream": [
+        "t21"
+      ],
+      "expected_seconds": {
+        "design_value": 2.6,
+        "mean": 0.326,
+        "p50": 0.314,
+        "p95": 0.419,
+        "source": "measured"
+      },
+      "fallback": "flesch_reading_ease_band",
+      "input_cap_basis": "conservative estimate: utf8_bytes/3",
+      "input_cap_tokens": 2000,
+      "measured": {
+        "agreement": 0.6667,
+        "gate_metric": "ordinal_agreement_within_1_with_FRE",
+        "matrix_generated_at": "2026-11-12T10:33:43Z",
+        "n": 30,
+        "parse_failure_rate": 0.0,
+        "threshold": 0.85
+      },
+      "num_predict": 96,
+      "prompt_template_version": "R1.readability.v1",
+      "reason_code": "CAPABILITY_BELOW_THRESHOLD",
+      "validator": "mechanical_truth+retest",
+      "verdict": "DENY"
+    },
+    "S1_span_topic": {
+      "deny_reason": null,
+      "downstream": [
+        "t14"
+      ],
+      "expected_seconds": {
+        "design_value": 2.2,
+        "mean": 0.146,
+        "p50": 0.146,
+        "p95": 0.164,
+        "source": "measured"
+      },
+      "fallback": "mechanical_lexicon_rule",
+      "input_cap_basis": "conservative estimate: utf8_bytes/3",
+      "input_cap_tokens": 1000,
+      "measured": {
+        "agreement": 1.0,
+        "gate_metric": "agreement_with_mechanical_truth",
+        "matrix_generated_at": "2026-11-12T10:33:43Z",
+        "n": 32,
+        "parse_failure_rate": 0.0,
+        "threshold": 0.85
+      },
+      "num_predict": 96,
+      "prompt_template_version": "S1.span_topic.v4",
+      "reason_code": null,
+      "validator": "mechanical_truth",
+      "verdict": "ALLOW"
+    },
+    "T1_factor_visibility": {
+      "deny_reason": null,
+      "downstream": [
+        "t14"
+      ],
+      "expected_seconds": {
+        "design_value": 2.5,
+        "mean": 0.312,
+        "p50": 0.191,
+        "p95": 0.889,
+        "source": "measured"
+      },
+      "fallback": "mechanical_lexicon_rule",
+      "input_cap_basis": "conservative estimate: utf8_bytes/3",
+      "input_cap_tokens": 3000,
+      "measured": {
+        "agreement": 0.9333,
+        "gate_metric": "agreement_with_mechanical_truth",
+        "matrix_generated_at": "2026-11-12T10:33:43Z",
+        "n": 30,
+        "parse_failure_rate": 0.0,
+        "threshold": 0.85
+      },
+      "num_predict": 128,
+      "prompt_template_version": "T1.factor_visibility.v1",
+      "reason_code": null,
+      "validator": "mechanical_truth",
+      "verdict": "ALLOW"
+    },
+    "T2_naturalness": {
+      "deny_reason": null,
+      "downstream": [
+        "t14"
+      ],
+      "expected_seconds": {
+        "design_value": 3.0,
+        "mean": 0.218,
+        "p50": 0.212,
+        "p95": 0.244,
+        "source": "measured"
+      },
+      "fallback": "mechanical_corruption_proxy",
+      "input_cap_basis": "conservative estimate: utf8_bytes/3",
+      "input_cap_tokens": 2000,
+      "measured": {
+        "agreement": 1.0,
+        "gate_metric": "pairwise_order_agreement_with_mechanical_truth",
+        "matrix_generated_at": "2026-11-12T10:33:43Z",
+        "n": 30,
+        "parse_failure_rate": 0.0,
+        "threshold": 0.85
+      },
+      "num_predict": 128,
+      "prompt_template_version": "T2.naturalness_pair.v1",
+      "reason_code": null,
+      "validator": "retest_consistency+mechanical_truth",
+      "verdict": "ALLOW"
+    }
+  }
+}

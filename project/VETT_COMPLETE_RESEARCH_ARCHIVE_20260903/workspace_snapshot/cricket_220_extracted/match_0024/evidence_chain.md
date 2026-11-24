@@ -1,0 +1,5 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic identification of result, innings totals and award | Crest Women A made 134/8; Delta Women A made 106 all out; Crest Women A won by 28 runs; Olivia Reed was Player of the Match. |
+| L2 | Cricket-rule arithmetic | Requires checking totals, innings balance, batting runs plus extras, wicket chain and result margin | Crest batting runs add to 123 plus 11 extras, matching 134; Delta batting runs add to 91 plus 15 extras, matching 106; 134 minus 106 gives a 28-run win. |
+| L3 | Commentary-hidden inference | Requires connecting narrative pressure phases to scorecard facts rather than copying raw fields | “Olivia stopped the late slide,” “Ruby broke the chase early,” and “Chloe cut through the middle and lower order” map to Olivia’s unbeaten 32 and two wickets, Ruby’s three top-half wickets, and Chloe’s four-wicket defending spell. |

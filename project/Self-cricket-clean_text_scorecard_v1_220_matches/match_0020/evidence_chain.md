@@ -1,0 +1,5 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic table reading and entity recognition | Result is No Result; Desert Lions made 136/10; Gulf XI were 45/0 when play stopped. |
+| L2 | Cricket-rule arithmetic | Requires score, wickets, balls, extras, partnerships and FOW to be reconciled | Desert Lions’ batting runs add to 118 and extras add 18, matching 136; Gulf XI’s batting runs add to 42 and extras add 3, matching 45; 32.1 overs equals 193 legal balls. |
+| L3 | Commentary-hidden inference | Requires linking narrative phrasing to scorecard structure rather than reading isolated numbers | “Early base, Ethan-led repair, lower-order collapse, Evan Turner’s late flare, Gulf’s chase interrupted before official distance” maps to 33/1, 69/3, 103/8, 136 all out, and 45/0 after 6.4 overs. |

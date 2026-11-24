@@ -1,0 +1,10 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic match result and major performers can be found directly. | Ridgefield won by 3 wickets; Adrian Hale was Player of the Match; Coastmere made 166 all out; Ridgefield reached 169/7. |
+| L1 | Key innings and spell identification | Main contributions are visible without calculation. | Adrian Hale made 66 and took 5 wickets; Dorian Ward made 49; Gavin Holt took 5 wickets in the chase. |
+| L2 | Cricket-rule arithmetic | Requires checking totals through batting runs and extras. | Coastmere batting runs add to 148 and extras add 18, giving 166; Ridgefield batting runs add to 157 and extras add 12, giving 169. |
+| L2 | Result-margin logic | Requires understanding chase target and wicket-margin result. | Coastmere made 166, so Ridgefield needed 167; Ridgefield reached 169/7, therefore won by 3 wickets. |
+| L2 | Partnership/FOW consistency | Requires cumulative verification across partnership and fall-of-wicket tables. | Coastmere progresses through 42, 56, 104, 114, 120, 128, 137, 145, 160, 166; Ridgefield progresses through 0, 93, 100, 124, 147, 147, 151, 169. |
+| L2 | Bowling reconciliation | Requires knowing byes and leg-byes are not charged to bowlers. | Coastmere total is 166 but Ridgefield bowlers concede 163 charged runs because three came as byes/leg-byes; Ridgefield total is 169 but Coastmere bowlers concede 167 charged runs because two came as leg-byes. |
+| L3 | Commentary-hidden inference | Important scorecard facts are embedded through match rhythm instead of dense score strings. | The text describes Dorian Ward’s holding role, Adrian Hale’s spell, the chase’s first-ball shock, the Adrian-Cameron recovery, Gavin Holt’s late five-wicket drag, and Noah Bennett’s finishing burst. |
+| L3 | Narrative-to-table validation | Requires connecting qualitative pressure points to table evidence. | “The chase nearly became messy after the main stand broke” maps to Ridgefield falling from 93/2 to 151/7 before Noah Bennett closed the game. |

@@ -1,0 +1,452 @@
+# Research memory
+
+- project: VETT autonomous local experiment workflow
+- method: wf-20261117-v1
+- external API calls: 0
+
+## Findings
+
+- B001 T1_baseline_o: accuracy 1.0, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B001.jsonl
+- B002 T2_hard_excerpt: accuracy 0.8333, conditions E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B002.jsonl
+- B003 T3_matched_deletion: accuracy 0.1667, conditions O,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B003.jsonl
+- B004 T4_full_table: accuracy 0.1938, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B004.jsonl
+- B005 T2_hard_excerpt: accuracy 0.8333, conditions E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B005.jsonl
+- B006 T3_matched_deletion: accuracy 0.0, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B006.jsonl
+- B007 T5_hard_fulltext: accuracy 0.0, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B007.jsonl
+- B008 T1_baseline_o: accuracy 0.9167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B008.jsonl
+- B009 T5_hard_fulltext: accuracy 0.0, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B009.jsonl
+- B010 T1_baseline_o: accuracy 1.0, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B010.jsonl
+- B011 T5_hard_fulltext: accuracy 0.0, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B011.jsonl
+- B012 A_field_probe: accuracy 0.9167, conditions E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B012.jsonl
+- B013 B_cross_innings: accuracy 0.0, conditions OIC, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B013.jsonl
+- B014 T1_baseline_o: accuracy 0.8333, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B014.jsonl
+- B015 T3_matched_deletion: accuracy 0.2222, conditions O,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B015.jsonl
+- B016 S_coverage_sweep: accuracy 0.8125, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B016.jsonl
+- B017 S_coverage_sweep: accuracy 0.7667, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B017.jsonl
+- B018 S_coverage_sweep: accuracy 0.85, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B018.jsonl
+- B019 C_adjudication: accuracy 0.9778, conditions C_change,C_maintain,C_no_notice, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B019.jsonl
+- B020 S_coverage_sweep: accuracy 0.7708, conditions E,OI,O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B020.jsonl
+- B021 B2_matched_control: accuracy 0.0, conditions NEI_OI,NEI_WI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B021.jsonl
+- B022 C_adjudication: accuracy 0.9222, conditions C_change,C_maintain,C_no_notice, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B022.jsonl
+- B023 S_coverage_sweep: accuracy 0.8167, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B023.jsonl
+- B024 S_coverage_sweep: accuracy 0.8667, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B024.jsonl
+- B025 S_coverage_sweep: accuracy 0.6458, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B025.jsonl
+- B026 S_coverage_sweep: accuracy 0.6389, conditions O,E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B026.jsonl
+- B027 S_coverage_sweep: accuracy 0.619, conditions O,E,WI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B027.jsonl
+- B028 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B028.jsonl
+- B029 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B029.jsonl
+- B030 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B030.jsonl
+- B031 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B031.jsonl
+- B032 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B032.jsonl
+- B033 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B033.jsonl
+- B034 S_coverage_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B034.jsonl
+- B035 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B035.jsonl
+- B036 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B036.jsonl
+- B037 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B037.jsonl
+- B038 S_coverage_sweep: accuracy 0.75, conditions O,E,OI,WI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B038.jsonl
+- B039 S_coverage_sweep: accuracy 0.5714, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B039.jsonl
+- B040 S_coverage_sweep: accuracy 0.641, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B040.jsonl
+- B041 S_coverage_sweep: accuracy 0.5833, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B041.jsonl
+- B042 S_coverage_sweep: accuracy 0.6667, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B042.jsonl
+- B043 S_coverage_sweep: accuracy 0.6333, conditions O,E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B043.jsonl
+- B044 S_coverage_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B044.jsonl
+- B045 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B045.jsonl
+- B046 S_coverage_sweep: accuracy 0.625, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B046.jsonl
+- B047 S_coverage_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B047.jsonl
+- B048 S_coverage_sweep: accuracy 0.5833, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B048.jsonl
+- B049 S_coverage_sweep: accuracy 0.7222, conditions O,E,WI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B049.jsonl
+- B050 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B050.jsonl
+- B051 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B051.jsonl
+- B052 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B052.jsonl
+- B053 S_coverage_sweep: accuracy 0.5667, conditions O,E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B053.jsonl
+- B054 S_coverage_sweep: accuracy 0.5333, conditions O,E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B054.jsonl
+- B055 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B055.jsonl
+- B056 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B056.jsonl
+- B057 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B057.jsonl
+- B058 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B058.jsonl
+- B059 S_coverage_sweep: accuracy 0.6786, conditions E,WI,OI,O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B059.jsonl
+- B060 S_coverage_sweep: accuracy 0.6111, conditions E,WI,OI,O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B060.jsonl
+- B061 S_coverage_sweep: accuracy 0.375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B061.jsonl
+- B062 S_coverage_sweep: accuracy 0.375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B062.jsonl
+- B063 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B063.jsonl
+- B064 S_coverage_sweep: accuracy 0.625, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B064.jsonl
+- B065 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B065.jsonl
+- B066 S_coverage_sweep: accuracy 0.6667, conditions O,E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B066.jsonl
+- B067 S_coverage_sweep: accuracy 0.381, conditions O,E,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B067.jsonl
+- B068 S_coverage_sweep: accuracy 0.6, conditions O,E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B068.jsonl
+- B069 S_coverage_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B069.jsonl
+- B070 S_coverage_sweep: accuracy 0.25, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B070.jsonl
+- B071 S_coverage_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B071.jsonl
+- B072 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B072.jsonl
+- B073 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B073.jsonl
+- B074 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B074.jsonl
+- B075 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B075.jsonl
+- B076 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B076.jsonl
+- B077 S_coverage_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B077.jsonl
+- B078 S_coverage_sweep: accuracy 0.625, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B078.jsonl
+- B079 S_coverage_sweep: accuracy 0.6667, conditions E,WI,OI,O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B079.jsonl
+- B080 S_coverage_sweep: accuracy 0.7222, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B080.jsonl
+- B081 S_coverage_sweep: accuracy 0.6389, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B081.jsonl
+- B082 S_coverage_sweep: accuracy 0.7083, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B082.jsonl
+- B083 S_coverage_sweep: accuracy 0.6282, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B083.jsonl
+- B084 S_coverage_sweep: accuracy 0.6146, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B084.jsonl
+- B085 S_coverage_sweep: accuracy 0.6667, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B085.jsonl
+- B086 S_coverage_sweep: accuracy 0.5972, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B086.jsonl
+- B087 S_coverage_sweep: accuracy 0.6167, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B087.jsonl
+- B088 S_coverage_sweep: accuracy 0.2083, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B088.jsonl
+- B089 S_coverage_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B089.jsonl
+- B090 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B090.jsonl
+- B091 S_coverage_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B091.jsonl
+- B092 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B092.jsonl
+- B093 S_coverage_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B093.jsonl
+- B094 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B094.jsonl
+- B095 S_coverage_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B095.jsonl
+- B096 S_coverage_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B096.jsonl
+- B097 S_coverage_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B097.jsonl
+- B098 S_coverage_sweep: accuracy 0.375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B098.jsonl
+- B099 S_coverage_sweep: accuracy 0.5208, conditions O,E,WI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B099.jsonl
+- B100 S_coverage_sweep: accuracy 0.6667, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B100.jsonl
+- B101 S_coverage_sweep: accuracy 0.625, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B101.jsonl
+- B102 S_coverage_sweep: accuracy 0.5, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B102.jsonl
+- B103 S_coverage_sweep: accuracy 0.5833, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B103.jsonl
+- B104 S_coverage_sweep: accuracy 0.7273, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B104.jsonl
+- B105 S_coverage_sweep: accuracy 0.4167, conditions O,E,WI,OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B105.jsonl
+- B106 S_coverage_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B106.jsonl
+- B107 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B107.jsonl
+- B108 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B108.jsonl
+- B109 P_field_sweep: accuracy 0.5208, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B109.jsonl
+- B110 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B110.jsonl
+- B111 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B111.jsonl
+- B112 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B112.jsonl
+- B113 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B113.jsonl
+- B114 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B114.jsonl
+- B115 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B115.jsonl
+- B116 P_field_sweep: accuracy 0.4375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B116.jsonl
+- B117 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B117.jsonl
+- B118 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B118.jsonl
+- B119 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B119.jsonl
+- B120 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B120.jsonl
+- B121 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B121.jsonl
+- B122 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B122.jsonl
+- B123 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B123.jsonl
+- B124 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B124.jsonl
+- B125 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B125.jsonl
+- B126 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B126.jsonl
+- B127 P_field_sweep: accuracy 0.625, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B127.jsonl
+- B128 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B128.jsonl
+- B129 P_field_sweep: accuracy 0.6042, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B129.jsonl
+- B130 P_field_sweep: accuracy 0.5625, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B130.jsonl
+- B131 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B131.jsonl
+- B132 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B132.jsonl
+- B133 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B133.jsonl
+- B134 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B134.jsonl
+- B135 P_field_sweep: accuracy 0.5833, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B135.jsonl
+- B136 P_field_sweep: accuracy 0.4375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B136.jsonl
+- B137 P_field_sweep: accuracy 0.5208, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B137.jsonl
+- B138 P_field_sweep: accuracy 0.6042, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B138.jsonl
+- B139 P_field_sweep: accuracy 0.7292, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B139.jsonl
+- B140 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B140.jsonl
+- B141 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B141.jsonl
+- B142 P_field_sweep: accuracy 0.3958, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B142.jsonl
+- B143 P_field_sweep: accuracy 0.5208, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B143.jsonl
+- B144 P_field_sweep: accuracy 0.3958, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B144.jsonl
+- B145 P_field_sweep: accuracy 0.5208, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B145.jsonl
+- B146 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B146.jsonl
+- B147 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B147.jsonl
+- B148 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B148.jsonl
+- B149 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B149.jsonl
+- B150 P_field_sweep: accuracy 0.375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B150.jsonl
+- B151 ACC_llama_p320: accuracy 0.6667, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B151.jsonl
+- B152 P_field_sweep: accuracy 0.3125, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B152.jsonl
+- B153 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B153.jsonl
+- B154 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B154.jsonl
+- B155 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B155.jsonl
+- B156 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B156.jsonl
+- B157 P_field_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B157.jsonl
+- B158 P_field_sweep: accuracy 0.5208, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B158.jsonl
+- B159 P_field_sweep: accuracy 0.25, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B159.jsonl
+- B160 P_field_sweep: accuracy 0.2917, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B160.jsonl
+- B161 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B161.jsonl
+- B162 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B162.jsonl
+- B163 P_field_sweep: accuracy 0.5208, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B163.jsonl
+- B164 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B164.jsonl
+- B165 P_field_sweep: accuracy 0.5435, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B165.jsonl
+- B166 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B166.jsonl
+- B167 P_field_sweep: accuracy 0.3958, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B167.jsonl
+- B168 P_field_sweep: accuracy 0.6667, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B168.jsonl
+- B169 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B169.jsonl
+- B170 P_field_sweep: accuracy 0.4375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B170.jsonl
+- B171 P_field_sweep: accuracy 0.5833, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B171.jsonl
+- B172 P_field_sweep: accuracy 0.5833, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B172.jsonl
+- B173 P_field_sweep: accuracy 0.375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B173.jsonl
+- B174 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B174.jsonl
+- B175 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B175.jsonl
+- B176 P_field_sweep: accuracy 0.5417, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B176.jsonl
+- B177 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B177.jsonl
+- B178 P_field_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B178.jsonl
+- B179 P_field_sweep: accuracy 0.3958, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B179.jsonl
+- B180 P_field_sweep: accuracy 0.3958, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B180.jsonl
+- B181 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B181.jsonl
+- B182 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B182.jsonl
+- B183 P_field_sweep: accuracy 0.4375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B183.jsonl
+- B184 P_field_sweep: accuracy 0.5625, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B184.jsonl
+- B185 P_field_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B185.jsonl
+- B186 P_field_sweep: accuracy 0.4375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B186.jsonl
+- B187 P_field_sweep: accuracy 0.375, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B187.jsonl
+- B188 P_field_sweep: accuracy 0.5, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B188.jsonl
+- B189 P_field_sweep: accuracy 0.3125, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B189.jsonl
+- B190 P_field_sweep: accuracy 0.4792, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B190.jsonl
+- B191 P_field_sweep: accuracy 0.5833, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B191.jsonl
+- B192 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B192.jsonl
+- B193 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B193.jsonl
+- B194 P_field_sweep: accuracy 0.4583, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B194.jsonl
+- B195 P_field_sweep: accuracy 0.4167, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B195.jsonl
+- B196 P_field_sweep: accuracy 0.3958, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B196.jsonl
+- B197 P_field_sweep: accuracy 0.3333, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B197.jsonl
+- B198 T4_full_table_scale: accuracy 0.2677, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B198.jsonl
+- B199 T4_full_table_scale2: accuracy 0.2358, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B199.jsonl
+- B200 T4_full_table_O_scale: accuracy 0.1299, conditions O, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B200.jsonl
+- B207 T4_full_table_E_used: accuracy 0.1081, conditions E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B207.jsonl
+- B208 T4_full_table_OI_used: accuracy 0.2483, conditions OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B208.jsonl
+- B209 B_cross_innings_scale: accuracy 0.5862, conditions OIC, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B209.jsonl
+- B209Z X_codex_abc_pilot: accuracy 0.8021, conditions X_window,C_no_notice_full,C_maintain_full,C_change_full,C_no_notice_window,C_maintain_window,C_change_window, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B209Z.jsonl
+- B210 P_E_probe: accuracy 0.8851, conditions E, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B210.jsonl
+- B211 P_OI_probe: accuracy 0.649, conditions OI, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B211.jsonl
+- B212 X_codex_frozen_v1: accuracy 1.0, conditions c00,c01,c10,c11,c12, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B212.jsonl
+- B213 X_night_core_event: accuracy 0.9667, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B213.jsonl
+- B221 X_night_core_event: accuracy 0.8556, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B221.jsonl
+- B222 X_night_core_event: accuracy 0.8333, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B222.jsonl
+- B223 X_night_core_event: accuracy 0.9222, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B223.jsonl
+- B224 X_night_core_event: accuracy 0.7222, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B224.jsonl
+- B225 X_night_core_event: accuracy 0.9, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B225.jsonl
+- B226 X_night_core_event: accuracy 0.9333, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B226.jsonl
+- B227 X_night_core_event: accuracy 0.7444, conditions N0_F,N0_W,N1_F,N1_W,N2_F,N2_W, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B227.jsonl
+- B228 X_night_fulltable: accuracy 0.2752, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B228.jsonl
+- B229 X_night_fulltable: accuracy 0.2171, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B229.jsonl
+- B230 X_night_fulltable: accuracy 0.2364, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B230.jsonl
+- B231 X_night_fulltable: accuracy 0.2907, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B231.jsonl
+- B232 X_night_fulltable: accuracy 0.186, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B232.jsonl
+- B233 X_night_fulltable: accuracy 0.155, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B233.jsonl
+- B234 X_night_fulltable: accuracy 0.2248, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B234.jsonl
+- B235 X_night_fulltable: accuracy 0.2442, conditions N1_F_fulltable,N2_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B235.jsonl
+- B236 X_night_fallback: accuracy 0.9667, conditions F_full,F_window, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B236.jsonl
+- B237 X_night_ft_ordinary: accuracy 0.191, conditions O_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B237.jsonl
+- B238 X_night_ft_ordinary: accuracy 0.2783, conditions O_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B238.jsonl
+- B239 X_night_ft_ordinary: accuracy 0.2109, conditions O_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B239.jsonl
+- B240 X_night_ft_ordinary: accuracy 0.2659, conditions O_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B240.jsonl
+- B241 X_night_ft_ordinary: accuracy 0.2512, conditions O_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B241.jsonl
+- B242 X_night_ft_ordinary: accuracy 0.2387, conditions O_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B242.jsonl
+- B243 X_night_diag: accuracy 0.4667, conditions q1_batter,q2_original,q3_final,q4_old, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B243.jsonl
+- B244 X_night_diag: accuracy 0.5938, conditions q1_batter,q2_original,q4_old, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B244.jsonl
+- B245 X_night_diag: accuracy 0.6562, conditions q1_batter,q2_original,q4_old, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B245.jsonl
+- B246 X_night_diag: accuracy 0.7788, conditions q1_batter,q2_original,q4_old,q3_final, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B246.jsonl
+- B247 X_night_fulltable: accuracy 0.2607, conditions N0_F_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B247.jsonl
+- B248 X_night_partial: accuracy 0.7333, conditions N1_F_partial,N2_F_partial, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B248.jsonl
+- B249 X_night_partial: accuracy 0.2833, conditions N1_W_partial,N2_W_partial, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B249.jsonl
+- B250 X_night_fulltable: accuracy 0.1003, conditions N1_W_fulltable,N2_W_fulltable, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B250.jsonl
+- B251 X_night_field: accuracy 0.2208, conditions N1_F_Evan Clarke_wickets,N1_F_Evan Clarke_runs,N1_F_Connor Reed_wickets,N1_F_Connor Reed_runs,N1_F_innings_total_wickets,N1_W_Evan Clarke_wickets,N1_W_Evan Clarke_runs,N1_W_Connor Reed_wickets,N1_W_Connor Reed_runs,N1_W_innings_total_wickets,N2_F_Evan Clarke_wickets,N2_F_Evan Clarke_runs,N2_F_Connor Reed_wickets,N2_F_Connor Reed_runs,N2_F_innings_total_wickets,N2_W_Evan Clarke_wickets,N2_W_Evan Clarke_runs,N2_W_Connor Reed_wickets,N2_W_Connor Reed_runs,N2_W_innings_total_wickets,N1_F_Luke Barrett_wickets,N1_F_Luke Barrett_runs,N1_F_Ryan Frost_wickets,N1_F_Ryan Frost_runs,N1_W_Luke Barrett_wickets,N1_W_Luke Barrett_runs,N1_W_Ryan Frost_wickets,N1_W_Ryan Frost_runs,N2_F_Luke Barrett_wickets,N2_F_Luke Barrett_runs,N2_F_Ryan Frost_wickets,N2_F_Ryan Frost_runs,N2_W_Luke Barrett_wickets,N2_W_Luke Barrett_runs,N2_W_Ryan Frost_wickets,N2_W_Ryan Frost_runs,N1_F_Ryan Foster_wickets,N1_F_Ryan Foster_runs,N1_F_Evan Turner_wickets,N1_F_Evan Turner_runs,N1_W_Ryan Foster_wickets,N1_W_Ryan Foster_runs,N1_W_Evan Turner_wickets,N1_W_Evan Turner_runs,N2_F_Ryan Foster_wickets,N2_F_Ryan Foster_runs,N2_F_Evan Turner_wickets,N2_F_Evan Turner_runs,N2_W_Ryan Foster_wickets,N2_W_Ryan Foster_runs,N2_W_Evan Turner_wickets,N2_W_Evan Turner_runs,N1_F_Caleb Brooks_wickets,N1_F_Caleb Brooks_runs,N1_F_Lucas Vale_wickets,N1_F_Lucas Vale_runs,N1_W_Caleb Brooks_wickets,N1_W_Caleb Brooks_runs,N1_W_Lucas Vale_wickets,N1_W_Lucas Vale_runs,N2_F_Caleb Brooks_wickets,N2_F_Caleb Brooks_runs,N2_F_Lucas Vale_wickets,N2_F_Lucas Vale_runs,N2_W_Caleb Brooks_wickets,N2_W_Caleb Brooks_runs,N2_W_Lucas Vale_wickets,N2_W_Lucas Vale_runs,N1_F_Noah Grant_wickets,N1_F_Noah Grant_runs,N1_F_Caleb Rourke_wickets,N1_F_Caleb Rourke_runs,N1_W_Noah Grant_wickets,N1_W_Noah Grant_runs,N1_W_Caleb Rourke_wickets,N1_W_Caleb Rourke_runs,N2_F_Noah Grant_wickets,N2_F_Noah Grant_runs,N2_F_Caleb Rourke_wickets,N2_F_Caleb Rourke_runs,N2_W_Noah Grant_wickets,N2_W_Noah Grant_runs,N2_W_Caleb Rourke_wickets,N2_W_Caleb Rourke_runs,N1_F_Miles Carter_wickets,N1_F_Miles Carter_runs,N1_F_Liam Brooks_wickets,N1_F_Liam Brooks_runs,N1_W_Miles Carter_wickets,N1_W_Miles Carter_runs,N1_W_Liam Brooks_wickets,N1_W_Liam Brooks_runs,N2_F_Miles Carter_wickets,N2_F_Miles Carter_runs,N2_F_Liam Brooks_wickets,N2_F_Liam Brooks_runs,N2_W_Miles Carter_wickets,N2_W_Miles Carter_runs,N2_W_Liam Brooks_wickets,N2_W_Liam Brooks_runs,N1_F_Dylan Cole_wickets,N1_F_Dylan Cole_runs,N1_F_Ben Carter_wickets,N1_F_Ben Carter_runs,N1_W_Dylan Cole_wickets,N1_W_Dylan Cole_runs,N1_W_Ben Carter_wickets,N1_W_Ben Carter_runs,N2_F_Dylan Cole_wickets,N2_F_Dylan Cole_runs,N2_F_Ben Carter_wickets,N2_F_Ben Carter_runs,N2_W_Dylan Cole_wickets,N2_W_Dylan Cole_runs,N2_W_Ben Carter_wickets,N2_W_Ben Carter_runs,N1_F_Logan Vale_wickets,N1_F_Logan Vale_runs,N1_F_Owen Price_wickets,N1_F_Owen Price_runs,N1_W_Logan Vale_wickets,N1_W_Logan Vale_runs,N1_W_Owen Price_wickets,N1_W_Owen Price_runs,N2_F_Logan Vale_wickets,N2_F_Logan Vale_runs,N2_F_Owen Price_wickets,N2_F_Owen Price_runs,N2_W_Logan Vale_wickets,N2_W_Logan Vale_runs,N2_W_Owen Price_wickets,N2_W_Owen Price_runs, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B251.jsonl
+- B252 X_night_field: accuracy 0.2208, conditions N0_F_Evan Clarke_wickets,N0_F_Evan Clarke_runs,N0_F_Connor Reed_wickets,N0_F_Connor Reed_runs,N0_F_innings_total_wickets,N0_W_Evan Clarke_wickets,N0_W_Evan Clarke_runs,N0_W_Connor Reed_wickets,N0_W_Connor Reed_runs,N0_W_innings_total_wickets,N0_F_Luke Barrett_wickets,N0_F_Luke Barrett_runs,N0_F_Ryan Frost_wickets,N0_F_Ryan Frost_runs,N0_W_Luke Barrett_wickets,N0_W_Luke Barrett_runs,N0_W_Ryan Frost_wickets,N0_W_Ryan Frost_runs,N0_F_Ryan Foster_wickets,N0_F_Ryan Foster_runs,N0_F_Evan Turner_wickets,N0_F_Evan Turner_runs,N0_W_Ryan Foster_wickets,N0_W_Ryan Foster_runs,N0_W_Evan Turner_wickets,N0_W_Evan Turner_runs,N0_F_Caleb Brooks_wickets,N0_F_Caleb Brooks_runs,N0_F_Lucas Vale_wickets,N0_F_Lucas Vale_runs,N0_W_Caleb Brooks_wickets,N0_W_Caleb Brooks_runs,N0_W_Lucas Vale_wickets,N0_W_Lucas Vale_runs,N0_F_Noah Grant_wickets,N0_F_Noah Grant_runs,N0_F_Caleb Rourke_wickets,N0_F_Caleb Rourke_runs,N0_W_Noah Grant_wickets,N0_W_Noah Grant_runs,N0_W_Caleb Rourke_wickets,N0_W_Caleb Rourke_runs,N0_F_Miles Carter_wickets,N0_F_Miles Carter_runs,N0_F_Liam Brooks_wickets,N0_F_Liam Brooks_runs,N0_W_Miles Carter_wickets,N0_W_Miles Carter_runs,N0_W_Liam Brooks_wickets,N0_W_Liam Brooks_runs,N0_F_Dylan Cole_wickets,N0_F_Dylan Cole_runs,N0_F_Ben Carter_wickets,N0_F_Ben Carter_runs,N0_W_Dylan Cole_wickets,N0_W_Dylan Cole_runs,N0_W_Ben Carter_wickets,N0_W_Ben Carter_runs,N0_F_Logan Vale_wickets,N0_F_Logan Vale_runs,N0_F_Owen Price_wickets,N0_F_Owen Price_runs,N0_W_Logan Vale_wickets,N0_W_Logan Vale_runs,N0_W_Owen Price_wickets,N0_W_Owen Price_runs, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B252.jsonl
+- B253 X_night_partial: accuracy 0.2, conditions N0_F_partial,N0_W_partial, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B253.jsonl
+- B254 X_top2_membership: accuracy 0.6667, conditions T2_N0,T2_N1,T2_N2, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B254.jsonl
+- B255 X_top2_membership: accuracy 0.4921, conditions T2_N0,T2_N1,T2_N2, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B255.jsonl
+- B256 X_q4_neutral: accuracy 0.5104, conditions q4_old_neutral_N2, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B256.jsonl
+- B257 X_ft_hint: accuracy 0.2403, conditions N1_F_fulltable_hint, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B257.jsonl
+- B258 X_ft_direct_4root: accuracy 0.2301, conditions N1_F_fulltable_direct,T2_N1,N2_F_fulltable_direct,T2_N2, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B258.jsonl
+- B259 X_ft_hint_4root: accuracy 0.2267, conditions N1_F_fulltable_hint,N2_F_fulltable_hint, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B259.jsonl
+- B260 X_rank_evidence: accuracy 0.0, conditions RANK_MISS,RANK_EVID, raw D:\Download\VETT_Cricket_Complete_Delivery_R19_20261017\VETT_INTEGRATED_20261113\analysis\vett_autonomous_20261117\runs\B260.jsonl
+
+## Decisions
+
+- genesis R0 -> T1_baseline_o (B001): Initial baseline: original text, development roots, target cells only.
+- genesis R1 -> T2_hard_excerpt (B002): Baseline saturated at 1.0; hard roots and a short excerpt are the next discriminator.
+- genesis R4 -> T3_matched_deletion (B003): Excerpt still fails at 0.833; matched deletion controls on the failing hard root.
+- genesis R5 -> T4_full_table (B004): WI 0.0 < OI 0.5; deletion-specific damage, validate the full table on original text.
+- genesis R6 -> T2_hard_excerpt (B005): Full-table validation complete; expand coverage on the next unused hard roots.
+- genesis R4 -> T3_matched_deletion (B006): Excerpt still fails at 0.833; matched deletion controls on the failing hard root.
+- genesis R8 -> T5_hard_fulltext (B007): No remaining hard root has an explicit total sentence for E; run full-text O on unused hard roots instead.
+- genesis R9 -> T1_baseline_o (B008): Hard full-text fallback complete; expand the baseline to the remaining unused development roots.
+- genesis R1F -> T5_hard_fulltext (B009): Baseline saturated at 0.917; hard roots and a short excerpt are the next discriminator. | fallback: T2_hard_excerpt produced no eligible task; executed T5_hard_fulltext.
+- genesis R9 -> T1_baseline_o (B010): Hard full-text fallback complete; expand the baseline to the remaining unused development roots.
+- genesis R1F -> T5_hard_fulltext (B011): Baseline saturated at 1.0; hard roots and a short excerpt are the next discriminator. | fallback: T2_hard_excerpt produced no eligible task; executed T5_hard_fulltext.
+- B011 R10 -> A_field_probe (B012): Hard full-text fallback complete; move to the field-probe branch on fixed evidence.
+- B012 R11 -> B_cross_innings (B013): Field probe complete; move to cross-innings binding with explicit innings.
+- B013 R9 -> T1_baseline_o (B014): Cross-innings branch complete; expand the baseline to remaining development roots.
+- B014 R2 -> T3_matched_deletion (B015): Baseline below 0.90 at 0.833; drill into the failing roots with matched deletion controls.
+- B015 R12 -> S_coverage_sweep (B016): Stratified coverage sweep takes precedence while valid units remain.
+- B016 R12 -> S_coverage_sweep (B017): Stratified coverage sweep takes precedence while valid units remain.
+- B017 R12 -> S_coverage_sweep (B018): Stratified coverage sweep takes precedence while valid units remain.
+- B019 R12 -> S_coverage_sweep (B020): Stratified coverage sweep takes precedence while valid units remain.
+- B022 R12 -> S_coverage_sweep (B023): Stratified coverage sweep takes precedence while valid units remain.
+- B023 R12 -> S_coverage_sweep (B024): Stratified coverage sweep takes precedence while valid units remain.
+- B024 R12 -> S_coverage_sweep (B025): Stratified coverage sweep takes precedence while valid units remain.
+- B025 R12 -> S_coverage_sweep (B026): Stratified coverage sweep takes precedence while valid units remain.
+- B026 R12 -> S_coverage_sweep (B027): Stratified coverage sweep takes precedence while valid units remain.
+- B027 R12 -> S_coverage_sweep (B028): Stratified coverage sweep takes precedence while valid units remain.
+- B028 R12 -> S_coverage_sweep (B029): Stratified coverage sweep takes precedence while valid units remain.
+- B029 R12 -> S_coverage_sweep (B030): Stratified coverage sweep takes precedence while valid units remain.
+- B030 R12 -> S_coverage_sweep (B031): Stratified coverage sweep takes precedence while valid units remain.
+- B031 R12 -> S_coverage_sweep (B032): Stratified coverage sweep takes precedence while valid units remain.
+- B032 R12 -> S_coverage_sweep (B033): Stratified coverage sweep takes precedence while valid units remain.
+- B033 R12 -> S_coverage_sweep (B034): Stratified coverage sweep takes precedence while valid units remain.
+- B034 R12 -> S_coverage_sweep (B035): Stratified coverage sweep takes precedence while valid units remain.
+- B035 R12 -> S_coverage_sweep (B036): Stratified coverage sweep takes precedence while valid units remain.
+- B036 R12 -> S_coverage_sweep (B037): Stratified coverage sweep takes precedence while valid units remain.
+- B037 R12 -> S_coverage_sweep (B038): Stratified coverage sweep takes precedence while valid units remain.
+- B038 R12 -> S_coverage_sweep (B039): Stratified coverage sweep takes precedence while valid units remain.
+- B039 R12 -> S_coverage_sweep (B040): Stratified coverage sweep takes precedence while valid units remain.
+- B040 R12 -> S_coverage_sweep (B041): Stratified coverage sweep takes precedence while valid units remain.
+- B041 R12 -> S_coverage_sweep (B042): Stratified coverage sweep takes precedence while valid units remain.
+- B042 R12 -> S_coverage_sweep (B043): Stratified coverage sweep takes precedence while valid units remain.
+- B043 R12 -> S_coverage_sweep (B044): Stratified coverage sweep takes precedence while valid units remain.
+- B044 R12 -> S_coverage_sweep (B045): Stratified coverage sweep takes precedence while valid units remain.
+- B045 R12 -> S_coverage_sweep (B046): Stratified coverage sweep takes precedence while valid units remain.
+- B046 R12 -> S_coverage_sweep (B047): Stratified coverage sweep takes precedence while valid units remain.
+- B047 R12 -> S_coverage_sweep (B048): Stratified coverage sweep takes precedence while valid units remain.
+- B048 R12 -> S_coverage_sweep (B049): Stratified coverage sweep takes precedence while valid units remain.
+- B049 R12 -> S_coverage_sweep (B050): Stratified coverage sweep takes precedence while valid units remain.
+- B050 R12 -> S_coverage_sweep (B051): Stratified coverage sweep takes precedence while valid units remain.
+- B051 R12 -> S_coverage_sweep (B052): Stratified coverage sweep takes precedence while valid units remain.
+- B052 R12 -> S_coverage_sweep (B053): Stratified coverage sweep takes precedence while valid units remain.
+- B053 R12 -> S_coverage_sweep (B054): Stratified coverage sweep takes precedence while valid units remain.
+- B054 R12 -> S_coverage_sweep (B055): Stratified coverage sweep takes precedence while valid units remain.
+- B055 R12 -> S_coverage_sweep (B056): Stratified coverage sweep takes precedence while valid units remain.
+- B056 R12 -> S_coverage_sweep (B057): Stratified coverage sweep takes precedence while valid units remain.
+- B057 R12 -> S_coverage_sweep (B058): Stratified coverage sweep takes precedence while valid units remain.
+- B058 R12 -> S_coverage_sweep (B059): Stratified coverage sweep takes precedence while valid units remain.
+- B059 R12 -> S_coverage_sweep (B060): Stratified coverage sweep takes precedence while valid units remain.
+- B060 R12 -> S_coverage_sweep (B061): Stratified coverage sweep takes precedence while valid units remain.
+- B061 R12 -> S_coverage_sweep (B062): Stratified coverage sweep takes precedence while valid units remain.
+- B062 R12 -> S_coverage_sweep (B063): Stratified coverage sweep takes precedence while valid units remain.
+- B063 R12 -> S_coverage_sweep (B064): Stratified coverage sweep takes precedence while valid units remain.
+- B064 R12 -> S_coverage_sweep (B065): Stratified coverage sweep takes precedence while valid units remain.
+- B065 R12 -> S_coverage_sweep (B066): Stratified coverage sweep takes precedence while valid units remain.
+- B066 R12 -> S_coverage_sweep (B067): Stratified coverage sweep takes precedence while valid units remain.
+- B067 R12 -> S_coverage_sweep (B068): Stratified coverage sweep takes precedence while valid units remain.
+- B068 R12 -> S_coverage_sweep (B069): Stratified coverage sweep takes precedence while valid units remain.
+- B069 R12 -> S_coverage_sweep (B070): Stratified coverage sweep takes precedence while valid units remain.
+- B070 R12 -> S_coverage_sweep (B071): Stratified coverage sweep takes precedence while valid units remain.
+- B071 R12 -> S_coverage_sweep (B072): Stratified coverage sweep takes precedence while valid units remain.
+- B072 R12 -> S_coverage_sweep (B073): Stratified coverage sweep takes precedence while valid units remain.
+- B073 R12 -> S_coverage_sweep (B074): Stratified coverage sweep takes precedence while valid units remain.
+- B074 R12 -> S_coverage_sweep (B075): Stratified coverage sweep takes precedence while valid units remain.
+- B075 R12 -> S_coverage_sweep (B076): Stratified coverage sweep takes precedence while valid units remain.
+- B076 R12 -> S_coverage_sweep (B077): Stratified coverage sweep takes precedence while valid units remain.
+- B077 R12 -> S_coverage_sweep (B078): Stratified coverage sweep takes precedence while valid units remain.
+- B078 R12 -> S_coverage_sweep (B079): Stratified coverage sweep takes precedence while valid units remain.
+- B079 R12 -> S_coverage_sweep (B080): Stratified coverage sweep takes precedence while valid units remain.
+- B080 R12 -> S_coverage_sweep (B081): Stratified coverage sweep takes precedence while valid units remain.
+- B081 R12 -> S_coverage_sweep (B082): Stratified coverage sweep takes precedence while valid units remain.
+- B082 R12 -> S_coverage_sweep (B083): Stratified coverage sweep takes precedence while valid units remain.
+- B083 R12 -> S_coverage_sweep (B084): Stratified coverage sweep takes precedence while valid units remain.
+- B084 R12 -> S_coverage_sweep (B085): Stratified coverage sweep takes precedence while valid units remain.
+- B085 R12 -> S_coverage_sweep (B086): Stratified coverage sweep takes precedence while valid units remain.
+- B086 R12 -> S_coverage_sweep (B087): Stratified coverage sweep takes precedence while valid units remain.
+- B087 R12 -> S_coverage_sweep (B088): Stratified coverage sweep takes precedence while valid units remain.
+- B088 R12 -> S_coverage_sweep (B089): Stratified coverage sweep takes precedence while valid units remain.
+- B089 R12 -> S_coverage_sweep (B090): Stratified coverage sweep takes precedence while valid units remain.
+- B090 R12 -> S_coverage_sweep (B091): Stratified coverage sweep takes precedence while valid units remain.
+- B091 R12 -> S_coverage_sweep (B092): Stratified coverage sweep takes precedence while valid units remain.
+- B092 R12 -> S_coverage_sweep (B093): Stratified coverage sweep takes precedence while valid units remain.
+- B093 R12 -> S_coverage_sweep (B094): Stratified coverage sweep takes precedence while valid units remain.
+- B094 R12 -> S_coverage_sweep (B095): Stratified coverage sweep takes precedence while valid units remain.
+- B095 R12 -> S_coverage_sweep (B096): Stratified coverage sweep takes precedence while valid units remain.
+- B096 R12 -> S_coverage_sweep (B097): Stratified coverage sweep takes precedence while valid units remain.
+- B097 R12 -> S_coverage_sweep (B098): Stratified coverage sweep takes precedence while valid units remain.
+- B098 R12 -> S_coverage_sweep (B099): Stratified coverage sweep takes precedence while valid units remain.
+- B099 R12 -> S_coverage_sweep (B100): Stratified coverage sweep takes precedence while valid units remain.
+- B100 R12 -> S_coverage_sweep (B101): Stratified coverage sweep takes precedence while valid units remain.
+- B101 R12 -> S_coverage_sweep (B102): Stratified coverage sweep takes precedence while valid units remain.
+- B102 R12 -> S_coverage_sweep (B103): Stratified coverage sweep takes precedence while valid units remain.
+- B103 R12 -> S_coverage_sweep (B104): Stratified coverage sweep takes precedence while valid units remain.
+- B104 R12 -> S_coverage_sweep (B105): Stratified coverage sweep takes precedence while valid units remain.
+- B105 R12 -> S_coverage_sweep (B106): Stratified coverage sweep takes precedence while valid units remain.
+- B106 R12F -> P_field_sweep (B107): Stratified coverage sweep takes precedence while valid units remain. | fallback: S_coverage_sweep produced no eligible task; executed P_field_sweep.
+- B107 R13 -> P_field_sweep (B108): Condition sweep exhausted; field-probe coverage takes over.
+- B108 R13 -> P_field_sweep (B109): Condition sweep exhausted; field-probe coverage takes over.
+- B109 R13 -> P_field_sweep (B110): Condition sweep exhausted; field-probe coverage takes over.
+- B110 R13 -> P_field_sweep (B111): Condition sweep exhausted; field-probe coverage takes over.
+- B111 R13 -> P_field_sweep (B112): Condition sweep exhausted; field-probe coverage takes over.
+- B112 R13 -> P_field_sweep (B113): Condition sweep exhausted; field-probe coverage takes over.
+- B113 R13 -> P_field_sweep (B114): Condition sweep exhausted; field-probe coverage takes over.
+- B114 R13 -> P_field_sweep (B115): Condition sweep exhausted; field-probe coverage takes over.
+- B115 R13 -> P_field_sweep (B116): Condition sweep exhausted; field-probe coverage takes over.
+- B116 R13 -> P_field_sweep (B117): Condition sweep exhausted; field-probe coverage takes over.
+- B117 R13 -> P_field_sweep (B118): Condition sweep exhausted; field-probe coverage takes over.
+- B118 R13 -> P_field_sweep (B119): Condition sweep exhausted; field-probe coverage takes over.
+- B119 R13 -> P_field_sweep (B120): Condition sweep exhausted; field-probe coverage takes over.
+- B120 R13 -> P_field_sweep (B121): Condition sweep exhausted; field-probe coverage takes over.
+- B121 R13 -> P_field_sweep (B122): Condition sweep exhausted; field-probe coverage takes over.
+- B122 R13 -> P_field_sweep (B123): Condition sweep exhausted; field-probe coverage takes over.
+- B123 R13 -> P_field_sweep (B124): Condition sweep exhausted; field-probe coverage takes over.
+- B124 R13 -> P_field_sweep (B125): Condition sweep exhausted; field-probe coverage takes over.
+- B125 R13 -> P_field_sweep (B126): Condition sweep exhausted; field-probe coverage takes over.
+- B126 R13 -> P_field_sweep (B127): Condition sweep exhausted; field-probe coverage takes over.
+- B127 R13 -> P_field_sweep (B128): Condition sweep exhausted; field-probe coverage takes over.
+- B128 R13 -> P_field_sweep (B129): Condition sweep exhausted; field-probe coverage takes over.
+- B129 R13 -> P_field_sweep (B130): Condition sweep exhausted; field-probe coverage takes over.
+- B130 R13 -> P_field_sweep (B131): Condition sweep exhausted; field-probe coverage takes over.
+- B131 R13 -> P_field_sweep (B132): Condition sweep exhausted; field-probe coverage takes over.
+- B132 R13 -> P_field_sweep (B133): Condition sweep exhausted; field-probe coverage takes over.
+- B133 R13 -> P_field_sweep (B134): Condition sweep exhausted; field-probe coverage takes over.
+- B134 R13 -> P_field_sweep (B135): Condition sweep exhausted; field-probe coverage takes over.
+- B135 R13 -> P_field_sweep (B136): Condition sweep exhausted; field-probe coverage takes over.
+- B136 R13 -> P_field_sweep (B137): Condition sweep exhausted; field-probe coverage takes over.
+- B137 R13 -> P_field_sweep (B138): Condition sweep exhausted; field-probe coverage takes over.
+- B138 R13 -> P_field_sweep (B139): Condition sweep exhausted; field-probe coverage takes over.
+- B139 R13 -> P_field_sweep (B140): Condition sweep exhausted; field-probe coverage takes over.
+- B140 R13 -> P_field_sweep (B141): Condition sweep exhausted; field-probe coverage takes over.
+- B141 R13 -> P_field_sweep (B142): Condition sweep exhausted; field-probe coverage takes over.
+- B142 R13 -> P_field_sweep (B143): Condition sweep exhausted; field-probe coverage takes over.
+- B143 R13 -> P_field_sweep (B144): Condition sweep exhausted; field-probe coverage takes over.
+- B144 R13 -> P_field_sweep (B145): Condition sweep exhausted; field-probe coverage takes over.
+- B145 R13 -> P_field_sweep (B146): Condition sweep exhausted; field-probe coverage takes over.
+- B146 R13 -> P_field_sweep (B147): Condition sweep exhausted; field-probe coverage takes over.
+- B147 R13 -> P_field_sweep (B148): Condition sweep exhausted; field-probe coverage takes over.
+- B148 R13 -> P_field_sweep (B149): Condition sweep exhausted; field-probe coverage takes over.
+- B149 R13 -> P_field_sweep (B150): Condition sweep exhausted; field-probe coverage takes over.
+- B151 R13 -> P_field_sweep (B152): Condition sweep exhausted; field-probe coverage takes over.
+- B152 R13 -> P_field_sweep (B153): Condition sweep exhausted; field-probe coverage takes over.
+- B153 R13 -> P_field_sweep (B154): Condition sweep exhausted; field-probe coverage takes over.
+- B154 R13 -> P_field_sweep (B155): Condition sweep exhausted; field-probe coverage takes over.
+- B155 R13 -> P_field_sweep (B156): Condition sweep exhausted; field-probe coverage takes over.
+- B156 R13 -> P_field_sweep (B157): Condition sweep exhausted; field-probe coverage takes over.
+- B157 R13 -> P_field_sweep (B158): Condition sweep exhausted; field-probe coverage takes over.
+- B158 R13 -> P_field_sweep (B159): Condition sweep exhausted; field-probe coverage takes over.
+- B159 R13 -> P_field_sweep (B160): Condition sweep exhausted; field-probe coverage takes over.
+- B160 R13 -> P_field_sweep (B161): Condition sweep exhausted; field-probe coverage takes over.
+- B161 R13 -> P_field_sweep (B162): Condition sweep exhausted; field-probe coverage takes over.
+- B162 R13 -> P_field_sweep (B163): Condition sweep exhausted; field-probe coverage takes over.
+- B163 R13 -> P_field_sweep (B164): Condition sweep exhausted; field-probe coverage takes over.
+- B164 R13 -> P_field_sweep (B165): Condition sweep exhausted; field-probe coverage takes over.
+- B165 R13 -> P_field_sweep (B166): Condition sweep exhausted; field-probe coverage takes over.
+- B166 R13 -> P_field_sweep (B167): Condition sweep exhausted; field-probe coverage takes over.
+- B167 R13 -> P_field_sweep (B168): Condition sweep exhausted; field-probe coverage takes over.
+- B168 R13 -> P_field_sweep (B169): Condition sweep exhausted; field-probe coverage takes over.
+- B169 R13 -> P_field_sweep (B170): Condition sweep exhausted; field-probe coverage takes over.
+- B170 R13 -> P_field_sweep (B171): Condition sweep exhausted; field-probe coverage takes over.
+- B171 R13 -> P_field_sweep (B172): Condition sweep exhausted; field-probe coverage takes over.
+- B172 R13 -> P_field_sweep (B173): Condition sweep exhausted; field-probe coverage takes over.
+- B173 R13 -> P_field_sweep (B174): Condition sweep exhausted; field-probe coverage takes over.
+- B174 R13 -> P_field_sweep (B175): Condition sweep exhausted; field-probe coverage takes over.
+- B175 R13 -> P_field_sweep (B176): Condition sweep exhausted; field-probe coverage takes over.
+- B176 R13 -> P_field_sweep (B177): Condition sweep exhausted; field-probe coverage takes over.
+- B177 R13 -> P_field_sweep (B178): Condition sweep exhausted; field-probe coverage takes over.
+- B178 R13 -> P_field_sweep (B179): Condition sweep exhausted; field-probe coverage takes over.
+- B179 R13 -> P_field_sweep (B180): Condition sweep exhausted; field-probe coverage takes over.
+- B180 R13 -> P_field_sweep (B181): Condition sweep exhausted; field-probe coverage takes over.
+- B181 R13 -> P_field_sweep (B182): Condition sweep exhausted; field-probe coverage takes over.
+- B182 R13 -> P_field_sweep (B183): Condition sweep exhausted; field-probe coverage takes over.
+- B183 R13 -> P_field_sweep (B184): Condition sweep exhausted; field-probe coverage takes over.
+- B184 R13 -> P_field_sweep (B185): Condition sweep exhausted; field-probe coverage takes over.
+- B185 R13 -> P_field_sweep (B186): Condition sweep exhausted; field-probe coverage takes over.
+- B186 R13 -> P_field_sweep (B187): Condition sweep exhausted; field-probe coverage takes over.
+- B187 R13 -> P_field_sweep (B188): Condition sweep exhausted; field-probe coverage takes over.
+- B188 R13 -> P_field_sweep (B189): Condition sweep exhausted; field-probe coverage takes over.
+- B189 R13 -> P_field_sweep (B190): Condition sweep exhausted; field-probe coverage takes over.
+- B190 R13 -> P_field_sweep (B191): Condition sweep exhausted; field-probe coverage takes over.
+- B191 R13 -> P_field_sweep (B192): Condition sweep exhausted; field-probe coverage takes over.
+- B192 R13 -> P_field_sweep (B193): Condition sweep exhausted; field-probe coverage takes over.
+- B193 R13 -> P_field_sweep (B194): Condition sweep exhausted; field-probe coverage takes over.
+- B194 R13 -> P_field_sweep (B195): Condition sweep exhausted; field-probe coverage takes over.
+- B195 R13 -> P_field_sweep (B196): Condition sweep exhausted; field-probe coverage takes over.
+- B196 R13 -> P_field_sweep (B197): Condition sweep exhausted; field-probe coverage takes over.

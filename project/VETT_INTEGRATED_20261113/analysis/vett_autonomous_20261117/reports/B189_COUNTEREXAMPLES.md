@@ -1,0 +1,46 @@
+# B189 counterexamples
+
+- accuracy: 0.3125 (15/48)
+- task accuracy: 0.25
+
+## Errors
+
+| match | inn | model | cond | field | gold | pred |
+|---|---:|---|---|---|---|---|
+| match_0204 | 2 | gemma2 | O | inn2.total_runs | 120 | 119 |
+| match_0204 | 2 | gemma2 | O | inn2.total_wickets | 8 | 10 |
+| match_0204 | 2 | gemma2 | O | inn2.total_runs | 120 | 119 |
+| match_0204 | 2 | gemma2 | O | inn2.total_wickets | 8 | 10 |
+| match_0205 | 2 | gemma2 | O | inn2.total_runs | 60 | 58 |
+| match_0205 | 2 | gemma2 | O | inn2.total_wickets | 1 | 10 |
+| match_0205 | 2 | gemma2 | O | inn2.total_runs | 60 | 58 |
+| match_0205 | 2 | gemma2 | O | inn2.total_wickets | 1 | 10 |
+| match_0206 | 1 | gemma2 | O | inn1.total_wickets | 10 | 7 |
+| match_0206 | 1 | gemma2 | O | inn1.total_wickets | 10 | 7 |
+| match_0204 | 2 | llama3.1 | O | inn2.total_runs | 120 | 119 |
+| match_0204 | 2 | llama3.1 | O | inn2.total_wickets | 8 | 19 |
+| match_0204 | 2 | llama3.1 | O | inn2.total_runs | 120 | 119 |
+| match_0204 | 2 | llama3.1 | O | inn2.total_wickets | 8 | 9 |
+| match_0205 | 1 | llama3.1 | O | inn1.total_wickets | 10 | 58 |
+| match_0205 | 2 | llama3.1 | O | inn2.total_runs | 60 | 58 |
+| match_0205 | 2 | llama3.1 | O | inn2.total_wickets | 1 | 9 |
+| match_0205 | 2 | llama3.1 | O | inn2.total_runs | 60 | 58 |
+| match_0205 | 2 | llama3.1 | O | inn2.total_wickets | 1 | 10 |
+| match_0206 | 1 | llama3.1 | O | inn1.total_wickets | 10 | 222 |
+| match_0206 | 1 | llama3.1 | O | inn1.total_wickets | 10 | 7 |
+| match_0204 | 2 | qwen2.5 | O | inn2.total_runs | 120 | 119 |
+| match_0204 | 2 | qwen2.5 | O | inn2.total_wickets | 8 | 9 |
+| match_0204 | 2 | qwen2.5 | O | inn2.total_runs | 120 | 119 |
+| match_0204 | 2 | qwen2.5 | O | inn2.total_wickets | 8 | 9 |
+| match_0205 | 1 | qwen2.5 | O | inn1.total_runs | 58 | 27 |
+| match_0205 | 1 | qwen2.5 | O | inn1.total_runs | 58 | 28 |
+| match_0205 | 2 | qwen2.5 | O | inn2.total_runs | 60 | 58 |
+| match_0205 | 2 | qwen2.5 | O | inn2.total_wickets | 1 | 10 |
+| match_0205 | 2 | qwen2.5 | O | inn2.total_runs | 60 | 58 |
+| match_0205 | 2 | qwen2.5 | O | inn2.total_wickets | 1 | 10 |
+| match_0206 | 1 | qwen2.5 | O | inn1.total_wickets | 10 | 7 |
+| match_0206 | 1 | qwen2.5 | O | inn1.total_wickets | 10 | 7 |
+
+## Paired
+
+- single-condition batch; no paired comparison

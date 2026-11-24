@@ -1,0 +1,10 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic match facts remain readable directly. | Ridgecrest won by 54 runs and qualified; Kyle Rowan was Player of the Match; Ridgecrest made 307 and Shoreline made 253. |
+| L1 | Key player identification | Main batting and bowling contributors can be found from tables. | Cameron Reed made 76; Finley Ward made 48; Aaron Vale made 86; Evan Marsh made 84; Kyle Rowan took five wickets. |
+| L2 | Cricket-rule arithmetic | Requires checking batting runs plus extras. | Ridgecrest batting runs add to 287 and extras add 20, giving 307; Shoreline batting runs add to 240 and extras add 13, giving 253. |
+| L2 | Result-margin logic | Requires subtracting totals. | 307 minus 253 gives Ridgecrest a 54-run win. |
+| L2 | Partnership/FOW consistency | Requires cumulative verification. | Ridgecrest partnerships reach 30, 58, 128, 153, 194, 258, 270, 283, 297, 307; Shoreline partnerships reach 3, 17, 42, 160, 183, 229, 244, 245, 247, 253. |
+| L2 | Bowling reconciliation | Requires knowing byes and leg-byes are not charged to bowlers. | Ridgecrest total is 307 but Shoreline bowlers concede 298 charged runs because nine came as byes/leg-byes; Shoreline total is 253 but Ridgecrest bowlers concede 250 charged runs because three came as byes/leg-byes. |
+| L3 | Commentary-hidden inference | Important facts are embedded through flow rather than dense scoreboard listing. | The text describes Ridgecrest’s layered construction, Shoreline’s early trouble, the Aaron-Evan recovery, and Kyle Rowan’s closing spell without repeatedly listing FOW strings. |
+| L3 | Narrative-to-table validation | Requires connecting commentary pressure points to the scorecard. | The “long fourth-wicket rescue” maps to Aaron Vale and Evan Marsh’s 118; the “finish being shut down” maps to Kyle Rowan taking late wickets after Shoreline reached 244. |

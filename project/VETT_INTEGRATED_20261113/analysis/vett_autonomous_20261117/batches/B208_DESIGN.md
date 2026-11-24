@@ -1,0 +1,238 @@
+# B208 T4_full_table_OI_used
+
+- hypothesis: Full table with the other-innings total deleted on units already full-tabled under O: does cross-innings context change collateral loss?
+- rationale: Extend the authorized full-table scale to the E/OI contrast on already used units.
+- created: 2026-11-20T13:26:50+08:00
+- requests: 93 (external API 0)
+- scoring: exact match per field; paired by unit/model against the O full table
+- sources: commentary.txt variants, scorecard.md
+
+## Positions
+
+- match_0001 innings 1
+- match_0001 innings 2
+- match_0002 innings 1
+- match_0002 innings 2
+- match_0003 innings 1
+- match_0003 innings 2
+- match_0005 innings 1
+- match_0006 innings 1
+- match_0007 innings 1
+- match_0008 innings 1
+- match_0009 innings 2
+- match_0011 innings 2
+- match_0012 innings 1
+- match_0012 innings 2
+- match_0013 innings 1
+- match_0014 innings 1
+- match_0016 innings 1
+- match_0016 innings 2
+- match_0021 innings 1
+- match_0021 innings 2
+- match_0043 innings 1
+- match_0043 innings 2
+- match_0044 innings 1
+- match_0044 innings 2
+- match_0047 innings 1
+- match_0047 innings 2
+- match_0048 innings 1
+- match_0048 innings 2
+- match_0049 innings 2
+- match_0051 innings 1
+- match_0051 innings 2
+
+## Conditions
+
+OI
+
+## Models
+
+- qwen2.5:7b-instruct-q4_K_M
+- llama3.1:8b
+- gemma2:9b
+
+## Tasks
+
+- match_0001 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=55603e6b5adc
+- match_0001 inn1 OI llama3.1:8b (full43) key=728d05f1a2a3
+- match_0001 inn1 OI gemma2:9b (full43) key=aeeb5b101722
+- match_0001 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=71ec47551389
+- match_0001 inn2 OI llama3.1:8b (full43) key=0db6c844aa9c
+- match_0001 inn2 OI gemma2:9b (full43) key=9cf82f3e6da2
+- match_0002 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=6b6cdde80e42
+- match_0002 inn1 OI llama3.1:8b (full43) key=3d80e6014590
+- match_0002 inn1 OI gemma2:9b (full43) key=a0f308345d50
+- match_0002 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=6b73c8c2abc7
+- match_0002 inn2 OI llama3.1:8b (full43) key=81230c7bb949
+- match_0002 inn2 OI gemma2:9b (full43) key=14bf0d4743c5
+- match_0003 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=6ebbbab7c3f4
+- match_0003 inn1 OI llama3.1:8b (full43) key=5685d8309bba
+- match_0003 inn1 OI gemma2:9b (full43) key=52e9dface6f6
+- match_0003 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=21330a183e67
+- match_0003 inn2 OI llama3.1:8b (full43) key=ca34ed02a91b
+- match_0003 inn2 OI gemma2:9b (full43) key=abf9eacac6ff
+- match_0005 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=1f64b2fd657e
+- match_0005 inn1 OI llama3.1:8b (full43) key=85affc589cb1
+- match_0005 inn1 OI gemma2:9b (full43) key=94d55e12313d
+- match_0006 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=ee99e473beae
+- match_0006 inn1 OI llama3.1:8b (full43) key=b6b1faf1dc3a
+- match_0006 inn1 OI gemma2:9b (full43) key=7019f944b77f
+- match_0007 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=0daa3eca7846
+- match_0007 inn1 OI llama3.1:8b (full43) key=8b361e41ae49
+- match_0007 inn1 OI gemma2:9b (full43) key=185241207123
+- match_0008 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=51386880ffc9
+- match_0008 inn1 OI llama3.1:8b (full43) key=eaf0b5a1b309
+- match_0008 inn1 OI gemma2:9b (full43) key=4d9b75e1addd
+- match_0009 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=ef58f8c11573
+- match_0009 inn2 OI llama3.1:8b (full43) key=204e650e8e64
+- match_0009 inn2 OI gemma2:9b (full43) key=31e579ab03fc
+- match_0011 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=fb3df2930021
+- match_0011 inn2 OI llama3.1:8b (full43) key=a96c4d1a84cb
+- match_0011 inn2 OI gemma2:9b (full43) key=af8582effe6f
+- match_0012 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=804c703a5e3f
+- match_0012 inn1 OI llama3.1:8b (full43) key=7171f9f3cf84
+- match_0012 inn1 OI gemma2:9b (full43) key=d88723198a3f
+- match_0012 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=99ffcbd5ef04
+- match_0012 inn2 OI llama3.1:8b (full43) key=174fa38e019f
+- match_0012 inn2 OI gemma2:9b (full43) key=06fd4e43ffe2
+- match_0013 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=7822a76f2483
+- match_0013 inn1 OI llama3.1:8b (full43) key=6effcc2804a7
+- match_0013 inn1 OI gemma2:9b (full43) key=39df382a80ae
+- match_0014 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=d34e1c310d98
+- match_0014 inn1 OI llama3.1:8b (full43) key=66dd7b6cfbcc
+- match_0014 inn1 OI gemma2:9b (full43) key=83d855d7a306
+- match_0016 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=b10e9c33baa8
+- match_0016 inn1 OI llama3.1:8b (full43) key=eed8153b3572
+- match_0016 inn1 OI gemma2:9b (full43) key=a864cf949ba5
+- match_0016 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=4d1f70b13544
+- match_0016 inn2 OI llama3.1:8b (full43) key=076ae04a9cfa
+- match_0016 inn2 OI gemma2:9b (full43) key=55a10285a86e
+- match_0021 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=f6ae26ad0b7b
+- match_0021 inn1 OI llama3.1:8b (full43) key=444e215823d9
+- match_0021 inn1 OI gemma2:9b (full43) key=75fc492e29a8
+- match_0021 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=f159aa3d48a8
+- match_0021 inn2 OI llama3.1:8b (full43) key=7167a9c3ece3
+- match_0021 inn2 OI gemma2:9b (full43) key=a77136e0ce11
+- match_0043 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=26496c638557
+- match_0043 inn1 OI llama3.1:8b (full43) key=28f1d2ad16fc
+- match_0043 inn1 OI gemma2:9b (full43) key=e6613f2c81c2
+- match_0043 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=99a87a6cfd12
+- match_0043 inn2 OI llama3.1:8b (full43) key=07ab3e8accc4
+- match_0043 inn2 OI gemma2:9b (full43) key=53d4fd6ffcf8
+- match_0044 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=541fa3ebdd35
+- match_0044 inn1 OI llama3.1:8b (full43) key=f590cd3bd285
+- match_0044 inn1 OI gemma2:9b (full43) key=d8609ef16fea
+- match_0044 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=d21bc4ad80c2
+- match_0044 inn2 OI llama3.1:8b (full43) key=b76540ea39cc
+- match_0044 inn2 OI gemma2:9b (full43) key=17bef5580700
+- match_0047 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=7b512032270a
+- match_0047 inn1 OI llama3.1:8b (full43) key=d1758f31eaa5
+- match_0047 inn1 OI gemma2:9b (full43) key=9496d28cfa75
+- match_0047 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=8307da766365
+- match_0047 inn2 OI llama3.1:8b (full43) key=082accba7f0e
+- match_0047 inn2 OI gemma2:9b (full43) key=e878b5bdf389
+- match_0048 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=4bf21217b979
+- match_0048 inn1 OI llama3.1:8b (full43) key=0e935aa80c42
+- match_0048 inn1 OI gemma2:9b (full43) key=2dfe2b600bef
+- match_0048 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=a20184f6d949
+- match_0048 inn2 OI llama3.1:8b (full43) key=c3550301aeb9
+- match_0048 inn2 OI gemma2:9b (full43) key=c80992183fb1
+- match_0049 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=751bf3575f38
+- match_0049 inn2 OI llama3.1:8b (full43) key=1cc4049a972b
+- match_0049 inn2 OI gemma2:9b (full43) key=751d2ef69113
+- match_0051 inn1 OI qwen2.5:7b-instruct-q4_K_M (full43) key=2e67031e62ea
+- match_0051 inn1 OI llama3.1:8b (full43) key=934584aa3dca
+- match_0051 inn1 OI gemma2:9b (full43) key=07865600be62
+- match_0051 inn2 OI qwen2.5:7b-instruct-q4_K_M (full43) key=4a7af6a898ef
+- match_0051 inn2 OI llama3.1:8b (full43) key=edbcfc1cf06d
+- match_0051 inn2 OI gemma2:9b (full43) key=3e4a396e4a3e
+
+## Rejected candidates
+
+- match_0085 OI: duplicate_existing_task
+- match_0085 OI: duplicate_existing_task
+- match_0085 OI: duplicate_existing_task
+- match_0085 OI: duplicate_existing_task
+- match_0085 OI: duplicate_existing_task
+- match_0085 OI: duplicate_existing_task
+- match_0086 OI: duplicate_existing_task
+- match_0086 OI: duplicate_existing_task
+- match_0086 OI: duplicate_existing_task
+- match_0086 OI: duplicate_existing_task
+- match_0086 OI: duplicate_existing_task
+- match_0086 OI: duplicate_existing_task
+- match_0087 OI: duplicate_existing_task
+- match_0087 OI: duplicate_existing_task
+- match_0087 OI: duplicate_existing_task
+- match_0087 OI: duplicate_existing_task
+- match_0087 OI: duplicate_existing_task
+- match_0087 OI: duplicate_existing_task
+- match_0096 OI: duplicate_existing_task
+- match_0096 OI: duplicate_existing_task
+- match_0096 OI: duplicate_existing_task
+- match_0096 OI: duplicate_existing_task
+- match_0096 OI: duplicate_existing_task
+- match_0096 OI: duplicate_existing_task
+- match_0102 OI: duplicate_existing_task
+- match_0102 OI: duplicate_existing_task
+- match_0102 OI: duplicate_existing_task
+- match_0165 OI: duplicate_existing_task
+- match_0165 OI: duplicate_existing_task
+- match_0165 OI: duplicate_existing_task
+- match_0165 OI: duplicate_existing_task
+- match_0165 OI: duplicate_existing_task
+- match_0165 OI: duplicate_existing_task
+- match_0166 OI: duplicate_existing_task
+- match_0166 OI: duplicate_existing_task
+- match_0166 OI: duplicate_existing_task
+- match_0168 OI: duplicate_existing_task
+- match_0168 OI: duplicate_existing_task
+- match_0168 OI: duplicate_existing_task
+- match_0168 OI: duplicate_existing_task
+- match_0168 OI: duplicate_existing_task
+- match_0168 OI: duplicate_existing_task
+- match_0169 OI: duplicate_existing_task
+- match_0169 OI: duplicate_existing_task
+- match_0169 OI: duplicate_existing_task
+- match_0169 OI: duplicate_existing_task
+- match_0169 OI: duplicate_existing_task
+- match_0169 OI: duplicate_existing_task
+- match_0171 OI: duplicate_existing_task
+- match_0171 OI: duplicate_existing_task
+- match_0171 OI: duplicate_existing_task
+- match_0171 OI: duplicate_existing_task
+- match_0171 OI: duplicate_existing_task
+- match_0171 OI: duplicate_existing_task
+- match_0172 OI: duplicate_existing_task
+- match_0172 OI: duplicate_existing_task
+- match_0172 OI: duplicate_existing_task
+- match_0172 OI: duplicate_existing_task
+- match_0172 OI: duplicate_existing_task
+- match_0172 OI: duplicate_existing_task
+- match_0173 OI: duplicate_existing_task
+- match_0173 OI: duplicate_existing_task
+- match_0173 OI: duplicate_existing_task
+- match_0174 OI: duplicate_existing_task
+- match_0174 OI: duplicate_existing_task
+- match_0174 OI: duplicate_existing_task
+- match_0174 OI: duplicate_existing_task
+- match_0174 OI: duplicate_existing_task
+- match_0174 OI: duplicate_existing_task
+- match_0175 OI: duplicate_existing_task
+- match_0175 OI: duplicate_existing_task
+- match_0175 OI: duplicate_existing_task
+- match_0175 OI: duplicate_existing_task
+- match_0175 OI: duplicate_existing_task
+- match_0175 OI: duplicate_existing_task
+- match_0176 OI: duplicate_existing_task
+- match_0176 OI: duplicate_existing_task
+- match_0176 OI: duplicate_existing_task
+- match_0176 OI: duplicate_existing_task
+- match_0176 OI: duplicate_existing_task
+- match_0176 OI: duplicate_existing_task
+- match_0177 OI: duplicate_existing_task
+- match_0177 OI: duplicate_existing_task
+- match_0177 OI: duplicate_existing_task
+- match_0177 OI: duplicate_existing_task
+- match_0177 OI: duplicate_existing_task
+- match_0177 OI: duplicate_existing_task

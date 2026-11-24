@@ -1,0 +1,5 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic score, result and award recognition | Peninsula Women made 42/6; Emirates Women reached 43/5; Emirates Women won by 5 wickets; Chloe Foster was Player of the Match. |
+| L2 | Cricket-rule arithmetic | Requires checking totals, extras, wicket margin and short-format chase logic | Peninsula batting runs add to 34 plus 8 extras, matching 42; Emirates batting runs add to 36 plus 7 extras, matching 43; Emirates lost 5 wickets, so the result is a 5-wicket win. |
+| L3 | Commentary-hidden inference | Requires mapping the narrative to pressure phases rather than direct score copying | “Chloe and Sophie Grant split the openers,” “Eva and Sarah briefly patched the innings,” and “Hannah with Lily finished the chase after the fifth wicket” map to the early stumpings, the 12-run third-wicket stand, and the final 11-run unbroken chase stand. |

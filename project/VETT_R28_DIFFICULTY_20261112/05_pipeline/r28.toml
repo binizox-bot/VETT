@@ -1,0 +1,57 @@
+# VETT-R28 closed-loop pipeline configuration (task t13)
+#
+# Every relative path is resolved against this file.  The pipeline writes only
+# inside `runs/` and never inside the frozen R26.15 candidate.
+
+[pipeline]
+version = "1.0.0"
+run_root = "runs"
+default_run_id = "r28-main"
+
+[paths]
+# run root = VETT_R28_DIFFICULTY_20261112
+prereg = "../preregistration.json"
+prereg_freeze = "../prereg_freeze.json"
+contract = "../02_contract/r28_contract.json"
+contract_freeze = "../02_contract/contract_freeze.json"
+protocol = "../02_design/protocol.json"
+protocol_freeze = "../02_design/protocol_freeze.json"
+build_config = "../03_build/config/r28_build_config.json"
+protected_manifest = "../../_BACKUPS/VETT_R28_PRE_CHANGE_20261112/PROTECTED_PATHS.json"
+local_inference_root = "../03_build/local"
+judge_protocol_scripts = "../02_design/scripts"
+routing_card = "../03_build/local/routing_card.json"
+
+[budget]
+hard_cap_cny = 100.0
+soft_cap_cny = 3.0
+cloud_calls_hard_cap = 80
+cloud_enabled = false
+local_cost_cny_per_1k_tokens = 0.0
+cloud_cost_cny_per_1k_tokens = 0.03
+
+[annotation]
+# local_first: one bounded local annotation sample per run;
+# mechanical_only: skip the model entirely (mechanical certificates only).
+mode = "local_first"
+sample_instances = 4
+max_calls = 24
+min_coverage = 0.95
+tasks = [
+  "T1_factor_visibility",
+  "S1_span_topic",
+  "C1_cert_sentence_consistency",
+]
+
+[generate]
+# 0 = full dataset (320 published + 40 held-out); >0 = smoke build
+limit_instances = 0
+determinism_sample = 3
+
+[run]
+allow_human_gate = false
+repair_rounds = 2
+strict = true
+
+[dryrun]
+instances = 8

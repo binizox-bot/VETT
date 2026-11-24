@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/vett-bench/instance.schema.json",
+  "title": "VETT-Bench instance",
+  "type": "object",
+  "required": [
+    "instance_id",
+    "release_view",
+    "task_track",
+    "domain",
+    "language",
+    "documents",
+    "instruction",
+    "difficulty",
+    "gold"
+  ],
+  "properties": {
+    "instance_id": {"type": "string"},
+    "release_view": {
+      "enum": ["train", "development", "public_test", "private_test"]
+    },
+    "task_track": {
+      "enum": [
+        "fixed_schema",
+        "latent_schema",
+        "evidence_audit"
+      ]
+    },
+    "domain": {
+      "enum": [
+        "sports_competition",
+        "logistics_operations",
+        "public_finance"
+      ]
+    },
+    "language": {"type": "string"},
+    "style": {
+      "enum": [
+        "live_commentary",
+        "narrative_report",
+        "threaded_messages",
+        "mixed_bulletins"
+      ]
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["document_id", "text"],
+        "properties": {
+          "document_id": {"type": "string"},
+          "text": {"type": "string"},
+          "source_label": {"type": ["string", "null"]},
+          "timestamp": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "instruction": {"type": "string"},
+    "difficulty": {
+      "type": "object",
+      "required": ["tier", "structural_axes"],
+      "properties": {
+        "tier": {"type": "integer", "minimum": 0, "maximum": 4},
+        "structural_axes": {
+          "type": "object",
+          "required": [
+            "length",
+            "scope",
+            "versioning",
+            "ordering",
+            "constraint_topology",
+            "schema_entropy",
+            "linguistic_variation",
+            "arithmetic"
+          ],
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "empirical_irt_b": {"type": ["number", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "gold": {
+      "type": "object",
+      "required": ["tables", "event_graph", "cell_provenance"],
+      "properties": {
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["table_id", "columns", "rows"],
+            "properties": {
+              "table_id": {"type": "string"},
+              "columns": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "rows": {
+                "type": "array",
+                "items": {"type": "object"}
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "event_graph": {
+          "type": "object",
+          "required": ["events", "mentions", "relations", "constraints"],
+          "properties": {
+            "events": {"type": "array", "items": {"type": "object"}},
+            "mentions": {"type": "array", "items": {"type": "object"}},
+            "relations": {"type": "array", "items": {"type": "object"}},
+            "constraints": {"type": "array", "items": {"type": "object"}}
+          },
+          "additionalProperties": false
+        },
+        "cell_provenance": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["cell_id", "event_ids", "derivation"],
+            "properties": {
+              "cell_id": {"type": "string"},
+              "event_ids": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "mention_ids": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "derivation": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "private_metadata": {
+      "type": "object",
+      "properties": {
+        "operator_recipe": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "generator_seed": {"type": ["integer", "null"]},
+        "render_family": {"type": ["string", "null"]},
+        "graph_family_id": {"type": ["string", "null"]},
+        "validation_certificate": {"type": "object"},
+        "paraphrase_sibling_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

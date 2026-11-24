@@ -1,0 +1,9 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic entities and match facts can be read directly without calculation. | Harbor A Women won by 7 runs; Elena Frost was Player of the Match; Harbor A Women made 64/6; Vale A Women made 57/5. |
+| L1 | Player role extraction | Key performers are visible in both table and text. | Elena Frost is not out with 26 and also bowls a two-over spell; Zoe Turner takes two wickets in the chase. |
+| L2 | Cricket-rule arithmetic | Requires checking totals, extras, margin, wickets, and innings logic. | Harbor batting runs total 56 and extras add 8, producing 64; Vale batting runs total 53 and extras add 4, producing 57; 64 minus 57 gives the seven-run margin. |
+| L2 | Partnership/FOW consistency | Requires cumulative reasoning across partnership and wicket tables. | Harbor partnerships accumulate to 6, 10, 17, 21, 30, 52, and 64, matching the fall-of-wickets chain and final total. |
+| L2 | Bowling/batting reconciliation | Requires understanding that byes and leg byes are not charged to bowlers. | Vale bowlers concede 62 bowler-charged runs while Harbor total is 64 because there are two byes/leg-byes; Harbor bowlers concede 56 while Vale total is 57 because of one bye. |
+| L3 | Commentary-hidden inference | Key match facts are embedded through pressure, rhythm, and turning points rather than dense score strings. | The text describes Harbor being five down before Elena Frost rebuilds, Vale’s opening stand making the chase look controlled, and the late wickets turning a manageable pursuit into a failed one. |
+| L3 | Narrative-to-table verification | The reader must infer table facts from match flow instead of mechanical stat listing. | “A low-twenties repair stand,” “the chase still had shape after the openers,” and “Ruby Shaw’s final-over wicket” all point back to specific partnerships and wickets without repeating every number. |

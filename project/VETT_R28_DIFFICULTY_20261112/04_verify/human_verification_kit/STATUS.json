@@ -1,0 +1,44 @@
+{
+  "schema": "vett.r28.human_kit.status.v1",
+  "kit_version": "VETT-R28-HUMAN-VERIFICATION-KIT-20261112-v1",
+  "generated_at_utc": "2026-11-12T11:59:09Z",
+  "ready_for_handoff": true,
+  "ready_to_annotate": false,
+  "ready_to_annotate_reason": "requires the frozen R28 build, a published build_index.json, bound sample item ids, and 20-item qualification passes",
+  "selftest": {
+    "ok": true,
+    "n_pass": 14,
+    "n_fail": 0,
+    "result": "out/selftest/SELFTEST_RESULT.json"
+  },
+  "components": {
+    "annotation_protocol": "present",
+    "sampling_plan_and_sample_ids": "present (100 slots; provisional until build binding)",
+    "annotation_tool": "present (single-file offline HTML + CLI)",
+    "agreement_statistics": "present (Cohen's kappa + per-dimension agreement + disagreements)",
+    "adjudication_and_gates": "present (H1/H2/H3; no human gold produced)",
+    "preannotation_pack": "present (hints only; DEGRADED by design without R28 data)",
+    "baseline_integrity": "present (R26.15 re-hashed from bytes in selftest)"
+  },
+  "blockers": [
+    "HUMAN_DOUBLE_ANNOTATION_NOT_EXECUTED: t24 prepares the kit; it never produces human gold",
+    "R28_BUILD_NOT_PRESENT: a build_index.json with per-item block/cell or mechanism/dose was not found under the R28 run root",
+    "SAMPLE_ITEM_IDS_UNBOUND: sample_ids.json is a 100-slot design sample; run make_design.py resolve after the build exists",
+    "PREANNOTATION_DEGRADED_ONLY: no local-model call was made in this kit; the pack is DEGRADED by design until R28 data exists",
+    "PAPER_BLOCKER: until adjudicate.py reports PASS on real data, the paper must list 'gold not verified by independent human double annotation' as a blocking limitation"
+  ],
+  "paper_blocker": true,
+  "human_gold_produced": false,
+  "gold_authoritative_source": "deterministic_solver",
+  "build_index_candidates_found": [],
+  "next_actions": [
+    "After t6 publishes the candidate build: export build_index.json (block/cell for factor core; mechanism/dose for dose ladder).",
+    "If the build only ships published/<id>/private_gold.json with block/cell/doses, derive the index first: python scripts/make_design.py index --build-dir <candidate> --out build_index.json",
+    "Run: python scripts/make_design.py resolve --index <build_index.json> --sample sample_ids.json --out sample_ids_bound.json --receipt BINDING_RECEIPT.json --strict",
+    "Run: python scripts/build_bundle.py --build-dir <candidate> --sample sample_ids_bound.json --out-dir out/annotation_bundle",
+    "Run: python scripts/preannotate.py --bundle out/annotation_bundle/bundle_public.json --out-dir out/preannotation --adapter local",
+    "Run qualification for A and B (20 synthetic calibration items) before the 100-item sample.",
+    "Execute two independent blind DERIVED passes and two gold-revealed VERIFY passes; seal exports; run agreement.py then adjudicate.py.",
+    "If adjudicate.py does not return PASS: quarantine the gold, repair, re-verify; do not publish a 'human-verified gold' claim."
+  ]
+}

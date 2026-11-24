@@ -1,0 +1,1657 @@
+                                            Text-Tuple-Table: Towards Information Integration in Text-to-Table
+                                                         Generation via Global Tuple Extraction
+                                                                     ♣                      ♣                ♣                      ♥                          ♣
+                                                  Zheye Deng , Chunkit Chan , Weiqi Wang , Yuxi Sun , Wei Fan ,
+                                                                           ♣              ♣                ♣
+                                                             Tianshi Zheng , Yauwai Yim , Yangqiu Song
+                                            ♣
+                                              Department of Computer Science and Engineering, HKUST, Hong Kong SAR, China
+                                                     ♥
+                                                       School of Computer Science, Fudan University, Shanghai, China
+                                                                    {zdengah, yqsong}@cse.ust.hk
+
+                                                              Abstract                                             Previous Text-to-Table Dataset
+
+                                                                                                                                                                       Points
+                                            The task of condensing large chunks of textual                         The Thunder defeated                    Thunder          112
+                                                                                                              the Suns 112-88 on Sunday.
+                                            information into concise and structured tables                                                                     Suns         88
+arXiv:2404.14215v2 [cs.CL] 5 Dec 2024
+
+
+
+
+                                            has gained attention recently due to the emer-                                                     Text to Table
+
+                                            gence of Large Language Models (LLMs) and                      Text-to-Table with Inference and Integration
+                                            their potential benefit for downstream tasks,
+                                            such as text summarization and text mining.                       Player2 from the Home Team misses a header
+                                                                                                              to the left from the center of the box.
+                                            Previous approaches often generate tables that
+                                            directly replicate information from the text, lim-        Goal!!! It’s a goal for the Home Team, they
+                                            iting their applicability in broader contexts, as         lead 1-0 against the Away Team!
+                                            text-to-table generation in real-life scenarios
+                                                                                                              Player5 scores with a shot from close range to
+                                            necessitates information extraction, reasoning,
+                                                                                                              the bottom left corner, assisted by Player12.
+                                            and integration. However, there is a lack of
+                                                                                                                          Text to Tuple (Inference)
+                                            both datasets and methodologies towards this
+                                                                                                         (P2, Home Team, Shot)
+                                            task. In this paper, we introduce L IVE S UM,                                                             (Home Team, Shot, 2)
+                                                                                                         (P5, Home Team, Goal)
+                                            a new benchmark dataset created for generat-                 (P5, Home Team, Shot)                        (Home Team, Goal, 1)
+                                                                                                                                   Integration
+                                            ing summary tables of competitions based on                                                                    Tuple to Table
+                                            real-time commentary texts. We evaluate the                                                 Goal          Shot
+                                            performances of state-of-the-art LLMs on this                           Home Team            1             2
+                                            task in both fine-tuning and zero-shot settings,
+                                            and additionally propose a novel pipeline called      Figure 1: An overview of the differences between our
+                                              3
+                                            T (Text-Tuple-Table) to improve their perfor-         proposed L IVE S UM dataset and previous dataset (Wise-
+                                            mances. Extensive experimental results demon-         man et al., 2017), as well as our proposed pipeline called
+                                                                                                   3
+                                            strate that LLMs still struggle with this task        T (Text-Tuple-Table) which consists of three steps.
+                                            even after fine-tuning, while our approach can
+                                            offer substantial performance gains without ex-       information from long unstructured text and en-
+                                            plicit training. Further analyses demonstrate         abling their applications in downstream scenarios,
+                                            that our method exhibits strong generalization        such as question answering (Chen et al., 2020; Zhu
+                                            abilities, surpassing previous approaches on          et al., 2024), text summarization (Wiseman et al.,
+                                            several other text-to-table datasets. Our code        2017; Wang et al., 2020; Mulwad et al., 2023) and
+                                            and data can be found at https://github.              text data mining (Li et al., 2023c; Sui et al., 2024).
+                                            com/HKUST-KnowComp/LiveSum.
+                                                                                                     However, previous studies on text-to-table gen-
+                                        1   Introduction                                          eration primarily rely on datasets traditionally
+                                                                                                  used for table-to-text tasks (Wiseman et al., 2017;
+                                        Reading extensive texts is demanding and time-            Novikova et al., 2017). One evident issue is that
+                                        consuming for humans, further compounded by               these tasks focus merely on format transformation,
+                                        the challenge of effectively capturing the key ele-       where the information in the table and the corre-
+                                        ments. Consequently, recent works have shifted to         sponding text representation are essentially sim-
+                                        explore the structured summarization of text (Jain        ilar (Lebret et al., 2016; Bao et al., 2018). For
+                                        et al., 2024), with tables being one highly prevalent     example, in the upper part of Figure 1, the table
+                                        form (Wu et al., 2022; Li et al., 2023d; Sundar et al.,   can be easily completed by extracting relevant num-
+                                        2024). These approaches improve text comprehen-           bers from the text without intermediate inference.
+                                        sion by extracting inherent yet valuable structural       Such seemingly meaningful correlations can intro-
+duce bias into the models, causing them to excel at      similar semantic meanings may describe the same
+replicating relevant information but struggle when       event, while verbs with similar meanings may re-
+it comes to categorizing and integrating numbers in      fer to the same types of events. For example, in
+complex scenarios. This is further evidenced by the      Figure 1, the second and third dialogue boxes both
+fact that fine-tuning models already perform very        describe the same goal event, and the verbs “goal”
+well and greatly surpass zero-shot LLMs (Tang            and “score” refer to the same goal event.
+et al., 2023; Sundar et al., 2024). Hence, a more           Along with the benchmark, we also introduce
+                                                                                                 3
+complicated dataset that requires information ag-        a robust prompting-based method T to address
+gregation and minimizes the presence of spurious         our proposed task. Specifically, our method draws
+correlations, closely resembling real-world scenar-      inspiration from the inherent attributes of the table,
+ios, is definitely needed for a more rigorous evalua-    where each cell, along with its corresponding row
+tion of models’ text-to-table generation proficiency.    header and column header, creates an informative
+    Apart from the research gap at the benchmark         triple (namely (row header, column header, cell)),
+level, in terms of methodology, considerable atten-      which degenerates into a binary tuple when lacking
+tion has been given to studying the ability of LLMs      row or column headers. These tuples serve as cues
+to comprehend and generate complex structured            for humans to locate specific information in the text
+outputs (Tang et al., 2023; Jain et al., 2024), driven   and complete the table accordingly. Consequently,
+by the exceptional success of LLMs in recent             our pipeline begins by extracting the relevant tu-
+years (Touvron et al., 2023; Anthropic, 2024; Ope-       ples from the text, followed by the integration of
+nAI, 2024a; Jiang et al., 2023b). Extensive bench-       these tuples, and ultimately generating one or more
+marks indicate that LLMs exhibit sub-optimal per-        summary tables.
+formance in zero-shot settings, with multiple cases         We hope that the proposed dataset, method, and
+of generating inaccurate contents deviate from the       experimental results can provide valuable insights
+given text (Tang et al., 2023). To address this issue,   for tasks such as text-to-table, as well as any task
+more sophisticated prompting mechanisms have             involving the generation of complex structured out-
+been proposed (Wei et al., 2022; Khot et al., 2022;      puts from text. In summary, in this paper, we make
+Dua et al., 2022). Among them, Jain et al. (2024) in-    the following contributions:
+troduce a divide-and-generate prompting approach
+                                                             • To the best of our knowledge, L IVE S UM is the
+to generate more accurate and informative tables,
+                                                               first benchmark dataset designed to evaluate
+demonstrating its effectiveness in improving model
+                                                               the information integration ability of models
+performance. However, this simplistic approach
+                                                               in text-to-table generation tasks.
+of dividing text into paragraphs and generating ta-
+                                                                                        3
+bles is unsuitable in more complicated situations            • We introduce a novel T (Text-Tuple-Table)
+because table-relevant information may not be con-             prompting pipeline that functions as a flexi-
+tiguous in the original text and may span across               ble framework, applicable to any text-to-table
+various paragraphs. Therefore, developing a ro-                generation tasks.
+bust prompting method is also needed for generat-
+                                                             • We conduct extensive experiments to evaluate
+ing complex tables that capture crucial information
+                                                               the performance of LLMs under different set-
+from scattered text or paragraphs.                                                             3
+                                                               tings and demonstrate that our T pipeline can
+    To resolve the aforementioned research gaps, we
+                                                               bring significant improvements while show-
+introduce a novel benchmark, L IVE S UM, which
+                                                               casing excellent generalization capabilities.
+consists of 3,771 text-based live commentaries
+from real-world football matches, intending to eval-     2    Task Definition
+uate the models’ ability to generate summary ta-
+bles. Unlike previous benchmarks, our benchmark          We first provide a formal definition of the text-to-
+necessitates the model to possess the ability to ex-     table generation. The input S consists of a textual
+tract correct and meaningful information from com-       passage with n tokens, denoted as x = x1 , . . . , xn ,
+plex textual data, specifically emphasizing informa-     and optionally, an instruction text with m tokens,
+tion integration, reasoning, and conceptualization       denoted as y = y1 , . . . , ym , which provides guid-
+skills (Wang et al., 2023b,a, 2024b,c; Wang and          ance on the format or content of the generated ta-
+Song, 2024; Zheng et al., 2024a). This is because        bles. The output T is a set of k(k ≥ 1) tables,
+                                                           1          k
+commentaries in close temporal proximity or with         T , . . . , T . For the output tables, we present a
+                                     Original Live Text                                                                          missed
+                                                                                                                     saved                          header
+         Goal! West Ham United 0, Liverpool 1. Steven Gerrard (Liverpool) converts
+         the penalty with a right footed shot to the bottom right corner.
+
+
+
+
+                                                                                                                                                                   igh
+                                                                                                            shot
+
+
+
+
+                                                                                                                                                               esh
+                                                                                                    hit
+
+
+
+
+                                                                                                                                                            go
+                                                                                                       s th                                                               goal
+                                                                                                            eb
+                     Paraphrasing                                Annotation                                    ar
+                                                                                                   foul                                   Shot
+         Goal for Liverpool! Steven Gerrard, with           (Liverpool, goal)                                                                                              blocked
+         nerves of steel, slots the penalty right-
+                                                            (Liverpool, penalty)                dangerous play Foul
+         footed into the bottom right corner.                                                                                                        Yellow
+         West Ham United 0, Liverpool 1!                    (Liverpool, shot)                              l                                         Oﬀ
+                                                                                                                                                            Card
+                                                                                                                                                                      yellow
+                                                                                                  handbal                                              sid                     card
+
+
+
+
+                                                                                                                                               Co
+                                                                                                                       Goal
+
+
+
+
+                                                                                                                                 Kick
+                                                                                                                                          Red C
+                                                                                                                                                             e
+
+
+
+
+                                                                                                                                                 rn
+                                                                                                                                                   er
+                                                                                                                                                     Kic
+                                                                                                                                Free
+                                                                                                    goal
+
+
+
+
+                                                                                                                                                a
+                Data Anonymization                               Integration
+
+
+
+
+                                                                                                                                                        k
+                                                                                                                                                                         oﬀside
+
+
+
+
+                                                                                                                                            rd
+
+
+                                                                                                                                                          co
+                                                                                                                                                             r
+         Goal for Home Team! Player5, with
+
+
+
+
+                                                                                                                                                             ne
+                                                            (Liverpool, goal, 1)                           score
+
+
+
+
+                                                                                                                                                                 rk
+         nerves of steel, slots the penalty right-
+
+
+
+
+                                                                                                                                                      sen
+
+
+                                                                                                                                                                   ick
+                                                            (Liverpool, penalty, 1)
+
+
+
+
+                                                                                                                                penalty
+         footed into the bottom right corner.                                                                       free kick
+
+
+
+
+                                                                                                                                                         t oﬀ
+         Away Team 0, Home Team 1!                          (Liverpool, shot, 1)                                                          red card
+
+
+
+                 Live Commentary                             Summary Table            Figure 3: Eight types of event information (inner circle)
+Figure 2: Overview of the pipeline for constructing the                               that require summarization in L IVE S UM dataset, along
+L IVE S UM dataset illustrated with a sample sentence.                                with their common expressions (outer circle) in the com-
+                                                                                      mentary.
+more detailed definition that covers two aspects:
+                                                                                      process of the live commentary, and Section 3.2
+structure-related and content-related.
+                                                                                      describes the generation process for the summary
+Structure We assume there are no merged cells                                         table. More details are provided in Appendix A.
+                                                 i
+in the tables for simplicity. Each table T has a
+           i      i         i                 i
+caption c = c1 , . . . , cd , where d = ∣c ∣, and it                                  3.1   Live Commentary Generation
+                i                i
+consists of nr rows and nc columns, resulting in                                      To address formatting issues in the original textual
+              i     i                     i
+a total of nr × nc cells. The cell Tp,q in the p-th                                   live commentary on the website, we paraphrase
+row and q-th column is composed of a sequence of                                      the text to match the commentator’s style while
+            i             i                    i
+tokens: Tp,q,1 , . . . , Tp,q,r , where r = ∣Tp,q ∣. The                              ensuring a certain degree of diversity. Building
+        i
+table T must have either a row header for all rows                                    upon previous studies (Kim et al., 2023; Chen et al.,
+or a column header for all columns and it is also                                     2023; Jiayang et al., 2024; Deng et al., 2023; Ji-
+possible for the table to have both.                                                  ayang et al., 2023; Chan et al., 2024b), we employ
+                                                                                      ChatGPT (OpenAI, 2022) to generate complete
+Content We define that the information in the                                         live commentary automatically. Subsequently, to
+output tables should be derived from the input x                                      comply with privacy regulations and prevent bias in
+                                              i
+or can be inferred from x. For each cell Tp,q in                                      LLM benchmarks (Li et al., 2023a; Susnjak, 2022;
+        i                                       i
+table T , when combined with its row header Tp,1                                      Li et al., 2024b; Lukas et al., 2023; Li et al., 2024a),
+                                i
+(if any), its column header T1,q (if any), and the                                    we also anonymize the data leveraging named en-
+                  i                                                                   tity recognition (NER) techniques (Qi et al., 2020)
+table’s caption c , it should convey the equivalent
+information as expressed in the input x and com-                                      to produce the final version of the live commentary.
+plies with the instruction y (if any).
+                                                                                      3.2   Summary Table Generation
+3       L IVE S UM Dataset                                                            On the other hand, human annotators label a sum-
+                                                                                      mary table for each match’s commentary. We re-
+We consider the problem of generating match statis-
+                                                                                      cruit five workers who are interested in football and
+tic information tables from textual live commentary.
+                                                                                      are from English-speaking countries to perform the
+Inspired by ROTOW IRE (Wiseman et al., 2017), a
+                                                                                      annotations. Since the occurrence of the events in
+data-to-document dataset in the sports domain that
+                                                                                      football matches is deterministic, the ground truth
+aims to generate textual summaries by incorporat-
+                                                                                      is essentially unambiguous. In cases where there
+ing statistical data from basketball games, we in-
+                                                                                      are inconsistencies in the annotated results, the cor-
+stead focus on live commentary in football, which
+                            1                                                         rect answer is determined through a majority vote.
+is available on BBC Sports . We crawl the data for
+the English Premier League from 2014 to 2023 and                                      3.3   Statistics
+obtain complete commentary for 3,771 matches.
+                                                                                      L IVE S UM comprises a collection of 3,771 pairs,
+Figure 2 shows the pipeline we use to construct
+                                                                                      consisting of textual live commentaries and cor-
+the dataset. Section 3.1 describes the generation
+                                                                                      responding summary tables. We randomly split
+    1
+        https://www.bbc.com/sport/football                                            the entire dataset into training and test sets, re-
+sulting in 3,017 instances for the training set and                   Information Integration Prompting Template
+754 instances for the test set. On average, each
+                                                                     Direct Execution: According to <Instruction>,
+live commentary segment consists of 1,256 words.                     please integrate these tuples as required: <Tuples>
+L IVE S UM focuses on eight types of events, with
+the names and their corresponding common de-                         Code Generation: According to <Instruction>,
+scriptions displayed in Figure 3.                                    please develop an algorithm to consolidate these tu-
+                                                                     ples as specified: <Tuples>
+         3
+4     T (Text-Tuple-Table) Pipeline                            where <Instruction> is the directive for the cur-
+                     3                                         rent task, and <Tuples> consists of the tuples ex-
+Our proposed T (Text-Tuple-Table) pipeline is de-
+                                                               tracted in the prior stage.
+signed to mimic the intuitive steps followed by
+humans when performing this task. When individ-                4.3     Tuple-to-Table
+uals aim to summarize a table from text, they typi-
+cally extract pertinent or valuable tuples from the            After obtaining the integrated tuples, we follow the
+content, guided by any provided instructions, and              previous implementation (Tang et al., 2023; Jain
+then organize these tuples into one or more tables.            et al., 2024) and use the following prompting to
+Based on this concept, we divide this transforma-              generate the final tables:
+tion into three stages: text-to-tuple, integration, and                    Tuple-to-Table Prompting Template
+tuple-to-table, each of which is discussed in the fol-
+lowing subsections. Taking Figure 1 as an example,                   According to <Instruction>, please generate one or
+                                                                     more tables based on the following tuples: <Tuples>
+we first extract key events mentioned in the text,
+then aggregate this information into consolidated              where <Instruction> is the directive for the cur-
+tuples, and ultimately compile them into a table.              rent task, and <Tuples> consists of the tuples pro-
+                                                               duced in the prior stage.
+4.1     Text-to-Tuple
+Considering the superior performance and flexibil-             5     Experimental Setup
+ity of LLMs in information extraction compared to
+traditional techniques (Ma et al., 2023; Xu et al.,            Baseline Models In this study, we conduct fine-
+2023), we employ an LLM as our tuple extractor.                tuning on the L IVE S UM dataset using three repre-
+We follow the instructions from InstructUIE (Wang              sentative open-source LLMs: Mistral-7B-Instruct-
+et al., 2023c) and design the following prompting:             v0.2 (Jiang et al., 2023a), LLaMA-2 Chat 7B
+                                                               and LLaMA-2 Chat 13B (Touvron et al., 2023).
+             Text-to-Tuple Prompting Template                  We fine-tune these models following the current
+      According to <Instruction>, please extract the rel-      state-of-the-art fine-tuning methodologies (Tang
+      evant events and information in the form of tuples,      et al., 2023). Therefore, the outcomes represent the
+      structured as (subject, object, verb) or (subject, at-   best results achievable with the present fine-tuning
+      tribute, value): <Text>
+                                                               methods. We also evaluate eight state-of-the-art
+                                                               LLMs in zero-shot settings: LLaMA-2 Chat 13B,
+where <Instrction> is the directive for the cur-
+                                                               LLaMA-2 Chat 70B (Touvron et al., 2023), Mistral
+rent task, and <Text> is the text to be transformed.
+                                                               Large (MistralAI, 2024), Claude 2.1 (Anthropic,
+                                                               2023), Claude 3 Opus (Anthropic, 2024), Chat-
+4.2     Information Integration
+                                                               GPT (OpenAI, 2022), and GPT-4 (OpenAI, 2024a).
+In this stage, we propose two approaches for inte-             Because of the limitation of the input lengths, we
+grating information. The first one involves direct             evaluate two LLMs in few-shot settings: ChatGPT-
+execution by the LLM, using prompting to consol-               16k and GPT-4o (OpenAI, 2024b). For each model,
+idate tuple data. The second one uses algorithms               we conduct tests using two types of prompts. The
+and code generated by the LLM to integrate tuple               first type directly describes the task by providing
+information, inspired by the LLMs’ great success               an instruction text y and accompanying it with the
+in code generation tasks (Roziere et al., 2023; Luo            text x. The second type uses the Chain-of-Thought
+                                  3
+et al., 2023; Guo et al., 2024). T defaults to using           (CoT) prompting (Wei et al., 2022), incorporating
+code generation in this step. The promptings for               the phrase “let’s think step by step” into the instruc-
+these two methods are shown as follows:                        tion text. See more details in Appendix C.
+                                                                                                                                                                              3
+                                              Fine-Tune                                        Zero-Shot                                                 Zero-Shot w/ T
+                                     10                                                                                                                                           100
+                                               ⊗    ⊗     ⊗    ⊗     ⊗     ⊗     ⊗
+                                         9                     ⊙     ⊙     ⊙     ⊙   ⊗     ⊗    ⊗    ⊗                   ⊗      ⊗       ⊗      ⊗                                  90
+               Root Mean Squared Error         ⊙    ⊙     ⊙                                                ⊗      ⊗
+                                         8                                                                                                                                        80
+                                         7                                           ⊙     ⊙                                                          ⊗      ⊗                    70
+
+
+
+
+                                                                                                                                                                                        Error Rate (%)
+                                                                                                ⊙    ⊙
+                                         6                                                                                                                                        60
+                                         5                                                                 ⊙      ⊙                     ⊙      ⊙                                  50
+                                                                                                                         ⊙      ⊙                     ⊙              ⊗
+                                         4                ⊕                                                                                                  ⊙                    40
+                                               ⊕    ⊕
+                                         3
+                                                               ⊕     ⊕                                                                                                            30
+                                                                                                                                                                     ⊙
+                                         2                                                                                                                                  ⊗     20
+                                                                           ⊕     ⊕                   ⊕                                                                      ⊙
+                                         1                                           ⊕     ⊕    ⊕                                                     ⊕      ⊕                    10
+                                                                                                                         ⊕      ⊕       ⊕                            ⊕      ⊕
+                                         0                                                                 ⊕      ⊕                            ⊕                                  0
+                                     T ) F T ) F T ) 13B OT ) 70B OT )                   )              )           )                             )
+                                                                                                              rge OT PT-4 OT ) Opus OT
+                                                                                                                                                        3 )   3 )       3 ) 3 )
+                                  (F                                              PT OT e 2.1 OT                                                       (T   (T        (T s (T
+                                         (        (     t       C     t   C     tG   C       d     C        La    C   G 4 (C e 3              C
+                            -v 0.2 t 7B 13B -Cha 3B ( -Cha 0B (             C ha T (
+                                                                                   P     l au 2.1 ( stral rge (         T-       d      p us(
+                                                                                                                                                 e  2.1 arge PT-4 Opu
+                          t         a      t              1             7              C             i                         u                        L
+                        uc 2-Ch -Cha                2
+                                                 A- hat
+                                                                  2
+                                                                A- hat         atG            de   M al La            GP Cla                    d
+                                                                                                                                     3 O Clau stral
+                                                                                                                                                             G        3
+                    str                                                     Ch             au             r                       de                               de
+                 -In MA
+                               -
+                                    A-
+                                       2       M
+                                            La -2-
+                                                      C       M
+                                                            La -2-
+                                                                    C                  Cl             ist                      au               M
+                                                                                                                                                   i           lau
+               B        a                 L      A        L     A                                   M                        l                               C
+             -7 LL               aM                                                                                        C
+         ral                 LL               aM             aM
+     ist                                   LL             LL
+    M
+                                             Root Mean Squared Error (Average)   Error Rate (Average) ⊗ Error Rate (Hard) ⊙ Error Rate (Medium) ⊕ Error Rate (Easy)
+
+Figure 4: The performance of various LLMs under fine-tune and zero-shot settings, as well as after the application of
+     3
+the T method on the test set of L IVE S UM dataset. The average RMSE and error rate for each model are displayed,
+along with the error rate for each of the three difficulty sections. More results are in Table 1.
+
+Evaluation Metric As the generated cell content                                                      generalization of our proposed approach. We aim
+in this task consists of numerical values, we utilize                                                to answer the following research questions:
+commonly employed metrics in regression tasks,
+namely the Root Mean Square Error (RMSE).                                                            RQ1 (Benchmarking) How do the current state-
+                       √                                                                             of-the-art LLMs perform on this dataset in fine-
+                            n                                                                        tuning and zero-shot settings?
+                          ∑i=1 (yi − ỹi )2
+           RM SE =               n                                                                   RQ2 (Effectiveness)    How does our proposed
+                                                                                                      3
+where n represents the number of cells, yi and ỹi                                                   T pipeline impact model performance?
+represent the contents of the cell at index i (for 2D                                                                                                                                               3
+                                                                                                     RQ3 (Generalization) How effective is the T
+tables, the index is calculated after reshaping to the
+                                                                                                     pipeline when applied to other real-world datasets
+1D table) in the ground truth table and the output
+                                                                                                     for the text-to-table generation task?
+table, respectively.
+   We also report the Error Rate (ER) for each cell,                                                 6.1     Benchmarking (RQ1)
+defining a cell as erroneous if its content does not
+exactly match the ground truth.                                                                      We first analyze the performance of existing state-
+                                                                                                     of-the-art LLMs on the L IVE S UM dataset under
+Grouping by Event Difficulty Furthermore, we                                                         fine-tuning, zero-shot and few-shot settings, with
+categorize the eight types of events into three                                                      results displayed in Figure 4, Table 1 and Table 2.
+groups based on assessed difficulty: Goals, due                                                      Overall, the performance of most models in the
+to direct descriptions of scores in the original text,                                               zero-shot setting far exceeds that in the fine-tuning
+and Red Cards, due to their rare occurrence are cat-                                                 setting, indicating that the previous state-of-the-art
+egorized into the Easy section. Shots and Fouls,                                                     fine-tuning method has limited capability for infor-
+due to their varied expressions and descriptions,                                                    mation integration, and there is substantial room
+are classified into the Hard section. The remaining                                                  for improvement on this benchmark. In the zero-
+four event types are classified as Medium section.                                                   shot setting, it is noteworthy that most models show
+We report the RMSE and ER for each model across                                                      a slight improvement in both metrics after apply-
+different difficulty categories to provide a more                                                    ing C OT. Among them, the best-performing mod-
+comprehensive analysis.                                                                              els are Mistral Large, GPT-4, and Claude 3 Opus,
+                                                                                                     which are nearly comparable. They achieve RM-
+6       Experiments and Analyses
+                                                                                                     SEs ranging from 2.08 to 2.27 and error rates be-
+In this section, we will benchmark the performance                                                   tween 46.20% and 48.33%. Nevertheless, this still
+of current state-of-the-art LLMs on the L IVE S UM                                                   highlights a notable deficiency in the information
+dataset, and further evaluate the effectiveness and                                                  integration capabilities of LLMs in the zero-shot
+                                                Easy                   Medium                Hard            Average
+  Model
+                                        RMSE            ER          RMSE      ER      RMSE          ER    RMSE         ER
+
+  ♦ Fine-Tune
+  Mistral-7B-Instruct-v0.2              1.045          38.36        3.832    85.11    7.115     95.52     4.564    76.03
+  LLaMA-2-Chat 7B                       1.047          38.41        3.728    84.91    7.107     95.40     4.512    75.91
+  LLaMA-2-Chat 13B                      1.043          39.22        3.587    84.60    6.671     94.42     4.287    75.71
+  ♦ Zero-Shot
+  LLaMA-2-Chat 13B                      0.775          33.29        4.554    87.37    5.203     93.29     4.279    75.33
+  LLaMA-2-Chat 13B (C OT)               0.780          31.83        4.376    87.42    5.088     92.35     4.162    74.75
+  LLaMA-2-Chat 70B                      0.410          12.34        3.189    88.59    4.941     92.41     3.455    70.48
+  LLaMA-2-Chat 70B (C OT)               0.450          12.86        3.221    89.25    5.314     94.24     3.613    71.40
+  ChatGPT                               0.200           8.06        2.864    72.73    4.257     90.62     3.008    61.03
+  ChatGPT (C OT)                        0.229          10.61        2.809    72.75    4.087     90.38     2.911    61.62
+  Claude 2.1                            1.014          10.08        2.581    63.99    4.621     90.58     3.171    57.16
+  Claude 2.1 (C OT)                     1.496          14.06        2.291    61.70    4.081     90.38     2.918    56.96
+  Mistral Large                         0.005           0.27        2.385    52.45    2.712     84.62     2.209    47.45
+  Mistral Large (C OT)                  0.018           0.73        2.311    51.82    2.608     84.08     2.139    47.12
+  GPT-4                                 0.156           4.64        1.167    46.05    4.114     88.53     2.273    46.32
+  GPT-4 (C OT)                          0.154           4.38        1.173    45.86    3.981     88.73     2.225    46.20
+  Claude 3 Opus                         0.078           2.52        1.617    51.36    3.713     88.06     2.253    48.33
+  Claude 3 Opus (C OT)                  0.040           1.59        1.642    49.60    3.265     87.86     2.079    47.17
+                        3
+  ♦ Zero-Shot with T
+                3
+  Claude 2.1 (T )                       0.193           8.95        1.965    44.99    2.751     72.15     2.066    42.77
+                  3
+  Mistral Large (T )                    0.191           8.82        1.596    42.37    2.136     69.23     1.631    40.70
+           3
+  GPT-4 (T )                            0.056           3.18        0.854    25.83    1.219     46.22     0.929    25.27
+                    3
+  Claude 3 Opus (T )                    0.081           5.30        0.406    14.79    0.477     21.29     0.438    14.04
+
+Table 1: The performance of various LLMs under three settings, showing RMSE and error rate across three difficulty
+categories and overall average. We bold the best results and underline the second-best results in each setting.
+
+               Easy         Medium       Hard           Average         performance across three categories of difficulty.
+ Model
+              RMSE/ER       RMSE/ER     RMSE/ER         RMSE/ER
+                                                                        Easy Section It can be observed that the error
+ ♦ gpt-3.5-turbo-16k
+ 0-shot      0.22/12.0      1.76/65.1   3.22/87.2       2.08/57.3       rate of the fine-tuned models is generally around
+  ◇ w/ C OT  0.23/12.7      1.75/64.4   3.14/87.4       2.05/57.2       40%, with an RMSE close to 1. In the zero-shot
+ 1-shot      0.25/13.5      2.29/71.9   4.33/90.4       2.76/61.9       setting, LLaMA-2-Chat, ChatGPT, and Claude 2.1
+  ◇ w/ C OT  0.18/8.82      3.18/73.8   4.52/91.5       3.24/62.0
+                                                                        models exhibit relatively poor performance, occa-
+ ♦ gpt-4o                                                               sionally producing anomalously large values. The
+ 0-shot       0.00/0.13     1.51/50.4   1.82/78.5       1.43/44.8
+                                                                        error rates of the other models generally remain be-
+  ◇ w/ C OT   0.00/0.20     1.31/41.7   2.00/78.1       1.41/40.4
+ 1-shot       0.00/0.19     1.24/49.0   2.19/78.8       1.44/44.3       low 5%, with RMSEs less than 0.2. Among these,
+  ◇ w/ C OT   0.00/0.13     1.19/45.0   2.72/84.3       1.63/43.6       the Mistral Large model performs the best, with
+ 5-shots      0.00/0.20     1.71/57.2   2.15/80.0       1.65/48.6       both metrics significantly lower than other models.
+  ◇ w/ C OT   0.00/0.13     1.55/56.3   2.02/72.9       1.53/46.4
+                                                                        Medium Section The medium section exhibits
+Table 2: The performance of two LLMs under the few-                     the greatest variation among models and serves
+shot setting. We bold the best results and underline the
+                                                                        as a crucial determinant of overall model perfor-
+second-best results.
+                                                                        mance. We organize the models based on their
+                                                                        performance, with error rates in the zero-shot set-
+settings, underscoring the challenges and signifi-
+                                                                        ting ranging from 89.25% down to 45.86%. GPT-4
+cance of our benchmark. The results in Table 2 in-
+                                                                        with C OT performs the best, achieving the low-
+dicate that few-shot learning does not consistently
+                                                                        est error rate, which still indicates the suboptimal
+improve model performance on this task. How-
+                                                                        capabilities of LLMs.
+ever, there is a significant reduction in the error
+rate for the hard portion under the 5-shots-C OT set-                   Hard Section The charts clearly show that in the
+ting. We speculate that in such complex tasks, the                      hard section, the zero-shot method shows minimal
+model may not effectively learn and understand the                      enhancement compared to fine-tuning, as most er-
+examples, and instead, be influenced by the exam-                       ror rates are around 90%. However, Mistral Large
+ples, leading to incorrect answers. We then analyze                     is an exception, achieving a lower error rate of
+              Easy      Medium       Hard       Average                               Zero-Shot          Fine-Tune
+ Model                                                       Metric                             3
+             RMSE/ER    RMSE/ER     RMSE/ER     RMSE/ER                           ChatGPT w/ T           LLaMA-7B
+ GPT-4       0.16/4.6   1.17/46.1   4.11/88.5   2.27/46.3    SacreBLEU             77.58       78.91        90.60
+ w/ C OT     0.15/4.4   1.17/45.9   3.98/88.7   2.23/46.2    ROUGE-L               86.11       88.36        88.98
+     3
+ w/ T M      0.00/0.1   1.42/43.2   2.46/82.8   1.62/42.3    BERTScore             96.75       97.34        98.54
+     3                                                       BLEURT                64.66       67.47        66.07
+ w/ T D      0.09/4.5   1.12/40.1   2.23/81.4   1.42/41.5
+        3
+                                                             BARTScore             -2.08       -1.90        -0.69
+ w/ T        0.06/3.2   0.85/25.8   1.22/46.2   0.93/25.3    Content P-Score        6.84        7.29         7.69
+                                                             Format P-Score         9.70        9.88         8.60
+Table 3: The ablation study results comparing the per-       Content H-Score        1.66        1.68         1.65
+formance of different prompting methods. We bold the         Format H-Score         3.28        3.63         3.61
+best results and underline the second-best results.
+                                                            Table 4: The evaluation results on the test set of S TRUC -
+                                                            B ENCH Table dataset with nine metrics. We bold the
+84.08%, which demonstrates the challenging na-              best results and underline the second-best results.
+ture of the hard section.
+                                                            reductions in RMSE and error rate of 59.1% and
+6.2     Effectiveness (RQ2)
+                                                            45.4%, respectively. Compared to GPT-4 and C OT,
+                 3                                                        3         3
+We apply the T pipeline to four LLMs: Claude                the variants T M and T D also exhibit notable im-
+2.1, Mistral Large, GPT-4, and Claude 3 Opus;               provements, with respective reductions in RMSE
+the rest are not applicable to this method due to           of 28.7% and 37.6%, and error rates of 8.6% and
+their ineffective extraction of tuples from inputs          10.3%. Full ablation studies are in Appendix D.
+of such lengths, resulting in a minimal number of
+tuples or a substantial duplication of the same tu-         6.3     Generalization (RQ3)
+                                                                                                                     3
+ple. The implementation details are discussed in            To examine the generalization capabilities of T ,
+                                                                         3
+Appendix B. From Figure 4 and Table 1, it is ob-            we apply T to two additional datasets designed
+servable that Claude 2.1 and Mistral Large exhibit          to test text-to-table performance and compare it
+                                            3
+similar improvements after applying the T method,           with previous methods. Section 6.3.1 involves ta-
+both showing slight enhancements over the best re-          ble generation without the need for information
+sults in the zero-shot setting, with reductions in          integration, while Section 6.3.2 focuses on table
+RMSE of 34.9% and 26.2% respectively and de-                generation without instructions.
+creases in error rate of 25.2% and 14.2%. In con-                                          3
+trast, GPT-4 and Claude 3 Opus display substantial          6.3.1     Performance of T on S TRUC -B ENCH
+                                            3                         Table Dataset
+improvements after implementing the T method,
+                                                                                                  3
+with RMSE reductions of 59.1% and 80.6%, re-                We test the performance of T on the text-to-
+spectively, and error rate reductions of 45.4% and          table benchmark S TRUC -B ENCH Table (Tang et al.,
+70.9%. The reductions in these metrics are pri-             2023). This benchmark is based on the ROTOWIRE
+marily reflected in the significant decrease in the         dataset (Wiseman et al., 2017) and employs tra-
+error rate for the hard sections, creating a clear dis-     ditional evaluation metrics, prompting score(P-
+tinction from the zero-shot approaches. We then             Score), and heuristical score(H-Score), to conduct
+conduct an ablation study to evaluate the impact            a comprehensive assessment of the output tables.
+         3
+of the T method on model performance. We ex-                They also introduce a fine-tuning approach incor-
+                                         3
+periment with two variant methods: T -M ERGED               porating row and column header information in the
+   3           3                             3
+(T M ) and T -D IRECT-E XECUTION (T D ). The                training instructions. We argue that this comparison
+former method involves using a single prompt that           with the zero-shot method is problematic. In zero-
+instructs the model to first extract relevant tuples        shot settings, due to the absence of a fine-tuning
+before generating the table, while the latter one           process, the format of the output tables is uncertain.
+                                    3
+modifies the second step of the T method to be di-          For example, in ground-truth tables, cells that are
+rectly executed by the LLM, rather than using code          left blank may be filled with terms such as “un-
+generation (see Appendix B.5 for more details).             known” or “not mentioned” by the model, substan-
+Table 3 presents the results using GPT-4 as an ex-          tially impacting similarity-based metrics. Hence
+                                      3
+ample. It is apparent that using T considerably             we modify the model’s outputs under zero-shot
+enhances the model’s overall performance, lead-             settings before reporting the results. We evaluate
+ing significantly in overall metrics, with average          the performance of ChatGPT with and without em-
+              3
+ploying the T method and also compare it to the                                               Divide-and-Generate (Jain et al., 2024)
+                                                                                               3
+fine-tuned LLaMA-7B model proposed by Tang                                                    T (Text-Tuple-Table)
+                                                                                               2
+et al. (2023). Results are detailed in Table 4. It is                                         T (Text-Tuple)
+                                        3
+observable that the application of the T method re-
+                                                                                    100
+sults in significant improvements across all metrics,
+                                                                                     90
+
+
+
+
+                                                            AUTO -QA Coverage (%)
+with some measures outperforming the fine-tuned
+model. Further details on the experiments and anal-                                  80
+ysis of the results are discussed in Appendix E.                                     70
+                             3                                                       60
+6.3.2 Performance of T on W IKI 40 B Dataset
+                                                                                     50
+We intend to evaluate the performance of our pro-                                    40
+posed approach in the text-to-table task without
+                                                                                     30
+instructions and ground-truth tables. In line with
+                                                                                     20
+the pioneering work of S TRUCT S UM (Jain et al.,
+2024), we experiment on a randomly sampled set                                       10
+                                                                                          0 10 20 30 40 50 60 70 80 90 100
+from the English section of W IKI 40 B dataset (Guo                                                Percentage (%)
+et al., 2020). As there is no ground-truth table for
+the text in the dataset, they leverage LLMs and pro-    Figure 5: AUTO -QA coverage of the three methods.
+pose AUTO -QA Coverage as an evaluation metric:         The point (P, C) means P % of the data can achieve a
+                                                        coverage of C% or higher measured using AUTO -QA.
+                    ∣G(S)∣
+                  ∑i=1       E(qi ,ai ) [Q(T , qi )]    occurs during the transformation of raw tuples into
+     Cov(T ) =
+                              ∣G(S)∣                    structured tables. Exploring ways to mitigate this
+                                                        loss represents an essential area for further research.
+where G(S) is the list of Question-Answer pairs         More details are discussed in Appendix F.
+(qi , ai ) generated by the LLM based on text S,
+Q(T , q) is the LLM’s answer to question q based        6.4                         Case Studies
+on table T , and E(q,a) [x] is the LLM’s evaluation
+                                                        We present specific case studies on the outputs of
+of whether answer a and x are equivalent for ques-
+                                                        different models on the L IVE S UM dataset in Ap-
+tion q. On top of this evaluation, we add a step
+                                                        pendix G. These cases directly demonstrate the ef-
+where an LLM is used to pre-screen each (q, a)
+                                                        fectiveness of our proposed method. Additionally,
+pair based on text S, filtering out any pairs where
+                                                        we summarize some common errors of the model
+the question can not be correctly answered. This                        3
+                                                        after applying T and areas for improvement.
+process further assures the quality of the QA pairs
+generated by G. We opt for ChatGPT as the LLM           7                   Related Work
+for evaluation and randomly sample 500 passages
+for the test dataset following Jain et al. (2024). We   Text-to-Table Generation Many studies have
+                   2
+also introduce T (Text-Tuple) which treats the in-      been proposed to perform text-to-table genera-
+                            3
+termediary tuples from T as a single table T . We       tion, converting it into sequence-to-sequence prob-
+aim to investigate the extent of information loss       lems (Wu et al., 2022; Li et al., 2023d), or fram-
+during the conversion from tuples to tables through     ing them as question-answering problems (Sundar
+this configuration. Figure 5 shows the AUTO -QA         et al., 2024). With the rise of LLMs, some research
+Coverage of three methods. The curve indicates          has also explored evaluating LLMs under fine-
+the percentage of generated tables meeting a given      tuning or zero-shot settings, and it shows that fine-
+                                   3
+coverage threshold. Overall, T demonstrates a           tuning yields highly effective results (Tang et al.,
+substantial improvement over the prior Divide-and-      2023; Sundar et al., 2024). However, these meth-
+Generate method (Jain et al., 2024). For example,       ods employ datasets that only require the model
+when the coverage threshold is set to 70%, about        to extract relevant information from text and popu-
+                                                    3
+65% of data reach this threshold after applying T ,     late tables, which significantly limits the scope of
+compared to only 50% with the preceding approach.       this task. Therefore, we introduce a new challeng-
+                              2                3
+It is important to note that T outperforms T , with     ing dataset and propose a universal solution that
+83% of data retaining the same coverage after tu-       greatly enhances the performance of LLMs under
+ple extraction. This suggests that information loss     zero-shot setting.
+LLMs for Information Extraction Information               by the token length of live commentary for few-
+Extraction (IE) is critical and foundational for          shot settings, we reserve this aspect for future work.
+                                                                                                  3
+many downstream tasks in NLP. Many works have             Furthermore, while our proposed T pipeline sig-
+been conducted to leverage LLMs and provide ef-           nificantly improves performance on several state-
+fective solutions for IE tasks within a generative        of-the-art LLMs, it cannot be effectively applied
+framework (Ma et al., 2023; Lu et al., 2023; Wan          to LLMs that are deficient in tuple extraction ca-
+et al., 2023; Zhou et al., 2024). Recent progress in      pabilities, as it fails in the first stage and cannot
+LLMs also has led to the development of unified           proceed to the next phase. Developing methods
+frameworks that model various IE tasks and do-            that boost performance on such LLMs remains a
+mains (Wang et al., 2023c; Sainz et al., 2024). This      valuable area for future research.
+aligns with our intention to harness this capability
+to address general text-to-table generation tasks.        Ethics Statement
+LLM Promptings Prompt engineering has been                When constructing the L IVE S UM dataset, we sam-
+essential for enhancing LLMs and has demon-               ple texts of live football match commentary from
+strated great success across a wide range of appli-       the open-access BBC Sports official website. We
+cations (Wei et al., 2022; Dua et al., 2022; Li et al.,   apply LLMs to paraphrase this live commentary
+2023b; Chan et al., 2023b; Wang et al., 2024d; Yim        and conduct manual reviews to ensure no harmful
+et al., 2024; Chan et al., 2023a; Lin et al., 2024;       content is generated. We also anonymize the data
+Chan et al., 2024a). Among the various prompt-            using named entity recognition (NER) technology
+ing techniques, we find the decomposed prompt-            combined with player rosters. The datasets used
+ing (Khot et al., 2022), which breaks down complex        in our experiments, S TRUC -B ENCH (Tang et al.,
+tasks into easier sub-tasks via prompting, highly         2023) and W IKI 40 B (Guo et al., 2020), are open-
+effective for text-to-table generation. Jain et al.       source, and all experiments adhere to their intended
+(2024) adopts this idea by breaking the text into         use for research purposes. Therefore, to the best of
+small pieces for table generation. However, we            the authors’ knowledge, we believe that this work
+argue that such a decomposition approach is im-           introduces no additional risk.
+practical because text is not always easily divisible.
+For example, in our dataset, such division might re-      Acknowledgements
+sult in adjacent sections describing the same event,      The authors of this paper were supported by the
+causing errors. Hence we propose a more intu-             NSFC Fund (U20B2053) from the NSFC of China,
+itive and broadly applicable task decomposition           the RIF (R6020-19 and R6021-20), and the GRF
+pipeline.                                                 (16211520 and 16205322) from RGC of Hong
+                                                          Kong.
+8   Conclusion
+In this work, we introduce L IVE S UM, a novel and
+challenging benchmark dataset for assessing the           References
+capability of models to integrate information in          Anthropic. 2023. Introducing claude 2.1. Anthropic.
+the text-to-table generation, along with a robust
+                   3                                      Anthropic. 2024. Introducing the next generation of
+pipeline named T . Experimental results show that           claude. Anthropic.
+current LLMs underperform on our dataset in both
+fine-tuning and zero-shot settings; however, signifi-     Junwei Bao, Duyu Tang, Nan Duan, Zhao Yan, Yuanhua
+cant improvements are observed after applying our           Lv, Ming Zhou, and Tiejun Zhao. 2018. Table-to-
+            3                                               text: Describing table region with natural language.
+proposed T pipeline. Our method can also be ap-             In Proceedings of the AAAI conference on artificial
+plied to any text-to-table dataset, enabling LLMs to        intelligence, volume 32.
+outperform previous methods in zero-shot settings.
+                                                          Chunkit Chan, Jiayang Cheng, Weiqi Wang, Yuxin
+Limitations                                                 Jiang, Tianqing Fang, Xin Liu, and Yangqiu Song.
+                                                            2024a. Exploring the potential of chatgpt on sen-
+Although our L IVE S UM benchmark extensively               tence level relations: A focus on temporal, causal,
+                                                            and discourse relations. In Findings of the Associa-
+evaluates the information integration capabilities          tion for Computational Linguistics: EACL 2024, St.
+of LLMs, we have not yet tested their performance           Julian’s, Malta, March 17-22, 2024, pages 684–721.
+in a few-shot setting. Despite the challenge posed          Association for Computational Linguistics.
+Chunkit Chan, Cheng Jiayang, Yauwai Yim, Zheye              Mandy Guo, Zihang Dai, Denny Vrandecic, and Rami
+  Deng, Wei Fan, Haoran Li, Xin Liu, Hongming                Al-Rfou. 2020. Wiki-40b: Multilingual language
+  Zhang, Weiqi Wang, and Yangqiu Song. 2024b. Ne-            model dataset. In LREC 2020.
+  gotiationtom: A benchmark for stress-testing ma-
+  chine theory of mind on negotiation surrounding.          Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan
+  CoRR, abs/2404.13627.                                       Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and
+                                                              Weizhu Chen. 2022. Lora: Low-rank adaptation of
+Chunkit Chan, Xin Liu, Tsz Ho Chan, Jiayang Cheng,            large language models. In The Tenth International
+  Yangqiu Song, Ginny Y. Wong, and Simon See.                 Conference on Learning Representations, ICLR 2022,
+  2023a. Self-consistent narrative prompts on abduc-          Virtual Event, April 25-29, 2022. OpenReview.net.
+  tive natural language inference. In Proceedings of
+  the 13th International Joint Conference on Natural        Parag Jain, Andreea Marzoca, and Francesco Piccinno.
+  Language Processing and the 3rd Conference of the           2024. Structsum generation for faster text compre-
+  Asia-Pacific Chapter of the Association for Compu-          hension. Preprint, arXiv:2401.06837.
+  tational Linguistics, IJCNLP 2023 -Volume 1: Long
+  Papers, Nusa Dua, Bali, November 1 - 4, 2023, pages       Albert Q. Jiang, Alexandre Sablayrolles, Arthur Men-
+  1040–1057. Association for Computational Linguis-           sch, Chris Bamford, Devendra Singh Chaplot, Diego
+  tics.                                                       de las Casas, Florian Bressand, Gianna Lengyel, Guil-
+                                                              laume Lample, Lucile Saulnier, Lélio Renard Lavaud,
+Chunkit Chan, Xin Liu, Jiayang Cheng, Zihan Li,               Marie-Anne Lachaux, Pierre Stock, Teven Le Scao,
+  Yangqiu Song, Ginny Y. Wong, and Simon See.                 Thibaut Lavril, Thomas Wang, Timothée Lacroix,
+  2023b. Discoprompt: Path prediction prompt tun-             and William El Sayed. 2023a. Mistral 7b. Preprint,
+  ing for implicit discourse relation recognition. In         arXiv:2310.06825.
+  Findings of the Association for Computational Lin-
+  guistics: ACL 2023, Toronto, Canada, July 9-14,           Yuxin Jiang, Chunkit Chan, Mingyang Chen, and
+  2023, pages 35–57. Association for Computational            Wei Wang. 2023b. Lion: Adversarial distillation
+  Linguistics.                                                of closed-source large language model. CoRR,
+                                                              abs/2305.12870.
+Maximillian Chen, Alexandros Papangelis, Chenyang
+ Tao, Seokhwan Kim, Andy Rosenbaum, Yang Liu,               Cheng Jiayang, Lin Qiu, Chunkit Chan, Xin Liu,
+ Zhou Yu, and Dilek Hakkani-Tur. 2023. PLACES:                Yangqiu Song, and Zheng Zhang. 2024. Event-
+ Prompting language models for social conversation            ground: Narrative reasoning by grounding to
+ synthesis. In Findings of the Association for Com-           eventuality-centric knowledge graphs. In Proceed-
+ putational Linguistics: EACL 2023, pages 844–868,            ings of the 2024 Joint International Conference on
+ Dubrovnik, Croatia. Association for Computational            Computational Linguistics, Language Resources and
+ Linguistics.                                                 Evaluation, LREC/COLING 2024, 20-25 May, 2024,
+                                                              Torino, Italy, pages 6622–6642. ELRA and ICCL.
+Wenhu Chen, Hanwen Zha, Zhiyu Chen, Wenhan Xiong,
+  Hong Wang, and William Yang Wang. 2020. Hy-               Cheng Jiayang, Lin Qiu, Tsz Ho Chan, Tianqing Fang,
+  bridqa: A dataset of multi-hop question answering           Weiqi Wang, Chunkit Chan, Dongyu Ru, Qipeng
+  over tabular and textual data. In Findings of the Asso-     Guo, Hongming Zhang, Yangqiu Song, Yue Zhang,
+  ciation for Computational Linguistics: EMNLP 2020,          and Zheng Zhang. 2023. Storyanalogy: Deriving
+  pages 1026–1036.                                            story-level analogies from large language models to
+Zheye Deng, Weiqi Wang, Zhaowei Wang, Xin Liu, and            unlock analogical understanding. In Proceedings of
+  Yangqiu Song. 2023. Gold: A global and local-aware          the 2023 Conference on Empirical Methods in Natu-
+  denoising framework for commonsense knowledge               ral Language Processing, EMNLP 2023, Singapore,
+  graph noise detection. In Findings of the Associa-          December 6-10, 2023, pages 11518–11537. Associa-
+  tion for Computational Linguistics: EMNLP 2023,             tion for Computational Linguistics.
+  pages 3591–3608, Singapore. Association for Com-
+  putational Linguistics.                                   Tushar Khot, Harsh Trivedi, Matthew Finlayson, Yao
+                                                              Fu, Kyle Richardson, Peter Clark, and Ashish Sab-
+Dheeru Dua, Shivanshu Gupta, Sameer Singh, and Matt           harwal. 2022. Decomposed prompting: A modular
+  Gardner. 2022. Successive prompting for decom-              approach for solving complex tasks. In The Eleventh
+  posing complex questions. In Proceedings of the             International Conference on Learning Representa-
+  2022 Conference on Empirical Methods in Natu-               tions.
+  ral Language Processing, pages 1251–1265, Abu
+  Dhabi, United Arab Emirates. Association for Com-         Hyunwoo Kim, Jack Hessel, Liwei Jiang, Peter West,
+  putational Linguistics.                                     Ximing Lu, Youngjae Yu, Pei Zhou, Ronan Bras,
+                                                              Malihe Alikhani, Gunhee Kim, Maarten Sap, and
+Daya Guo, Qihao Zhu, Dejian Yang, Zhenda Xie, Kai             Yejin Choi. 2023. SODA: Million-scale dialogue dis-
+  Dong, Wentao Zhang, Guanting Chen, Xiao Bi,                 tillation with social commonsense contextualization.
+  Y. Wu, Y. K. Li, Fuli Luo, Yingfei Xiong, and Wen-          In Proceedings of the 2023 Conference on Empiri-
+  feng Liang. 2024. Deepseek-coder: When the large            cal Methods in Natural Language Processing, pages
+  language model meets programming – the rise of              12930–12949, Singapore. Association for Computa-
+  code intelligence. Preprint, arXiv:2401.14196.              tional Linguistics.
+Diederik P. Kingma and Jimmy Ba. 2015. Adam: A             Nils Lukas, Ahmed Salem, Robert Sim, Shruti Tople,
+  method for stochastic optimization. In 3rd Inter-          Lukas Wutschitz, and Santiago Zanella Béguelin.
+  national Conference on Learning Representations,           2023. Analyzing leakage of personally identi-
+  ICLR 2015, San Diego, CA, USA, May 7-9, 2015,              fiable information in language models. CoRR,
+  Conference Track Proceedings.                              abs/2302.00539.
+Rémi Lebret, David Grangier, and Michael Auli. 2016.       Ziyang Luo, Can Xu, Pu Zhao, Qingfeng Sun, Xi-
+  Neural text generation from structured data with ap-       ubo Geng, Wenxiang Hu, Chongyang Tao, Jing Ma,
+  plication to the biography domain. In Proceedings of       Qingwei Lin, and Daxin Jiang. 2023. Wizardcoder:
+  the 2016 Conference on Empirical Methods in Natu-          Empowering code large language models with evol-
+  ral Language Processing, pages 1203–1213, Austin,          instruct. Preprint, arXiv:2306.08568.
+  Texas. Association for Computational Linguistics.
+                                                           Yubo Ma, Yixin Cao, Yong Hong, and Aixin Sun. 2023.
+Haoran Li, Yulin Chen, Jinglong Luo, Yan Kang, Xi-           Large language model is not a good few-shot informa-
+  aojin Zhang, Qi Hu, Chunkit Chan, and Yangqiu              tion extractor, but a good reranker for hard samples!
+  Song. 2023a. Privacy in large language models:             In Findings of the Association for Computational
+  Attacks, defenses and future directions. CoRR,             Linguistics: EMNLP 2023, pages 10572–10601, Sin-
+  abs/2310.10383.                                            gapore. Association for Computational Linguistics.
+Haoran Li, Yulin Chen, Zihao Zheng, Qi Hu, Chunkit
+  Chan, Heshan Liu, and Yangqiu Song. 2024a. Back-         MistralAI. 2024. Au large. MistralAI.
+  door removal for generative large language models.
+  CoRR, abs/2405.07667.                                    Varish Mulwad, Jenny Weisenberg Williams, Timo-
+                                                             thy W. Finin, Sharad Dixit, and Anupam Joshi. 2023.
+Haoran Li, Dadi Guo, Donghao Li, Wei Fan, Qi Hu,             Towards semantic exploration of tables in scientific
+  Xin Liu, Chunkit Chan, Duanyi Yao, Yuan Yao, and           documents. In ESWC Workshops.
+  Yangqiu Song. 2024b. Privlm-bench: A multi-level
+  privacy evaluation benchmark for language models.        Jekaterina Novikova, Ondřej Dušek, and Verena Rieser.
+  In Proceedings of the 62nd Annual Meeting of the            2017. The E2E dataset: New challenges for end-
+  Association for Computational Linguistics (Volume 1:        to-end generation. In Proceedings of the 18th An-
+  Long Papers), ACL 2024, Bangkok, Thailand, August           nual SIGdial Meeting on Discourse and Dialogue,
+  11-16, 2024, pages 54–73. Association for Computa-          pages 201–206, Saarbrücken, Germany. Association
+  tional Linguistics.                                         for Computational Linguistics.
+
+Jia Li, Ge Li, Yongmin Li, and Zhi Jin. 2023b. Struc-      OpenAI. 2022. Chatgpt: Optimizing language models
+   tured chain-of-thought prompting for code genera-         for dialogue. OpenAI.
+   tion. Preprint, arXiv:2305.06599.
+                                                           OpenAI. 2024a. Gpt-4 technical report. Preprint,
+Peng Li, Yeye He, Dror Yashar, Weiwei Cui, Song Ge,          arXiv:2303.08774.
+  Haidong Zhang, Danielle Rifinski Fainman, Dong-
+  mei Zhang, and Surajit Chaudhuri. 2023c. Table-gpt:      OpenAI. 2024b. Hello gpt-4o. OpenAI.
+  Table-tuned gpt for diverse table tasks. Preprint,
+  arXiv:2310.09263.                                        Matt Post. 2018. A call for clarity in reporting BLEU
+                                                            scores. In Proceedings of the Third Conference on
+Tong Li, Zhihao Wang, Liangying Shao, Xuling Zheng,         Machine Translation: Research Papers, pages 186–
+  Xiaoli Wang, and Jinsong Su. 2023d. A sequence-           191, Belgium, Brussels. Association for Computa-
+  to-sequence&set model for text-to-table generation.       tional Linguistics.
+  In Findings of the Association for Computational
+  Linguistics: ACL 2023, pages 5358–5370, Toronto,         Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton, and
+  Canada. Association for Computational Linguistics.         Christopher D. Manning. 2020. Stanza: A Python
+Chin-Yew Lin. 2004. ROUGE: A package for auto-               natural language processing toolkit for many human
+  matic evaluation of summaries. In Text Summariza-          languages. In Proceedings of the 58th Annual Meet-
+  tion Branches Out, pages 74–81, Barcelona, Spain.          ing of the Association for Computational Linguistics:
+  Association for Computational Linguistics.                 System Demonstrations.
+
+Zizheng Lin, Chunkit Chan, Yangqiu Song, and Xin           Baptiste Roziere, Jonas Gehring, Fabian Gloeckle, Sten
+  Liu. 2024. Constrained reasoning chains for enhanc-        Sootla, Itai Gat, Xiaoqing Ellen Tan, Yossi Adi,
+  ing theory-of-mind in large language models. arXiv         Jingyu Liu, Tal Remez, Jérémy Rapin, et al. 2023.
+  preprint arXiv:2409.13490.                                 Code llama: Open foundation models for code. arXiv
+                                                             preprint arXiv:2308.12950.
+Di Lu, Shihao Ran, Joel Tetreault, and Alejandro Jaimes.
+   2023. Event extraction as question generation and       Oscar Sainz, Iker García-Ferrero, Rodrigo Agerri,
+   answering. In Proceedings of the 61st Annual Meet-        Oier Lopez de Lacalle, German Rigau, and Eneko
+   ing of the Association for Computational Linguistics      Agirre. 2024. Gollie: Annotation guidelines im-
+  (Volume 2: Short Papers), pages 1666–1688, Toronto,        prove zero-shot information-extraction. Preprint,
+   Canada. Association for Computational Linguistics.        arXiv:2310.03668.
+Thibault Sellam, Dipanjan Das, and Ankur Parikh. 2020.   Weiqi Wang, Limeng Cui, Xin Liu, Sreyashi Nag,
+  BLEURT: Learning robust metrics for text genera-        Wenju Xu, Sheikh Sarwar, Chen Luo, Yang Lau-
+  tion. In Proceedings of the 58th Annual Meeting of      rence Li, Hansu Gu, Hui Liu, Changlong Yu, Jiaxin
+  the Association for Computational Linguistics, pages    Bai, Yifan Gao, Haiyang Zhang, Qi He, Shuiwang Ji,
+  7881–7892, Online. Association for Computational        and Yangqiu Song. 2024a. EcomScript: A multi-task
+  Linguistics.                                            benchmark for e-commerce script planning via step-
+                                                          wise intention-driven product association. CoRR.
+Yuan Sui, Mengyu Zhou, Mingjie Zhou, Shi Han, and
+  Dongmei Zhang. 2024. Table meets llm: Can large        Weiqi Wang, Tianqing Fang, Wenxuan Ding, Baixuan
+  language models understand structured table data?       Xu, Xin Liu, Yangqiu Song, and Antoine Bosselut.
+  a benchmark and empirical study. In Proceedings         2023a. CAR: conceptualization-augmented reasoner
+  of the 17th ACM International Conference on Web         for zero-shot commonsense question answering. In
+  Search and Data Mining, pages 645–654.                  Findings of the Association for Computational Lin-
+                                                          guistics: EMNLP 2023, Singapore, December 6-10,
+Anirudh Sundar, Christopher Richardson, and Larry         2023, pages 13520–13545. Association for Computa-
+  Heck. 2024. gtbls: Generating tables from text          tional Linguistics.
+  by conditional question answering.     Preprint,
+  arXiv:2403.14457.                                      Weiqi Wang, Tianqing Fang, Chunyang Li, Haochen
+Teo Susnjak. 2022. Chatgpt: The end of online exam        Shi, Wenxuan Ding, Baixuan Xu, Zhaowei Wang, Ji-
+  integrity? CoRR, abs/2212.09292.                        axin Bai, Xin Liu, Cheng Jiayang, Chunkit Chan, and
+                                                          Yangqiu Song. 2024b. CANDLE: iterative concep-
+Xiangru Tang, Yiming Zong, Jason Phang, Yilun Zhao,       tualization and instantiation distillation from large
+  Wangchunshu Zhou, Arman Cohan, and Mark Ger-            language models for commonsense reasoning. In
+  stein. 2023. Struc-bench: Are large language models     Proceedings of the 62nd Annual Meeting of the As-
+  really good at generating complex structured data?      sociation for Computational Linguistics (Volume 1:
+  Preprint, arXiv:2309.08963.                             Long Papers), ACL 2024, Bangkok, Thailand, Au-
+                                                          gust 11-16, 2024, pages 2351–2374. Association for
+Hugo Touvron, Louis Martin, Kevin Stone, Peter Al-        Computational Linguistics.
+  bert, Amjad Almahairi, Yasmine Babaei, Nikolay
+  Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti     Weiqi Wang, Tianqing Fang, Haochen Shi, Baixuan
+  Bhosale, Dan Bikel, Lukas Blecher, Cristian Canton      Xu, Wenxuan Ding, Liyu Zhang, Wei Fan, Jiaxin
+  Ferrer, Moya Chen, Guillem Cucurull, David Esiobu,      Bai, Haoran Li, Xin Liu, and Yangqiu Song. 2024c.
+  Jude Fernandes, Jeremy Fu, Wenyin Fu, Brian Fuller,     On the role of entity and event level conceptualiza-
+  Cynthia Gao, Vedanuj Goswami, Naman Goyal, An-          tion in generalizable reasoning: A survey of tasks,
+  thony Hartshorn, Saghar Hosseini, Rui Hou, Hakan        methods, applications, and future directions. CoRR,
+  Inan, Marcin Kardas, Viktor Kerkez, Madian Khabsa,      abs/2406.10885.
+  Isabel Kloumann, Artem Korenev, Punit Singh Koura,
+  Marie-Anne Lachaux, Thibaut Lavril, Jenya Lee, Di-     Weiqi Wang, Tianqing Fang, Baixuan Xu, Chun
+  ana Liskovich, Yinghai Lu, Yuning Mao, Xavier Mar-      Yi Louis Bo, Yangqiu Song, and Lei Chen. 2023b.
+  tinet, Todor Mihaylov, Pushkar Mishra, Igor Moly-       CAT: A contextualized conceptualization and instan-
+  bog, Yixin Nie, Andrew Poulton, Jeremy Reizen-          tiation framework for commonsense reasoning. In
+  stein, Rashi Rungta, Kalyan Saladi, Alan Schelten,      Proceedings of the 61st Annual Meeting of the As-
+  Ruan Silva, Eric Michael Smith, Ranjan Subrama-         sociation for Computational Linguistics (Volume 1:
+  nian, Xiaoqing Ellen Tan, Binh Tang, Ross Tay-          Long Papers), ACL 2023, Toronto, Canada, July 9-14,
+  lor, Adina Williams, Jian Xiang Kuan, Puxin Xu,         2023, pages 13111–13140. Association for Computa-
+  Zheng Yan, Iliyan Zarov, Yuchen Zhang, Angela Fan,      tional Linguistics.
+  Melanie Kambadur, Sharan Narang, Aurelien Ro-
+  driguez, Robert Stojnic, Sergey Edunov, and Thomas     Weiqi Wang and Yangqiu Song. 2024. MARS: bench-
+  Scialom. 2023. Llama 2: Open foundation and fine-       marking the metaphysical reasoning abilities of lan-
+  tuned chat models. Preprint, arXiv:2307.09288.          guage models with a multi-task evaluation dataset.
+                                                          CoRR, abs/2406.02106.
+Zhen Wan, Fei Cheng, Zhuoyuan Mao, Qianying Liu,
+  Haiyue Song, Jiwei Li, and Sadao Kurohashi. 2023.      Xiao Wang, Weikang Zhou, Can Zu, Han Xia, Tianze
+  GPT-RE: In-context learning for relation extraction      Chen, Yuansen Zhang, Rui Zheng, Junjie Ye,
+  using large language models. In Proceedings of the       Qi Zhang, Tao Gui, Jihua Kang, Jingsheng Yang,
+  2023 Conference on Empirical Methods in Natural          Siyuan Li, and Chunsai Du. 2023c. Instructuie:
+  Language Processing, pages 3534–3547, Singapore.         Multi-task instruction tuning for unified information
+  Association for Computational Linguistics.               extraction. Preprint, arXiv:2304.08085.
+
+Lucy Lu Wang, Kyle Lo, Yoganand Chandrasekhar,           Zilong Wang, Hao Zhang, Chun-Liang Li, Julian Martin
+  Russell Reas, Jiangjiang Yang, Doug Burdick, Darrin       Eisenschlos, Vincent Perot, Zifeng Wang, Lesly Mi-
+  Eide, Kathryn Funk, Yannis Katsis, Rodney Michael         culicich, Yasuhisa Fujii, Jingbo Shang, Chen-Yu Lee,
+  Kinney, et al. 2020. Cord-19: The covid-19 open           and Tomas Pfister. 2024d. Chain-of-table: Evolving
+  research dataset. In Proceedings of the 1st Workshop      tables in the reasoning chain for table understanding.
+  on NLP for COVID-19 at ACL 2020.                          Preprint, arXiv:2401.04398.
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten          Tianshi Zheng, Jiaxin Bai, Yicheng Wang, Tianqing
+   Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou,           Fang, Yue Guo, Yauwai Yim, and Yangqiu Song.
+   et al. 2022. Chain-of-thought prompting elicits rea-     2024a. Clr-fact: Evaluating the complex logical rea-
+   soning in large language models. Advances in neural      soning capability of large language models over fac-
+   information processing systems, 35:24824–24837.          tual knowledge. CoRR, abs/2407.20564.
+
+Sam Wiseman, Stuart M Shieber, and Alexander M            Yaowei Zheng, Richong Zhang, Junhao Zhang, Yanhan
+  Rush. 2017. Challenges in data-to-document gen-           Ye, Zheyan Luo, and Yongqiang Ma. 2024b. Lla-
+  eration. In Proceedings of the 2017 Conference on         mafactory: Unified efficient fine-tuning of 100+ lan-
+  Empirical Methods in Natural Language Processing,         guage models. CoRR, abs/2403.13372.
+  pages 2253–2263.
+                                                          Wenxuan Zhou, Sheng Zhang, Yu Gu, Muhao Chen,
+Thomas Wolf, Lysandre Debut, Victor Sanh, Julien           and Hoifung Poon. 2024. Universalner: Targeted dis-
+  Chaumond, Clement Delangue, Anthony Moi, Pier-           tillation from large language models for open named
+  ric Cistac, Tim Rault, Rémi Louf, Morgan Funtowicz,      entity recognition. Preprint, arXiv:2308.03279.
+  Joe Davison, Sam Shleifer, Patrick von Platen, Clara    Fengbin Zhu, Ziyang Liu, Fuli Feng, Chao Wang,
+  Ma, Yacine Jernite, Julien Plu, Canwen Xu, Teven Le       Moxin Li, and Tat-Seng Chua. 2024. Tat-llm: A spe-
+  Scao, Sylvain Gugger, Mariama Drame, Quentin              cialized language model for discrete reasoning over
+  Lhoest, and Alexander M. Rush. 2020. Transformers:        tabular and textual data. Preprint, arXiv:2401.13223.
+  State-of-the-art natural language processing. In Pro-
+  ceedings of the 2020 Conference on Empirical Meth-
+  ods in Natural Language Processing: System Demon-
+  strations, EMNLP 2020 - Demos, Online, November
+  16-20, 2020, pages 38–45. Association for Computa-
+  tional Linguistics.
+
+Jian Wu, Yicheng Xu, Yan Gao, Jian-Guang Lou, Börje
+   Karlsson, and Manabu Okumura. 2023. TACR: A
+   table alignment-based cell selection method for Hy-
+   bridQA. In Findings of the Association for Compu-
+   tational Linguistics: ACL 2023, pages 6535–6549,
+   Toronto, Canada. Association for Computational Lin-
+   guistics.
+
+Xueqing Wu, Jiacheng Zhang, and Hang Li. 2022. Text-
+  to-table: A new way of information extraction. In
+  Proceedings of the 60th Annual Meeting of the As-
+  sociation for Computational Linguistics (Volume 1:
+  Long Papers), pages 2518–2533.
+
+Derong Xu, Wei Chen, Wenjun Peng, Chao Zhang, Tong
+  Xu, Xiangyu Zhao, Xian Wu, Yefeng Zheng, and
+  Enhong Chen. 2023. Large language models for
+  generative information extraction: A survey. arXiv
+  preprint arXiv:2312.17617.
+
+Yauwai Yim, Chunkit Chan, Tianyu Shi, Zheye Deng,
+  Wei Fan, Tianshi Zheng, and Yangqiu Song. 2024.
+  Evaluating and enhancing llms agent based on the-
+  ory of mind in guandan: A multi-player cooper-
+  ative game under imperfect information. CoRR,
+  abs/2408.02559.
+
+Weizhe Yuan, Graham Neubig, and Pengfei Liu. 2021.
+ Bartscore: Evaluating generated text as text gener-
+ ation. Advances in Neural Information Processing
+ Systems, 34:27263–27277.
+
+Tianyi Zhang, Varsha Kishore, Felix Wu, Kilian Q.
+  Weinberger, and Yoav Artzi. 2020. Bertscore: Evalu-
+  ating text generation with BERT. In 8th International
+  Conference on Learning Representations, ICLR 2020,
+  Addis Ababa, Ethiopia, April 26-30, 2020. OpenRe-
+  view.net.
+                   Appendices                                                       Train Set         Test Set
+                                                              # Instances             3,017              754
+A     Details of L IVE S UM Dataset
+                                                              Average Text Length
+This section extends Section 3, where we dis-                 Words                   1,258            1,250
+cuss additional details of dataset construction, and          Chars                   6,852            6,816
+present detailed statistical information and a spe-           Average Event Occurrence Frequency
+cific example of the dataset.                                 Goals                    1.38             1.39
+                                                              Shots                   12.71            12.55
+A.1    Live Commentary Generation                             Fouls                   10.60            10.57
+                                                              Yellow Cards             1.74             1.76
+Paraphrasing We first utilize ChatGPT to para-                Red Cards                0.04             0.03
+phrase the original text to make it closer to the             Corner Kicks             5.25             5.24
+                                                              Free Kicks              10.34            10.30
+language used by the commentator while ensur-                 Offsides                 1.86             1.84
+ing a certain degree of diversity. The prompting
+template used in this step is as follows:                     Table 5: Average statistics in L IVE S UM dataset.
+
+            Paraphrase Prompting Template                 100 cases with discrepancies and find that all errors
+                                                          are due to carelessness. Therefore, we conclude
+    You are a football commentator, paraphrase the sen-   that the quality of the annotation quality is assured.
+    tence and don’t make it too long: <Original Text>
+                                                          Integration After manual annotation and review,
+where <Original Text> represents the original             the data are aggregated into several tuples, and we
+live commentary on the webpage. After the tran-           count the occurrence of each tuple to obtain the
+scription of each live commentary segment, we             integrated result. Finally, we sequentially fill in the
+manually inspect whether the meaning of each sen-         column headers of the table with the eight events,
+tence has been altered. If any issues are identified,     convert the team names to Home Team and Away
+we make manual revisions accordingly.                     Team for the row headers of the table, and then
+Data Anonymization We then perform the data               fill in the corresponding counts into the cells to
+anonymization. First, we obtain the list of players       generate the final summary table.
+participating in each match from the BBC Sports of-       A.3    Statistics
+ficial website. Then, using a combination of string
+matching and NER techniques (Qi et al., 2020),            Table 5 presents the statistical data regarding text
+we match fully detected names to players on the           length and the frequency of various events within
+list based on textual similarity. Each individual is      the train and test sets of the L IVE S UM dataset. It
+assigned a unique number and recorded in the for-         can be seen that the statistical metrics across the
+mat Player<number>(<team>), where <number>                train set and test set are comparably uniform, con-
+is a positive integer and <team> is the team that         sistent with our method of completely random divi-
+player belongs to. We anonymize the team names            sion.
+as “Home Team” and “Away Team”. The inclusion             A.4    Example
+of team names is intended to eliminate the need
+for the model to infer the team affiliation of each       Figure 6 presents an example of the live commen-
+player, thus avoiding any potential interference          tary and a summary table generated through the
+with our evaluation of their information integration      pipeline depicted in Figure 2.
+ability. We also manually inspect whether there is                                         3
+                                                          B     Implementation of T on L IVE S UM
+any missed anonymization. If any are found, we
+                                                                Dataset
+make manual revisions accordingly.
+                                                          This section is an extension of Section 4, where we
+A.2    Summary Table Generation                           provide description of the implementation details
+                                                                  3
+Annotation We recruit five workers who volun-             of the T method applied to the L IVE S UM dataset.
+tarily agreed to participate in this research without
+receiving any compensation to annotate the events         B.1    Instrction on L IVE S UM Dataset
+and employ a majority voting approach to resolve          We present the instruction directives common to all
+any disagreements. These five workers are all post-       experiments conducted on the L IVE S UM dataset,
+graduate students who have . We randomly sample           which are some rules related to this task:
+            Instruction on L IVE S UM Dataset                                                 3
+                                                                                           T
+                                                                           Tuple-to-Table Prompting Template
+   According to the live text, please count the number of:
+   1.goals, 2. shots, 3.fouls, 4.yellow cards, 5.red cards,         <Instruction>
+   6.corner kicks, 7.free kicks, and 8.offsides for each            Please only output a table with the team name in CSV
+   team. Note that goals and saved attempts and blocked             format with 2 rows based on the following tuples:
+   attempts and missed attempts are considered shots.               <Tuples>
+   Handball and dangerous play are also considered foul.
+   The second yellow card is also considered a red card.
+   Penalty is also considered as free kicks.                  where <Instruction> represents the text provided
+                                                              in Appendix B.1, and <Tuples> is the tuples inte-
+                                                              grated by the code in the previous step.
+B.2   Text-to-Tuple Prompts
+                                                              B.5      Prompts of Variant Methods
+Based on the characteristics of the text in the                                                              3
+Livesum dataset, we have defined the format of                In Section 6.2, two variants of the T method are
+tuples as (player name, team name, event) or (team            mentioned during the design of the ablation study.
+name, event). Subsequently, we define the follow-             Here, we present the implementation details of
+ing prompting template:                                       these variants.
+                                                                3
+                               3                              T -M ERGED This method combines all three
+                           T                                             3
+           Text-to-Tuple Prompting Template                   stages of T into one, resulting in a single prompt:
+                                                                                         3
+   <Instruction>                                                                      T -M ERGED
+   Please extract all the relevant event from the follow-                          Prompting Template
+   ing passage, output them in (player name, team name,
+   event) or (team name, event) format. Constrain the               <Instruction>
+   event names to only the following options: 1.goals,              Let’s do the following things:
+   2.shots, 3.fouls, 4.yellow cards, 5.red cards, 6.corner          1. Extract all the relevant events from the following
+   kicks, 7.free kicks, and 8.offsides:                             passage in (player name, team name, event) or (team
+   <Text>                                                           name, event) format.
+                                                                    2. Integrate these tuples.
+                                                                    3. Output a table with 2 rows in CSV format.
+where <Instruction> represents the text provided                    <Text>
+in Appendix B.1, and <text> is the live commen-
+tary text.                                                    where <Instruction> represents the text provided
+                                                              in Appendix B.1, and <text> is the live commen-
+B.3   Information Integration Prompts                         tary text.
+                                     3                          3
+As discussed in Section 4.2, T employs code gen-              T -D IRECT-E XECUTION This method replaces
+eration as the default approach for information in-           code generation with direct execution in the second
+                                                                        3
+tegration. The following is the prompting template            stage of T . The prompts are as follows:
+we define, and Figure 7 presents an example of                                            3
+                                                                                      T -D IRECT
+Python code generated by GPT-4.                                       Information Integration Prompting Template
+                               3
+                           T                                        <Instruction>
+      Information Integration Prompting Template                    Please count all the information required and inte-
+                                                                    grate these tuples:
+   Code Generation:                                                 <Tuples>
+   <Instruction>
+   Please develop a Python code to consolidate these
+   tuples as specified:                                       where <Instruction> represents the text provided
+   <Tuples>                                                   in Appendix B.1, and <Tuples> is the tuples ex-
+                                                              tracted in the previous step. The first and third steps
+where <Instruction> represents the text provided              remain unchanged and are described exactly as in
+in Appendix B.1, and <Tuples> is the tuples ex-               Appendix B.2 and B.4.
+tracted in the previous step.
+                                                              C      Details of Benchmark Configuration
+B.4   Tuple-to-Table Prompts
+                                                              This section serves as an extension of Section 5,
+In this step, we present the format of the generated          providing additional details regarding the bench-
+table and specify the following prompting template:           mark configuration.
+C.1      Fine-Tune Setting                               Model Type                 Model Name
+
+We use the open-source library named LLaMA-              ChatGPT-16k                gpt-3.5-turbo-16k-0613
+         2                                               GPT-4o                     gpt-4o-2024-05-13
+Factory (Zheng et al., 2024b) to fine-tune all
+models. LoRA (Hu et al., 2022) is used as the           Table 7: Model types and their corresponding names of
+fine-tuning paradigm to accommodate our com-            LLMs used in our experiments under few-shot setting.
+putational resources. The pre-trained weights are
+downloaded from the huggingface library (Wolf           C.4    Prompts
+et al., 2020). We load the models with FP16 as the      Below are the two prompting templates we used to
+precision and optimize them with an Adam opti-          evaluate the baseline models:
+mizer (Kingma and Ba, 2015). The learning rate is
+                                                                       Baseline Prompting Template
+set to 5e-5 and the batch size is 32. The maximum
+length for the input and generated sentence con-            Prompt w/o C OT
+catenation is 3,500. We warm up the model with              <Instruction>
+                                                            Please output a table with 2 rows in CSV format
+3,000 steps and evaluate the model every 300 steps.         according to the following live text:
+A linear scheduler is also used. The LoRA rank is           <Text>
+set to 8, and the α is set to 32.
+                                                                       Baseline Prompting Template
+C.2      Zero-Shot Setting
+                                                            Prompt w/ C OT
+The zero-shot and chain-of-thought inference for            <Instruction>
+LLaMA-2 models are conducted on eight V100                  Let’s think step by step! At last, please output a table
+                                                            with 2 rows in CSV format according to the following
+GPUs (Wang et al., 2024a). When obtaining out-              live text:
+puts from LLMs via APIs, we ensure deterministic            <Text>
+results by setting the temperature to zero. In Ta-
+ble 6, we list the model names corresponding to         where <Instruction> represents the text provided
+different model types. Note that unless specifically    in Appendix B.1, and <text> is the live commen-
+stated otherwise, when a model type from the table      tary text.
+is used, the model name corresponding to it in the
+table is the one being invoked.                         C.5    Result Parsing
+                                                        As the table format in this experiment is fixed, most
+ Model Type                Model Name                   models can produce recognizable tables. We em-
+ Mistral Large             mistral-large-2402           ploy a comprehensive evaluation algorithm based
+ ChatGPT                   gpt-3.5-turbo-0125           on regular expressions to parse various types of out-
+ GPT-4                     gpt-4-0613                   put. For improperly formatted tables in the model’s
+ Claude 2.1                claude-2.1
+                                                        output, we filtered out those instances. This is be-
+ Claude 3 Opus             claude-3-opus-20240229
+                                                        cause when the table format is disrupted, we are
+Table 6: Model types and their corresponding names of   unable to obtain the meaning of each number in the
+LLMs used in our experiments under zero-shot setting.   output, and thus cannot calculate the metric. More-
+                                                        over, this indicates that the model is even unable
+C.3      Few-Shot Setting                               to perform the text-to-table generation task, which
+                                                        falls outside the scope of assessing its information
+Because the input lengths of L IVE S UM dataset gen-
+                                                        integration abilities in the text-to-table process.
+erally exceed 2,000 tokens, even testing with 1-shot
+would surpass the maximum token limit (4,096)           D     Full Results of Ablation Study
+of most LLMs. Therefore, we select two models,
+ChatGPT-16k (OpenAI, 2022) and GPT-4o (Ope-             In this section, we extend Section 6.2 and provide a
+nAI, 2024b), for supplementary experiments Re-          comprehensive supplementary ablation study. We
+                                                                                         3              3
+garding the selection of few-shot examples, we ran-     apply two variant methods, T -M ERGED (T M )
+                                                               3                           3
+domly choose samples from the training set where        and T -D IRECT-E XECUTION (T D ), proposed in
+all events occur. In the Chain of Thought setting,      Section 6.2, to all four LLMs capable of applying
+                                                              3
+the reasoning process is included in the examples.      the T method. The results of all experiments are
+                                                        listed in Table 8. In this table, we also provide
+   2
+       https://github.com/hiyouga/LLaMA-Factory         a separate listing for each model, showcasing the
+                                Easy              Medium               Hard                      Average
+  Model
+                         RMSE           ER     RMSE       ER      RMSE         ER      RMSE        ER       ∆ER
+
+  Claude 2.1             1.014         10.08   2.581     63.99    4.621       90.58   3.171      57.16
+  Claude 2.1 (C OT)      1.496         14.06   2.291     61.70    4.081       90.38   2.918      56.96     ↓ 0.3%
+               3
+  Claude 2.1 (T M )      1.144         13.92   2.289     62.28    4.114       90.12   2.869      57.15     ↓ 0.0%
+               3
+  Claude 2.1 (T D )      3.653         39.15   2.444     64.88    5.621       92.06   4.056      65.24     ↑ 14.1%
+               3
+  Claude 2.1 (T )        0.193          8.95   1.965     44.99    2.751       72.14   2.066      42.77     ↓ 25.2%
+  Mistral Large          0.005          0.27   2.385     52.45    2.712       84.62   2.209      47.44
+  Mistral Large (C OT)   0.018          0.73   2.311     51.82    2.608       84.08   2.139      47.12     ↓ 0.7%
+                  3
+  Mistral Large (T M )   0.039          1.84   2.223     52.70    3.479       86.18   2.399      48.36     ↑ 1.9%
+                  3
+  Mistral Large (T D )   0.142          6.59   1.677     57.46    2.735       84.81   1.865      51.58     ↑ 8.7%
+                  3
+  Mistral Large (T )     0.191          8.82   1.596     42.37    2.137       69.23   1.631      40.70     ↓ 14.2%
+  GPT-4                  0.156          4.64   1.167     46.05    4.114       88.53   2.273      46.32
+  GPT-4 (C OT)           0.154          4.38   1.163     45.86    3.981       88.73   2.225      46.20     ↓ 0.3%
+          3
+  GPT-4 (T M )           0.003          0.13   1.419     43.22    2.458       82.76   1.621      42.34     ↓ 8.6%
+          3
+  GPT-4 (T D )           0.087          4.47   1.124     40.13     232        81.45   1.418      41.55     ↓ 10.3%
+          3
+  GPT-4 (T )             0.056          3.18   0.854     25.83    1.219       46.22   0.929      25.27     ↓ 45.4%
+  Claude 3 Opus          0.078          2.52   1.617     51.36    3.713       88.06   2.253      48.33
+  Claude 3 Opus (C OT)   0.040          1.59   1.642     49.60    3.265       87.87   2.079      47.17     ↓ 2.4%
+                   3
+  Claude 3 Opus (T M )   1.244         15.14   1.610     52.97    3.625       85.27   2.426      51.59     ↑ 6.7%
+                   3
+  Claude 3 Opus (T D )   0.327          9.66   1.315     46.43    1.924       79.50   1.432      45.50     ↓ 5.9%
+                   3
+  Claude 3 Opus (T )     0.081          5.30   0.406     14.79    0.477       21.29   0.438      14.04     ↓ 70.9%
+
+
+Table 8: The comprehensive ablation study results comparing the performance of different prompting methods. We
+bold the best results and underline the second-best results.
+
+
+average change in error rate for each method com-           of the true values in its results.
+pared to the baseline. It is important to note that a
+                                                                          3                                       3
+lower error rate indicates better performance.              Impact of T D Prompting After applying T D,
+                                                            the error rates of Claude 2.1 and Mistral Large in-
+Impact of C OT Prompting Firstly, we observe                crease by 14.1% and 8.7%, respectively, indicating
+that C OT prompting yields positive effects across          that they are not suitable for this prompting method.
+                                                                                                                   3
+all four LLMs, resulting in an overall reduction in         Comparing these results to those obtained with T ,
+error rate ranging from 0.3% to 2.4%. This further          it can be inferred that the reason for the increase
+corroborates that C OT is a concise and effective           in error rate is likely due to their inferior ability to
+prompting strategy.                                         integrate information compared to the generated
+                                                            code, as the error rate significantly decreases when
+               3
+Impact of T M Prompting After applying the                  using code integration. On the other hand, GPT-4
+  3
+T M method, it is observed that the performance of          and Claude 3 Opus achieved error rate reductions of
+the Mistral Large and Claude 3 Opus deteriorates,           10.3% and 5.9%, respectively, under this prompting
+particularly with a significant increase in error rate      approach. This indicates that both models possess
+of 6.7% for Claude 3 Opus. This indicates that the          a certain level of ability to integrate information.
+models’ ability to summarize the information inter-
+                                                                          3
+nally is superior to the approach of extracting and         Impact of T Prompting All four LLMs showed
+                                                                                                              3
+merging information separately. On the contrary,            substantial improvements after applying the T
+GPT-4 demonstrates a significant reduction in error         prompting method. Specifically, Mistral Large,
+                                 3
+rate of 8.6% after applying T M, which indicates            Claude 2.1, and GPT-4 achieve average error rate
+that the capabilities of GPT-4 are sufficiently ro-         reductions of 14.2%, 25.2%, and 45.4% respec-
+                       3
+bust to support the T M prompting approach and              tively. Notably, Claude 3 Opus exhibits a remark-
+effectively execute all three steps. The change in          able error rate reduction of 70.9%. This strongly
+error rate for Claude 2.1 is not significant; however,      indicates the effectiveness of the proposed method.
+there is a notable 9.6% reduction in RMSE. This             From the perspective of absolute error rates, under
+                 3                                                3
+indicates that T M leads to a closer approximation          the T method, the performance of the four models
+from best to worst is as follows: Claude 3 Opus,                      3
+                                                                    T on S TRUCT-B ENCH Table Dataset
+GPT-4, Mistral Large, and Claude 2.1. This rank-                     Text-to-Tuple Prompting Template
+ing essentially reflects their capabilities in tuple          <Instruction>
+extraction.                                                   You are now required to extract team and player infor-
+                                                              mation from the following input. Please focus on the
+                                                              table format and extract all relevant tuples in (team
+E        Details of the Experiment on                         or player name, attribute, value) format:
+                                                              <Text>
+         S TRUCT-B ENCH Table Dataset
+                                                        where <Instruction> is provided from the
+This section is an extension of Section 6.3.1, in       dataset, and <text> is the original text. Because
+which we will introduce the evaluation criteria for     the content of this dataset does not involve informa-
+this dataset, our implementation details, and an        tion integration, the second step does not alter the
+analysis of the results.                                tuples from the first step. Therefore, we proceed
+                                                        directly to the third step of table generation, setting
+E.1       Evaluation Metrics                            the following prompting template:
+                                                                      3
+This benchmark employs nine evaluation met-                         T on S TRUCT-B ENCH Table Dataset
+                                                                    Tuple-to-Table Prompting Template
+rics, five of which are traditional and applica-
+ble to text generation tasks: SacreBLEU (Post,                <Instruction>
+2018), ROUGE-L (Lin, 2004), BERTScore (Zhang                  Based on the instructions and the following extracted
+                                                              tuples, please generate two tables according to the
+et al., 2020), BLEURT (Sellam et al., 2020), and              table format:
+BARTScore (Yuan et al., 2021). These metrics                  <Tuples>
+can to some extent measure the similarity between
+the generated tables and the target tables. The last    where <Instruction> is provided in the dataset,
+four metrics, P-score (Prompting Score) and H-          and <Tuples> is the tuples extracted in the previ-
+score (Heuristical Score), are evaluation criteria      ous step.
+proposed by Tang et al. (2023), which involve us-
+ing ChatGPT to score the content and format of          E.3      Results Analysis
+generated tables and applying manually devised          Table 9 presents all our experimental results, with
+rules to assess the content and format, respectively.   the fine-tuning section quoting the state-of-the-art
+For all evaluation metrics, higher numbers signify      results (Tang et al., 2023). The results indicate that
+better performance.                                     GPT-4 outperforms ChatGPT across all metrics.
+                                                                               3
+                                                        After applying the T method, both ChatGPT and
+E.2       Implementation Details                        GPT-4 show improved performance, with ChatGPT
+                                                        experiencing a greater enhancement, suggesting the
+                                                                                  3
+We conduct experiments on S TRUCT-B ENCH Ta-            generalizability of the T method. When compared
+ble dataset (Tang et al., 2023) using ChatGPT and       with state-of-the-art fine-tuning methods, the zero-
+                                     3                  shot approaches perform better on some metrics.
+GPT-4 to assess the impact of T on model per-
+                                                                                  3
+formance. As described in Section 6.3.1, we first       This indicates that the T method still offers signif-
+obtain the outputs of ChatGPT and GPT-4 using           icant improvements for text-to-table tasks that do
+the provided prompting, removed terms such as           not require information integration, further demon-
+“unknown” and “not mentioned” from the outputs,         strating its broad applicability.
+and then recalculate all metrics. This step involves
+using all instructions, prompting templates, and the    F      Details of the Experiment on W IKI 40 B
+code for calculating all metrics, all of which are             Dataset
+                             3
+sourced from the codebase provided by Tang et al.       This section is an extension of Section 6.3.2, in
+                                         3
+(2023). We then apply our proposed T method to          which we will discuss more details.
+both ChatGPT and GPT-4. We design the prompt-
+ing template for the first step as follows:             F.1     Evaluation Metrics
+                                                        As introduced in Section 6.3.2, the evaluation crite-
+    3
+        https://github.com/gersteinlab/Struc-Bench      rion adopted for this dataset, AUTO -QA Coverage,
+                                                                                                 Content   Format    Content     Format
+ Model               SacreBLEU     ROUGE-L       BERTScore        BLEURT         BARTScore
+                                                                                                 P-Score   P-Score   H-Score     H-Score
+ ♦ Zero-Shot
+ ChatGPT                  77.58       86.11         96.75          64.66            -2.08          6.84     9.70       1.66        3.28
+            3
+ ChatGPT (T )             78.91       88.36         97.34          67.47            -1.90          7.29     9.88       1.68        3.63
+ GPT-4                    87.26       92.81         98.15          77.08            -1.58          7.45     9.71       1.76        3.87
+         3
+ GPT-4 (T )               87.75       92.37         98.30          79.80            -1.60          7.60     9.74       1.77        3.89
+
+ ♦ Fine-Tuning
+ LLaMA-7B                 90.60       88.98         98.54          66.07            -0.69          7.69     8.60       1.65        3.61
+
+
+Table 9: Evaluation results on the test set of S TRUC -B ENCH Table dataset, consisting of nine metrics. We bold the
+best results and underline the second-best results.
+
+is designed due to the absence of ground truth for                                                3
+                                                                                             T on W IKI 40 B Dataset
+the generated tables. Jain et al. (2024) propose                                   Information Integration Prompting Template
+using question answering as a medium and lever-
+                                                                                 Please integrate these tuples if necessary: <Tuples>
+age LLMs to assess the quality of the generated
+tables. This metric not only measures how much
+information from the original text is covered by                           Finally, the tuples output from this step are fed into
+the table but also checks the accuracy of the values                       the prompt for the last step.
+within the table since incorrect content would also
+lead to errors in the QA. They also demonstrate                                                   3
+                                                                                                 T on W IKI 40 B Dataset
+through detailed experiments that AUTO -QA Cov-                                             Tuple-to-Table Prompting Template
+erage aligns with human evaluation standards, and
+                                                                                 Summarize the triples below in one or multiple tables.
+thus we follow this metric in our experiments.                                   Use the following format: Caption: A caption for the
+                                                                                 table you generate. It can be multiple lines. Table: A
+                                                                                 table in markdown format.
+F.2     Implementation Details                                                   <Tuples>
+
+
+Since Jain et al. (2024) samples 100 entries from                          The other prompts used in the experiments, such as
+the English version of W IKI 40 B (Guo et al., 2020)                       those for generating question-answer pairs, assess-
+without disclosing which ones, we replicate their                          ing the correctness of answers, and the Divide-and-
+setting by sampling 500 texts to serve as the dataset                      Generate method’s prompting, all originate from
+for this experiment. For each passage, we utilize                          Jain et al. (2024).
+ChatGPT to generate 20 (question, answer) pairs
+that can be answered based on the text. Subse-
+quently, we introduced a verification step where all                       F.3     Results Analysis
+(question, answer) pairs are re-fed into ChatGPT                           The results of this experiment are presented in Fig-
+to confirm their correctness. Pairs that ChatGPT                                                                      3
+                                                                           ure 5. As discussed in Section 6.3.2, T demon-
+cannot accurately answer are filtered out. This ap-                        strates higher AUTO -QA Coverage than the base-
+proach enhances the accuracy of metric evaluation.                         line, proving its ability to generate higher quality
+                                     3
+Here, we present the prompts for T :                                       tables in text-to-table generation tasks without in-
+                                                                           structions. We also experiment with using the tu-
+                      3                                                                                         3
+                   T on W IKI 40 B Dataset                                 ples extracted in the first step of T directly as the
+              Text-to-Tuple Prompting Template
+                                                                           generated tables and assessed their coverage, result-
+      You are going to summarize a table for this passage,                 ing in constructive findings. The coverage curve of
+                                                                             2                             3
+      but the first step is to extract useful information. Out-            T is entirely above that of T , indicating a certain
+      put them in (subject, attribute, value) or (subject,
+      verb, object) format: <Text>
+                                                                           loss of information from tuple to table. Although
+                                                                           this could also be due to insufficient table ques-
+                                                                           tion answering capabilities leading to a decrease
+where <text> is the original passage. It is note-                          in metrics, it is necessary to employ relevant tech-
+worthy that, under this task setting, there are no                         niques (Wu et al., 2023; Wang et al., 2024d) to
+instructions provided. Next, we feed the output                            mitigate the impact of this factor in future work.
+                                                                                                                  3
+tuples into the second step, where the LLM au-                             Nevertheless, the conclusion that T improves the
+tonomously integrates the tuples:                                          performance of the previous work remains sound.
+F.4     Error Analysis                                              Wrong Event Tuple Example
+
+We carry out a supplementary case study on the            Player17(Home Team) from the Home Team draws
+W IKI 40B dataset. We sample 50 articles and ob-          a foul in the penalty area, resulting in a penalty con-
+                                                          ceded by Player33(Away Team).
+serve the following situations:
+
+    • In the first phase, the average accuracy of the     (Player17, Home Team, Foul)(wrong)
+                                                          (Player33, Away Team, Foul)
+      tuples obtained from the text-to-tuple process      (Player17, Home Team, Free Kick)(missing)
+      is 81.6%. We define erroneous tuples as those
+      containing: (i) direct extractions of original
+      sentences, (ii) incomplete triples, and (iii) du-
+      plicate triples.
+
+    • In the second phase, tuple integration, 24%
+      of the articles undergo integration of similar
+      items, while the remainder simply involves
+      sorting and categorizing the tuples or out-
+      putting them unchanged.
+
+    • In the third phase, tuple-to-table essentially
+      involves treating each tuple as a row to be
+      filled into a table, but two scenarios may intro-
+      duce errors: (i) 14% of the articles involve the
+      fragmentation of long sentences, leaving only
+      incomplete tuples, and (ii) 6% of the articles
+      continue to merge similar items based on the
+      tuples, combining related tuples into long sen-
+      tences. (While this step may not necessarily
+      introduce errors, it could increase the diffi-
+      culty of reasoning, and the AUTO QA metric
+      may decrease.)
+
+G      Case Studies
+Figure 8 lists the outputs of four LLMs with and
+                                  3
+without the application of the T method on the
+data shown in Figure 6. For the results not utilizing
+  3
+T , we can not easily analyze why it generates a
+range of large or small values. However, for the
+                   3
+results using the T method, we perform a detailed
+examination. We randomly sample 100 results gen-
+                              3
+erated by GPT-4 applying T and conduct a spot
+check, finding that all errors originated from the
+first stage. Among these errors, 78% are due to
+missing event tuples, and 21% are due to wrong
+event tuples. Here, we present two representative
+examples.
+               Missing Event Tuple Example
+
+      Player18(Home Team) earns a free kick on the left
+      wing after being fouled by Player20(Away Team).
+
+      (Player18, Home Team, Free Kick)
+      (Player20, Away Team, Foul)(missing)
+                                                 Textual Live Commentary
+   Players are being announced for the lineup and getting ready for the game. The game is now underway with the start of
+   the first half. Offside called on Home Team as Player5(Home Team) attempts a through ball to Player11(Home Team), who is
+   caught offside. Player28(Away Team) makes a goal with a right-footed shot from the center of the box, giving the Away
+   Team a 1-0 lead over the Home Team. Player8(Home Team) earns a free kick on the right side of the field. Player23(Away
+   Team) commits a foul. Player9(Home Team) commits a foul. Player27(Away Team) earns a free kick in their own half. The
+   Home Team earns a corner kick. Player5(Home Team)’s left footed shot from outside the box is saved in the bottom left
+   corner after an assist from Player7(Home Team). Player26(Away Team) scores with a right-footed shot from outside the box,
+   assisted by Player29(Away Team), Home Team 0, Away Team 2. The Home Team wins a corner kick. Player8(Home Team) commits a
+   foul. Player21(Away Team) earns a free kick in their own half. Player29(Away Team) scores with a right-footed shot from
+   the right side of the box, assisted by Player28(Away Team), Home Team 0, Away Team 3. Player7(Home Team) of the Home
+   Team attempts a through ball, but Player11(Home Team) is flagged for being offside. Player29(Away Team) misses the goal
+   with a high right footed shot from outside the box, assisted by Player26(Away Team). The Home Team wins a corner kick.
+   Player10(Home Team) attempts a through ball, but Player11(Home Team) is offside for the Home Team. The Away Team wins a
+   corner kick. Player5(Home Team) earns a free kick in their own half. Player21(Away Team) commits a foul. Player25(Away
+   Team) fouls Player5(Home Team), who earns a free kick on the left wing. The Home Team wins a corner kick. Player10(Home
+   Team) of the Home Team is caught offside after Player8(Home Team) attempts a through ball. At the end of the first half,
+   the Home Team is trailing with a score of 0-3 against the Away Team. And we’re back for the second half with the Home Team
+   trailing 0-3 against the Away Team. Player2(Home Team) earns a free kick in their own half. Player23(Away Team) commits
+   a foul. Player18(Home Team)’s header from the center of the box is saved in the bottom left corner. Player4(Home Team)
+   commits a foul. Player29(Away Team) earns a free kick in their own half. Player4(Home Team) has received a yellow card for
+   a reckless foul. Player29(Away Team) is currently delayed in the match due to an injury. The delay is finished and they are
+   prepared to resume play. Player8(Home Team) is holding up the game due to an injury. The delay is finished and they are
+   prepared to resume play. Player14(Home Team) commits a foul. Player23(Away Team) earns a free kick in the opponent’s half.
+   Player28(Away Team) missed the target with a shot from the right side of the box, with an assist from Player27(Away Team)
+   after a quick counterattack. Player28(Away Team)’s right footed shot from the centre of the box was close, but missed to
+   the right and then blocked. Player29(Away Team)’s shot from the center of the box is saved in the center of the goal after
+   an assist from Player28(Away Team). The Away Team earns a corner kick. Player28(Away Team)’s shot from the center of the
+   box is blocked with the assistance of Player23(Away Team). Player26(Away Team) attempts a through ball, but Player23(Away
+   Team) is offside for the Away Team. Player14(Home Team) from the Home Team attempts a through ball, but Player11(Home
+   Team) is flagged for being offside. The Home Team wins a corner kick. Player6(Home Team)’s close-range attempt is saved in
+   the bottom left corner with an assist from Player3(Home Team)’s headed pass. Player18(Home Team) earns a free kick on the
+   left wing after being fouled by Player20(Away Team). Player26(Away Team) attempts a through ball but Player20(Away Team)
+   is offside for the Away Team. Player4(Home Team) commits a foul. Player28(Away Team) earns a free kick in their own half.
+   Player27(Away Team)’s shot from the center of the box was blocked with the help of Player26(Away Team). Player6(Home Team)
+   is being delayed in the match due to an injury. The delay is finished and they are prepared to resume play. Player18(Home
+   Team)’s shot from outside the box with their right foot was too high, assisted by Player5(Home Team). Player6(Home Team)
+   commits a foul on Player23(Away Team), resulting in a free kick being awarded on the left wing. The Away Team gets a corner
+   kick. Player23(Away Team)’s left footed shot from outside the box following a corner is too high. Player25(Away Team)
+   attempted a shot with his right foot from the right side of the box but it was too high, with an assist from Player28(Away
+   Team). Player7(Home Team) earns a free kick in the opponent’s half. Player36(Away Team) commits a foul. Player3(Home Team)
+   misses the header to the left from the center of the box, assisted by Player16(Home Team) with a cross. Player28(Away Team)
+   misses the target with a left-footed shot from long range. Player16(Home Team) attempts a through ball, but Player18(Home
+   Team) is offside for the Home Team. The Home Team finishes the second half with a score of 0, while the Away Team has 3.
+   Final score, Home Team 0, Away Team 3.
+
+
+                                                         Summary Table
+                                                              Yellow                    Corner
+        Team           Goals        Shots        Fouls                    Red Cards                 Free Kicks     Offsides
+                                                              Cards                     Kicks
+      Away Team         3            12            6            0             0            3            6             2
+      Home Team         0             5            6            1             0            5            6             6
+
+
+
+
+Figure 6: An instance within the L IVE S UM dataset. The above section presents a complete textual live commentary
+that has undergone paraphrasing and data anonymization, while the table below represents a manually annotated
+summary table.
+                                                                                                                           
+# Initialize a dictionary to store the counts
+team_stats = {}
+
+# List of tuples
+tuples = [( ’ player1 ’ , ’ home ␣ team ’ , ’ goal ’) ,
+          ( ’ player2 ’ , ’ home ␣ team ’ , ’ shot ’) ,
+          ( ’ player3 ’ , ’ away ␣ team ’ , ’ foul ’ )]
+
+# Loop through the tuples
+for player , team , event in tuples :
+    # If the team is not in the dictionary , add it
+    if team not in team_stats :
+        team_stats [ team ] = { ’ goals ’: 0 , ’ shots ’: 0 , ’ fouls ’: 0 , ’ yellow ␣ cards ’: 0 , ’ red ␣ cards ’: 0 ,
+                                ’ corner ␣ kicks ’: 0 , ’ free ␣ kicks ’: 0 , ’ offsides ’: 0}
+
+     # Update the counts based on the event
+     if event == ’ goal ’:
+         team_stats [ team ][ ’ goals ’] += 1
+         team_stats [ team ][ ’ shots ’] += 1
+     elif event in [ ’ shot ’ , ’ saved ␣ attempt ’ , ’ blocked ␣ attempt ’ , ’ missed ␣ attempt ’ ]:
+         team_stats [ team ][ ’ shots ’] += 1
+     elif event in [ ’ foul ’ , ’ handball ’ , ’ dangerous ␣ play ’ ]:
+         team_stats [ team ][ ’ fouls ’] += 1
+     elif event == ’ yellow ␣ card ’:
+         team_stats [ team ][ ’ yellow ␣ cards ’] += 1
+     elif event in [ ’ red ␣ card ’ , ’ second ␣ yellow ␣ card ’ ]:
+         team_stats [ team ][ ’ red ␣ cards ’] += 1
+         if event == ’ second ␣ yellow ␣ card ’:
+             team_stats [ team ][ ’ yellow ␣ cards ’] += 1
+     elif event == ’ corner ␣ kick ’:
+         team_stats [ team ][ ’ corner ␣ kicks ’] += 1
+     elif event in [ ’ free ␣ kick ’ , ’ penalty ’ ]:
+         team_stats [ team ][ ’ free ␣ kicks ’] += 1
+     elif event == ’ offside ’:
+         team_stats [ team ][ ’ offsides ’] += 1
+
+# Print the counts for each team
+for team , stats in team_stats . items ():
+    print (f"{ team }: ␣ { stats } " )
+                                                                                                                           
+
+      Figure 7: Python code generated by GPT-4 in response to the prompting as described in Appendix B.3.
+   Outputs from Claude 2.1
+
+                  3
+   Results w/o T : RMSE=1.888, Error Rate=43.75%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          13 ✗            10 ✗       0✓            0✓           3✓            5✗          4✗
+       Home Team        0✓          10 ✗            7✗         1✓            0✓           5✓            6✓          3✗
+
+
+              3
+   Results w/ T : RMSE=0.661, Error Rate=25.00%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          12 ✓            4✗         0✓            0✓           3✓            6✓          2✓
+       Home Team        0✓           5✓             7✗         1✓            0✓           6✗            6✓          5✗
+
+
+
+   Outputs from Mistral Large
+
+                  3
+   Results w/o T : RMSE=1.458, Error Rate=50.00%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          10 ✗            7✗         0✓            0✓           3✓            10 ✗        2✓
+       Home Team        0✓           8✗             7✗         1✓            0✓           4✗            7✗          5✗
+
+
+              3
+   Results w/ T : RMSE=0.612, Error Rate=18.75%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          12 ✓            6✓         0✓            0✓           3✓            4✗          2✓
+       Home Team        0✓           5✓             5✗         1✓            0✓           5✓            5✗          6✓
+
+
+
+   Outputs from GPT-4
+
+                  3
+   Results w/o T : RMSE=1.785, Error Rate=31.25%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          10 ✗            6✓         0✓            0✓           3✓            5✗          2✓
+       Home Team        0✓          11 ✗            9✗         1✓            0✓           5✓            7✗          6✓
+
+
+              3
+   Results w/ T : RMSE=0.433, Error Rate=18.75%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          12 ✓            5✗         0✓            0✓           3✓            5✗          2✓
+       Home Team        0✓           5✓             6✓         1✓            0✓           5✓            5✗          6✓
+
+
+
+   Outputs from Claude 3 Opus
+
+                  3
+   Results w/o T : RMSE=2.046, Error Rate=56.25%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          18 ✗            7✗         0✓            0✓           2✗            7✗          3✗
+       Home Team        0✓           9✗             7✗         1✓            0✓           5✓            9✗          5✗
+
+
+              3
+   Results w/ T : RMSE=0.000, Error Rate=0.00%.
+         Team          Goals        Shots          Fouls   Yellow Cards   Red Cards   Corner Kicks   Free Kicks   Offsides
+       Away Team        3✓          12 ✓            6✓         0✓            0✓           3✓            6✓          2✓
+       Home Team        0✓           5✓             6✓         1✓            0✓           5✓            6✓          6✓
+
+
+
+
+Figure 8: Case study analysis showing the outputs and evaluation metrics of Claude 2.1, Mistral Large, GPT-4, and
+                                     3
+Claude 3 Opus with and without the T method on data shown in Figure 6.
+

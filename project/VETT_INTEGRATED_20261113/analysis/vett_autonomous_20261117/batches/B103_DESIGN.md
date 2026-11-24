@@ -1,0 +1,190 @@
+# B103 S_coverage_sweep
+
+- hypothesis: Stratified coverage sweep over non-held-out roots and both innings; distinct roots/conditions, not repeated deterministic calls.
+- rationale: Stratified coverage sweep takes precedence while valid units remain.
+- created: 2026-11-19T01:32:23+08:00
+- requests: 48 (external API 0)
+- scoring: exact integer match per field; coverage group kept separate from diagnostic hard-root group
+- sources: commentary.txt variants, scorecard.md
+
+## Positions
+
+- match_0214 innings 1
+- match_0214 innings 2
+- match_0215 innings 1
+- match_0215 innings 2
+
+## Conditions
+
+E, O, OI, WI
+
+## Models
+
+- qwen2.5:7b-instruct-q4_K_M
+- llama3.1:8b
+- gemma2:9b
+
+## Tasks
+
+- match_0214 inn1 O qwen2.5:7b-instruct-q4_K_M (target2) key=ae17b1d10e0d
+- match_0214 inn1 O llama3.1:8b (target2) key=0356d8921572
+- match_0214 inn1 O gemma2:9b (target2) key=89f494a2ec90
+- match_0214 inn1 E qwen2.5:7b-instruct-q4_K_M (target2) key=0b82a00ea02b
+- match_0214 inn1 E llama3.1:8b (target2) key=9e940f29abf5
+- match_0214 inn1 E gemma2:9b (target2) key=b9fdc2d8d7b1
+- match_0214 inn1 WI qwen2.5:7b-instruct-q4_K_M (target2) key=fd1ac011f08e
+- match_0214 inn1 WI llama3.1:8b (target2) key=0975f195fdae
+- match_0214 inn1 WI gemma2:9b (target2) key=a29bed24b213
+- match_0214 inn1 OI qwen2.5:7b-instruct-q4_K_M (target2) key=d6e79948256e
+- match_0214 inn1 OI llama3.1:8b (target2) key=8a9efe55e6af
+- match_0214 inn1 OI gemma2:9b (target2) key=9fdf3feaaffe
+- match_0214 inn2 O qwen2.5:7b-instruct-q4_K_M (target2) key=be08ee03a9a8
+- match_0214 inn2 O llama3.1:8b (target2) key=96aabfa60a59
+- match_0214 inn2 O gemma2:9b (target2) key=d0d6b9de5a4d
+- match_0214 inn2 E qwen2.5:7b-instruct-q4_K_M (target2) key=ebef0fd2ab3e
+- match_0214 inn2 E llama3.1:8b (target2) key=1f2c01f6e513
+- match_0214 inn2 E gemma2:9b (target2) key=2b56bb8f175a
+- match_0214 inn2 WI qwen2.5:7b-instruct-q4_K_M (target2) key=a2853d41a450
+- match_0214 inn2 WI llama3.1:8b (target2) key=c195bfb74e63
+- match_0214 inn2 WI gemma2:9b (target2) key=036268ef65db
+- match_0214 inn2 OI qwen2.5:7b-instruct-q4_K_M (target2) key=cc3f68fef374
+- match_0214 inn2 OI llama3.1:8b (target2) key=08db089a5563
+- match_0214 inn2 OI gemma2:9b (target2) key=056736b5b4ba
+- match_0215 inn1 O qwen2.5:7b-instruct-q4_K_M (target2) key=7fd6367c3f3c
+- match_0215 inn1 O llama3.1:8b (target2) key=db1ed809c503
+- match_0215 inn1 O gemma2:9b (target2) key=64e4c3d86aba
+- match_0215 inn1 E qwen2.5:7b-instruct-q4_K_M (target2) key=b87c9d00e9a0
+- match_0215 inn1 E llama3.1:8b (target2) key=62d0cc2873c4
+- match_0215 inn1 E gemma2:9b (target2) key=48b819e4f88e
+- match_0215 inn1 WI qwen2.5:7b-instruct-q4_K_M (target2) key=a943a9303c7d
+- match_0215 inn1 WI llama3.1:8b (target2) key=23fd97a9e9f0
+- match_0215 inn1 WI gemma2:9b (target2) key=7e7611209ad4
+- match_0215 inn1 OI qwen2.5:7b-instruct-q4_K_M (target2) key=46e18438d125
+- match_0215 inn1 OI llama3.1:8b (target2) key=f8b47399308e
+- match_0215 inn1 OI gemma2:9b (target2) key=e3597a5cbbda
+- match_0215 inn2 O qwen2.5:7b-instruct-q4_K_M (target2) key=2a0e39cda51d
+- match_0215 inn2 O llama3.1:8b (target2) key=138568348917
+- match_0215 inn2 O gemma2:9b (target2) key=722f343deb25
+- match_0215 inn2 E qwen2.5:7b-instruct-q4_K_M (target2) key=e46782c247f8
+- match_0215 inn2 E llama3.1:8b (target2) key=73b8e9dba7c2
+- match_0215 inn2 E gemma2:9b (target2) key=fd311b2538c4
+- match_0215 inn2 WI qwen2.5:7b-instruct-q4_K_M (target2) key=04311a2cf0d6
+- match_0215 inn2 WI llama3.1:8b (target2) key=aad8d37570d7
+- match_0215 inn2 WI gemma2:9b (target2) key=5ba7c6f0177f
+- match_0215 inn2 OI qwen2.5:7b-instruct-q4_K_M (target2) key=14e5d4df7272
+- match_0215 inn2 OI llama3.1:8b (target2) key=ab7617980467
+- match_0215 inn2 OI gemma2:9b (target2) key=a629c382f255
+
+## Rejected candidates
+
+- match_0209 O: duplicate_existing_task
+- match_0209 O: duplicate_existing_task
+- match_0209 O: duplicate_existing_task
+- match_0209 E: duplicate_existing_task
+- match_0209 E: duplicate_existing_task
+- match_0209 E: duplicate_existing_task
+- match_0209 WI: duplicate_existing_task
+- match_0209 WI: duplicate_existing_task
+- match_0209 WI: duplicate_existing_task
+- match_0209 OI: duplicate_existing_task
+- match_0209 OI: duplicate_existing_task
+- match_0209 OI: duplicate_existing_task
+- match_0209 O: duplicate_existing_task
+- match_0209 O: duplicate_existing_task
+- match_0209 O: duplicate_existing_task
+- match_0209 E: duplicate_existing_task
+- match_0209 E: duplicate_existing_task
+- match_0209 E: duplicate_existing_task
+- match_0209 WI: duplicate_existing_task
+- match_0209 WI: duplicate_existing_task
+- match_0209 WI: duplicate_existing_task
+- match_0209 OI: duplicate_existing_task
+- match_0209 OI: duplicate_existing_task
+- match_0209 OI: duplicate_existing_task
+- match_0210 O: duplicate_existing_task
+- match_0210 O: duplicate_existing_task
+- match_0210 O: duplicate_existing_task
+- match_0210 E: duplicate_existing_task
+- match_0210 E: duplicate_existing_task
+- match_0210 E: duplicate_existing_task
+- match_0210 WI: duplicate_existing_task
+- match_0210 WI: duplicate_existing_task
+- match_0210 WI: duplicate_existing_task
+- match_0210 OI: duplicate_existing_task
+- match_0210 OI: duplicate_existing_task
+- match_0210 OI: duplicate_existing_task
+- match_0210 O: duplicate_existing_task
+- match_0210 O: duplicate_existing_task
+- match_0210 O: duplicate_existing_task
+- match_0210 E: duplicate_existing_task
+- match_0210 E: duplicate_existing_task
+- match_0210 E: duplicate_existing_task
+- match_0210 WI: duplicate_existing_task
+- match_0210 WI: duplicate_existing_task
+- match_0210 WI: duplicate_existing_task
+- match_0210 OI: duplicate_existing_task
+- match_0210 OI: duplicate_existing_task
+- match_0210 OI: duplicate_existing_task
+- match_0211 O: duplicate_existing_task
+- match_0211 O: duplicate_existing_task
+- match_0211 O: duplicate_existing_task
+- match_0211 E: duplicate_existing_task
+- match_0211 E: duplicate_existing_task
+- match_0211 E: duplicate_existing_task
+- match_0211 WI: duplicate_existing_task
+- match_0211 WI: duplicate_existing_task
+- match_0211 WI: duplicate_existing_task
+- match_0211 OI: duplicate_existing_task
+- match_0211 OI: duplicate_existing_task
+- match_0211 OI: duplicate_existing_task
+- match_0211 O: duplicate_existing_task
+- match_0211 O: duplicate_existing_task
+- match_0211 O: duplicate_existing_task
+- match_0211 E: duplicate_existing_task
+- match_0211 E: duplicate_existing_task
+- match_0211 E: duplicate_existing_task
+- match_0211 WI: duplicate_existing_task
+- match_0211 WI: duplicate_existing_task
+- match_0211 WI: duplicate_existing_task
+- match_0211 OI: duplicate_existing_task
+- match_0211 OI: duplicate_existing_task
+- match_0211 OI: duplicate_existing_task
+- match_0212 O: duplicate_existing_task
+- match_0212 O: duplicate_existing_task
+- match_0212 O: duplicate_existing_task
+- match_0212 O: duplicate_existing_task
+- match_0212 O: duplicate_existing_task
+- match_0212 O: duplicate_existing_task
+- match_0212 E: duplicate_existing_task
+- match_0212 E: duplicate_existing_task
+- match_0212 E: duplicate_existing_task
+- match_0212 WI: duplicate_existing_task
+- match_0212 WI: duplicate_existing_task
+- match_0212 WI: duplicate_existing_task
+- match_0212 OI: duplicate_existing_task
+- match_0212 OI: duplicate_existing_task
+- match_0212 OI: duplicate_existing_task
+- match_0213 O: duplicate_existing_task
+- match_0213 O: duplicate_existing_task
+- match_0213 O: duplicate_existing_task
+- match_0213 E: duplicate_existing_task
+- match_0213 E: duplicate_existing_task
+- match_0213 E: duplicate_existing_task
+- match_0213 WI: duplicate_existing_task
+- match_0213 WI: duplicate_existing_task
+- match_0213 WI: duplicate_existing_task
+- match_0213 OI: duplicate_existing_task
+- match_0213 OI: duplicate_existing_task
+- match_0213 OI: duplicate_existing_task
+- match_0213 O: duplicate_existing_task
+- match_0213 O: duplicate_existing_task
+- match_0213 O: duplicate_existing_task
+- match_0213 E: duplicate_existing_task
+- match_0213 E: duplicate_existing_task
+- match_0213 E: duplicate_existing_task
+- match_0213 WI: duplicate_existing_task
+- match_0213 WI: duplicate_existing_task
+- match_0213 WI: duplicate_existing_task
+- match_0213 OI: duplicate_existing_task
+- match_0213 OI: duplicate_existing_task
+- match_0213 OI: duplicate_existing_task

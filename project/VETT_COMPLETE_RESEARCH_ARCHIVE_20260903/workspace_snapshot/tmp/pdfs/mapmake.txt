@@ -1,0 +1,2715 @@
+                                                            Map&Make: Schema Guided Text to Table Generation
+
+                                                        *
+                                                            Naman Ahuja 1         *
+                                                                                      Fenil Bardoliya1           Chitta Baral1        †
+                                                                                                                                          Vivek Gupta1
+                                                    1
+                                                        School of Computing and Augmented Intelligence, Arizona State University
+
+                                                 nahuja11@asu.edu, fbardoli@asu.edu, chitta@asu.edu, † vgupt140@asu.edu
+
+
+
+                                                                 Abstract
+arXiv:2505.23174v1 [cs.CL] 29 May 2025
+
+
+
+
+                                             Transforming dense, detailed, unstructured text
+                                             into an interpretable and summarised table, also
+                                             colloquially known as Text-to-Table genera-
+                                             tion, is an essential task for information re-
+                                             trieval. Current methods, however, miss out
+                                             on how and what complex information to ex-
+                                             tract; they also lack the ability to infer data
+                                             from the text. In this paper, we introduce a ver-
+                                             satile approach, Map&Make, which “dissects”
+                                             text into propositional atomic statements. This
+                                             facilitates granular decomposition to extract
+                                             the latent schema. The schema is then used to
+                                             populate the tables that capture the qualitative
+                                             nuances and the quantitative facts in the orig-
+                                             inal text. Our approach is tested against two
+                                             challenging datasets, Rotowire, renowned for                     Figure 1: Comparison between Naive methods and our
+                                             complex and multi-table schema, and Livesum,                     method for Text-to-Table generation.
+                                             which demands numerical aggregation. By
+                                             carefully identifying and correcting hallucina-
+                                             tion errors in Rotowire, we aim to achieve a                     et al., 2020a), and text data mining (Li et al., 2023a;
+                                             cleaner and more reliable benchmark. We eval-                    Sui et al., 2024), recent works have shifted to ex-
+                                             uate our method rigorously on a comprehen-                       plore the structured summarization of text. Reading
+                                             sive suite of comparative and referenceless met-                 lengthy texts is time-consuming, making it chal-
+                                             rics. Our findings demonstrate significant im-                   lenging to extract key information efficiently. Ta-
+                                             provement results across both datasets with bet-                 bles, as a widely used structured format, can or-
+                                             ter interpretability in Text-to-Table generation.
+                                                                                                              ganize data in a clear and interpretable manner,
+                                             Moreover, through detailed ablation studies and
+                                             analyses, we investigate the factors contribut-                  facilitating information retrieval and comprehen-
+                                             ing to superior performance and validate the                     sion. Early works (Wu et al., 2022; Li et al., 2023b)
+                                             practicality of our framework in structured sum-                 treat text-to-table generation as an information ex-
+                                             marization tasks. †                                              traction problem, viewing the table and its corre-
+                                                                                                              sponding text representation as essentially similar.
+                                         1    Introduction                                                    The pioneering work by (Deng et al., 2024) extends
+                                                                                                              beyond simple extraction, integrating and categoriz-
+                                         Driven by the exceptional success of Large Lan-                      ing information in complex scenarios. However, to
+                                         guage Models (LLMs) in tasks such as question                        the best of our knowledge, all existing studies per-
+                                         answering (Chen et al., 2020; Zhu et al., 2024),                     form this task under a predefined schema, where
+                                         text summarization (Wiseman et al., 2017; Wang                       information about the schema is either provided
+                                             *
+                                               These authors contributed equally to this work and share       during fine-tuning (Li et al., 2023b; Wu et al., 2022)
+                                         first authorship.                                                    or included in prompts for few-shot methods (Deng
+                                             †
+                                               This author supervised the research and serves as the          et al., 2024; Tang et al., 2024). This reliance on pre-
+                                         corresponding author.
+                                             †
+                                               Code and Data can be found here:https://map-                   defined schemas limits adaptability to open-domain
+                                         make.github.io                                                       text, where tabular structures may need to be in-
+
+                                                                                                          1
+ferred dynamically.                                               hallucination and fidelity issues in previous
+   For more generalized systems, a hybrid approach                versions, ensuring a fair evaluation setting for
+is needed: leveraging schema induction techniques                 our methods.
+to recognize patterns in structured representations
+while retaining the flexibility to handle novel text            4. We conduct comprehensive experiments on
+narratives. This ensures robustness in managing                    multiple closed-source and open-source state-
+both expected and unseen table structures. Never-                  of-the-art LLMs on a diverse suite of metrics
+theless, tabular summarization of dense informa-                   encompassing both table quality and informa-
+tion without any prior knowledge of the underlying                 tion coverage. Results show that M&M out-
+structure remains largely unexplored.                              performs existing methods and exhibits robust
+   Regarding methodology, there are contrasting                    generalization across different Tabular Sum-
+findings on the effect of fine-tuning LLMs versus                  marization paradigms. Additionally, M&M
+zero-shot or few-shot prompting strategies across                  maintains stable performance on large text
+different datasets. Extensive benchmarks indicate                  corpora, where other methods often degrade.
+that LLMs often perform suboptimally in zero-shot
+settings, missing relevant information and introduc-        2     Map&Make Framework
+ing unattested data or hallucinations. (Deng et al.,
+                                                            We propose a three-staged methodology applica-
+2024)
+                                                            ble to any instruction-driven summarization task.
+   More sophisticated prompting techniques have
+                                                            Figure 2 illustrates our approach. Mirroring how
+been proposed to mitigate these issues (Wei
+                                                            humans construct tables—identifying key informa-
+et al., 2022; Khot et al., 2022). In-context learn-
+                                                            tion, planning the layout, and filling in values—we
+ing (Brown et al., 2020), combined with chain-of-
+                                                            employ a multi-agent prompting framework to en-
+thought (CoT) prompting (Wei et al., 2022) offers
+                                                            hance coverage and correctness.
+some improvements but can overfit to the provided
+shots (Perez et al., 2021), reducing effectiveness on       2.1    Propositional Atomization
+unseen data. Some studies (Tang et al., 2024; Sun-
+dar et al., 2024) report performance gains from fine-       Propositional Atomization is the process of ex-
+tuning, whereas others (Deng et al., 2024) observe          tracting atomic, self-contained facts from contex-
+no or negative improvements for table generation            tually embedded sentences. The benefits of this
+tasks.                                                      approach have been demonstrated in large-scale
+   Hence, there is a need for a generalized, schema-        datasets and practical applications, such as in natu-
+agnostic tabular summarization framework that can           ral language inference and summary hallucination
+effectively "mine" the underlying structure from            detection.(Chen et al., 2022) (Maynez et al., 2020).
+free-form text and produce comprehensive infor-             We design a prompt to transform input statements
+mation under a given instruction. In this work, we          into atomic statements adhering to five key proper-
+aim to address the aforementioned challenges with           ties: Well-formedness, ensuring grammatical cor-
+the following contributions:                                rectness and adherence to linguistic conventions;
+                                                            Atomicity, maintaining the smallest meaningful
+  1. We introduce a generalized notion of Struc-            semantic unit; Self-containedness (Decontextual-
+     tured Summarization, evaluating LLMs’ ca-              ization), making each proposition independently
+     pabilities on planning table schemas in Zero-          understandable without requiring external context;
+     Shot and One-Shot settings to summarize in-            Support, ensuring all propositions are explicitly
+     formation under a given instruction exhaus-            derived from the input text; and Comprehensive-
+     tively.                                                ness, collectively covering all latent claims and
+                                                            facts from the original text. This targeted parsing
+  2. We propose a generalizable framework,
+                                                            resolves ambiguous entity attributions and prevents
+     Map&Make (M&M), applicable to any
+                                                            the conflation of overlapping or nested entities. The
+     Instruction-Driven Tabular Summarization
+                                                            exact prompt is given in Appendix E.4.1.
+     task extending beyond simple extraction tasks.
+
+  3. We present a manually corrected version of             2.2    Schema Extraction
+     the Rotowire Benchmark, a popular text-to-             This part builds on propositional segmentation to
+     table benchmark. This correction addresses             extract tabular layouts. Directly planning schema
+
+                                                        2
+Figure 2: An illustration of our approach. Propositional Breakdown segments the text to generate atomic statements
+b. Schema Extraction extracts the table structures to generate table schemas. c. Table Generation iteratively fills
+tables based on the atomic statements.
+results in incomplete coverage for inputs that re-          and avoid hallucinations. Refer Appendix E.4.3 for
+quire big tables to represent information. Hence,           the exact prompt.
+we iteratively build the table schema. The table
+schema is initialized as an empty list of row and           3   Benchmarks
+column headers for each table. These lists are
+iteratively populated based on each atomic state-           Pre-LLM methods for text-to-table generation (Wu
+ment processed (as shown in Figure 2. Entities              et al., 2022), (Li et al., 2023b), (Pietruszka
+are mapped to row headers while their attributes            et al., 2024) have utilized four predominant
+are added to column headers. This iterative ap-             benchmarks; Rotowire (Wiseman et al., 2017),
+proach allows headers to evolve dynamically, en-            E2E (Novikova et al., 2017), Wikibio (Lebret et al.,
+abling adaptation to the changing structure of in-          2016), WikiTableText (Bao et al., 2018). Initially
+coming data, and improving coverage. The exact              proposed for table-to-text generation tasks, a
+prompt is given in Appendix E.4.2.                          majority of these benchmarks lack the structural
+                                                            complexity required to comprehensively evaluate
+2.3 Table Generation                                        state-of-the-art LLMs for information coverage in
+In the final step, we perform table-filling on empty        tabular summarization. In fact, E2E, WikiBio, and
+tables defined by the extracted schema in the pre-          WikiTableText consist of only single tables with
+vious step. We again, process every statement iter-         only two columns for every sample. Hence, we
+atively to update or fill cell values as per the sum-       evaluate our framework on the repurposed version
+marization instruction. For example, for counting           of the Rotowire proposed by (Wu et al., 2022) and
+events from live text as in the LIVESUM bench-              the recently released benchmark, Livesum (Deng
+mark, cell values keep increasing with every state-         et al., 2024).
+ment processed. Contrastively, for static text such
+as in Rotowire, cell values are fixed once. We                 Rotowire comprises dense post-match sum-
+explicitly instruct LLMs to return statement-wise           maries of NBA games (2014–2017), where the
+updates for every cell value to ensure transparency         task is to extract performance statistics to gener-
+
+                                                        3
+ate Player and Team Tables. In contrast, Livesum               strategy can be found in Appendix A.2.1
+consists of live football commentary† , requiring
+the aggregation of various events into team sum-               4       Experimental Setup
+mary tables. The dataset also assigns a difficulty
+                                                               We describe the different prompting techniques,
+level: easy, medium, or hard to each column based
+                                                               LLMs, and evaluation metrics employed in this
+on varying descriptions of events that influence
+                                                               work.
+how challenging inferring the right value is. Each
+dataset presents distinct challenges: Rotowire’s               4.1      Models and Baselines
+long text and multi-table structure make schema
+                                                               We experiment with M&M on both closed-source
+and sparse value extraction difficult, while Livesum
+                                                               and open-source LLMs. Among proprietary mod-
+demands identifying and aggregating events de-
+                                                               els, we use Gemini 2.0 Flash experimental and
+scribed in varying forms across the text. To-
+                                                               GPT-4o (Hurst et al., 2024) (gpt-4o-2024-08-06),
+gether, these datasets offer a comprehensive testbed
+                                                               maintaining consistent configurations for temper-
+for evaluating text-to-table generation frameworks.
+                                                               ature, top_p, and top_k across experiments. Ad-
+More details are provided in Appendix A.1
+                                                               ditionally, we assess performance on open-source
+3.1      Corrections and Fidelity Issues:                      models such as Llama 3.3-70B Instruct. † .
+                                                                  For baselines, we employ various prompting
+In our initial explorations, we observed several
+                                                               strategies. Zero-Shot CoT (Zhang et al., 2022) di-
+discrepancies between the text and the ground
+                                                               rectly organizes and populates tables by leveraging
+truth tables in the data presented by (Wu et al.,
+                                                               step-by-step reasoning, while One-Shot CoT (Wei
+2022). These discrepancies propagate on other
+                                                               et al., 2022) enhances this by incorporating a sin-
+benchmarks developed on this data (Tang et al.,
+                                                               gle example in the prompt. We also compare
+2024) inhibiting fair and reliable evaluations of
+                                                               against Text-Tuple-Table (T3 ) (Deng et al., 2024),
+developed frameworks. We suspect these chal-
+                                                               which extracts structured tuples (subject-object-
+lenges stem from LLM-driven attribution methods,
+                                                               verb or subject-attribute-value) before table gener-
+and existing problems in validating information
+                                                               ation. Originally schema-dependent, we adapt T3
+(Adewumi et al., 2024), (Yue et al., 2023),(Patel
+                                                               into a schema-agnostic setting, alongside its uni-
+et al., 2024). Thus the authors manually validate
+                                                               fied variant T3 D, which integrates tuple extraction
+every sample in the test set. Keeping ground truth
+                                                               and table construction in a single prompt. To eval-
+text the same, we attribute every row, column, and
+                                                               uate the efficacy of our framework, we experiment
+cell value to the text and update tables.
+                                                               with two variants of our approach; M&M - 3S, per-
+                     Cell          Row           Col           forms each task sequentially, where as M&M - U;
+       Table
+                 H       MI     H      MI      H     MI
+                         Original to Strucbench                a unified variant of our approach, performs all the
+      Team      1219    1271     8       8    627    626       tasks in a single LLM call. We face several chal-
+      Player    1390    1270    68      62    135    129       lenges on testing M&M on the Livesum dataset
+                         Original to Corrected
+      Team       613    1137    21      50    329    528       on smaller models due to the large input sizes,
+      Player    7310    1752    85      82   1000 188          resulting in inefficient iterative table filling and
+                        Strucbench to Corrected                same statements being duplicated multiple times
+      Team       721    1247    21      50    385    585
+      Player    8104    2666 140 143 1077 271                  . This aligns with the findings of the benchmark
+                                                               authors (Deng et al., 2024), where they face similar
+Table 1: Total counts of corrected rows, columns, and          challenges in building prompting pipelines for this
+cells across error types for Rotowire. H denotes Hallu-        dataset over smaller models. Moreover, the authors
+cination, and MI represents Missing Information. Here,         also show the no/negative improvements from fine-
+a row or a column is flagged as hallucinated/missing if
+                                                               tuning on this dataset. Hence, we only experiment
+it contains at least one erroneous entry.
+                                                               with prompting-based approaches for this problem.
+   Our findings are reported in Table 1, where
+we compare our corrected version with the Origi-               4.2      Evaluation Metrics
+nal (Wu et al., 2022), and STRUCBENCH (Tang                    Due to the high variance in table structures,
+et al., 2024) benchmark which is another version               where the same information can be presented
+of Rotowire. More details about the correction                     †
+                                                                  https://github.com/meta-llama/llama-
+   †
+       https://www.bbc.com/sport/football                      models/blob/main/models/llama3_3/LICENSE
+
+
+                                                           4
+in different formats, we utilize a diverse set of                   response to question q, derived from a set of gen-
+both LLM-based and Non-LLM-based metrics to                         erated tables {Tj }. The term E(q,a) [x] evaluates
+ensure a comprehensive evaluation of correctness                    whether the LLM’s response x aligns with the ref-
+and competeness.                                                    erence answer a for the given question q. We report
+                                                                    accuracy as the percentage of correctly answered
+String Similarity Metrics: We utilize Ex-                           questions based on the available tables.
+act Match (EM), CHRF (Popović, 2015), and
+BERTScore (Zhang* et al., 2020) as proposed                         5     Results and Discussion
+by (Wu et al., 2022) for reference-based table evalu-
+                                                                                      EM             CHRF              BERT
+ation. To measure information coverage, each (row,                      Method
+                                                                                 Cell Row   Col Cell Row Col Cell Row Col
+column, cell) tuple from the ground truth table is                                              GPT-4o Zero-Shot
+                                                                    CoT      20.75 51.58 30.13 39.62 81.46 49.05 38.25 62.31 59.59
+mapped to its most similar counterpart in the gen-                  T3 - D   18.39 51.32 29.01 37.13 81.24 46.37 36.44 62.35 58.25
+                                                                    M&M - U 19.95 50.43 30.39 41.99 78.97 53.12 42.90 62.57 64.82
+erated table, assigning the highest similarity score                                          Gemini-2.0 Zero-Shot
+to that tuple. Rows Headers and Column Headers                      CoT
+                                                                     3
+                                                                             21.90 51.85 29.20 36.65 80.69 44.23 38.58 63.78 55.76
+                                                                    T -D     20.77 52.92 22.83 32.38 81.90 38.80 37.54 64.65 54.05
+are evaluated in a similar fashion. The final EM,                   M&M - U 19.76 48.05 31.51 42.61 75.00 53.19 41.22 60.63 60.65
+CHRF, and BERT scores are averaged over all tu-                                             Llama-3.3 70B Zero-Shot
+                                                                    CoT      21.44 51.42 39.37 40.79 80.59 51.40 36.70 63.45 55.73
+ples, as reported in Table 2. For Livesum, where                     3
+                                                                    T -D     21.05 51.57 39.40 42.04 80.77 53.36 37.31 62.93 57.49
+                                                                    M&M - U 19.26 51.64 27.52 35.63 79.86 45.45 36.95 63.28 55.30
+the correctness of generated outputs is determined                                              GPT-4o One-Shot
+by the model counting the correct number of occur-                  CoT      33.30 88.08 35.96 45.42 91.98 50.60 57.11 91.18 60.28
+                                                                    T3 - D   34.53 85.98 38.36 47.96 91.35 53.31 57.83 89.79 61.90
+rences of an event, i.e numbers, metrics like CHRF                  T3       17.92 53.92 34.43 40.94 82.69 52.25 39.21 64.49 61.77
+                                                                    M&M - U 51.20 90.87 55.25 68.27 93.61 73.38 74.39 95.24 77.88
+and BERTScore are unsuitable. Instead, we use                       M&M - 3S 35.24 64.06 52.72 61.89 85.06 72.49 57.90 73.30 76.80
+Root Mean Squared Error (RMSE) defined as:                                                     Gemini-2.0 One-Shot
+                                                                    CoT      40.65 91.57 43.21 55.19 93.92 60.10 64.60 95.53 66.22
+                                                                     3
+                                                                    T -D     38.89 87.84 42.91 55.19 92.90 60.70 63.31 92.54 67.18
+                       r Pn
+                               i=1 (yi − ỹi )
+                                                 2
+            RM SE =                                                 T3       28.61 65.89 40.21 53.38 85.94 62.05 51.91 74.19 69.09
+                                     n                              M&M - U 56.44 90.77 60.82 71.38 93.50 76.34 76.12 94.85 78.37
+                                                                    M&M - 3S 61.78 89.49 67.37 76.12 92.92 81.57 79.48 93.86 82.69
+ where n denotes the total number of cells, and yi                                           Llama-3.3 70B One-Shot
+and ỹi represent the content of the cell at index                  CoT      39.57 91.82 41.52 53.08 93.77 57.41 62.69 94.61 64.09
+                                                                    T3 - D   38.02 89.38 41.61 50.44 91.79 56.87 61.10 92.09 63.23
+i in the ground truth table and the generated                       T3       33.82 85.41 38.84 49.75 89.95 57.17 59.04 89.52 64.54
+                                                                    M&M - U 44.27 92.78 47.27 60.54 94.85 65.62 66.96 95.77 70.25
+table, respectively. For 2D tables, the index                       M&M - 3S 41.01 72.02 44.94 54.47 74.39 58.87 58.15 74.99 61.42
+i is determined by flattening the table into a
+1D sequence. Additionaly, for exact cell value                      Table 2: Performance comparison of different methods on
+                                                                    Rotowire across models using various string similarity metrics
+matching, we report Error Rate (ER %) as a
+percentage of erroneous cells.
+                                                                      Our experiments demonstrate Map&Make out-
+Specialized Metrics: Evaluating table cells (or tu-                 performs other prompting strategies improving in-
+ples) using similarity-based metrics independently                  formation coverage and correctness significantly
+without considering contextual information from                     across all models and evaluation metrics, showing
+the neighbouring cells can lead to incorrect penal-                 excellent generalization capabilities.
+ization of good tables, or incorrect rewarding of                   5.1     Performance on Rotowire
+bad tables. TabEval (Ramu et al., 2024) addresses
+                                                                    From Table 2, we observe that M&M outperforms
+these challenges by calculating table similarity by
+                                                                    other baselines such as CoT, T3 consistently in the
+unrolling tables into a list of atomic statements and
+                                                                    cell- and column-level metrics. In a zero-shot set-
+computes the entailment between statements gen-
+                                                                    ting, M&M improves coverage by up to 32% (from
+erated from output tables and their ground truths.
+                                                                    CHRF) at the column level and 32% at the cell
+Additionally, we also utilize Auto-QA as an infor-
+                                                                    level. In a one-shot setting, M&M improves by
+mation coverage metric (Jain et al., 2024) defined
+                                                                    about 29% at the cell level and by 27% at the col-
+as:
+                   P|G(S)|
+                                                                    umn level. We see minimal to no improvement in
+                     i=1     E(qi ,ai ) [Q({Tj }, qi )]             the Row-level metrics across all metrics for both
+       Cov(T ) =                                          (1)
+                               |G(S)|                               zero-shot and one-shot settings. The row headers
+   where G(S) represents a set of Question-Answer                   in all the tables consist of proper nouns (Player
+pairs (qi , ai ) generated by an LLM from the input                 Names, Team Names), and LLMs perform well in
+text S. The function Q({Tj }, q) denotes the LLM’s                  extracting named entities (Villena et al., 2024). At
+
+                                                                5
+                         TabEval                Auto-QA                     Easy    Medium          Hard        Average
+                                                                 Method
+ Method   Correctness Completeness      Overall                         RMSE ER RMSE ER RMSE ER RMSE ER
+                                                Accuracy                                GPT-4o Zero-Shot
+         Team Player Team Player Team Player
+                    GPT-4o Zero-Shot                           CoT         0     0 1.55 47.71 1.84 79.84 1.55 48.14
+                                                                3
+                                                               TD        0.05 1.82 1.93 53.66 2.76 84.76 2.04 50.10
+CoT      57.32 62.78 39.62 79.92 42.66 67.64     70.13         M&M - U   0.03 1.92 0.80 26.56 1.50 55.19 0.97 24.63
+ 3
+T -D     58.60 73.85 42.44 79.37 45.36 73.66     66.69                                Gemini-2.0 Zero-Shot
+M&M - U 43.74 68.40 41.74 85.96 38.27 73.20      76.95         CoT       0.05 2.51 2.00 60.78 2.82         87 2.09 53.92
+                   Gemini-2.0 Zero-Shot                         3
+                                                               TD        0.05 2.82 3.45 60.20 4.39 93.26 3.34 54.44
+CoT      73.41 66.94 36.27 81.35 44.72 71.39     60.52         M&M - U   0.08 3.82 0.87 31.31 2.63 80.31 1.47 35.00
+T3 - D   55.82 63.70 31.57 80.80 36.65 68.62     61.94                                  GPT-4o One-Shot
+M&M - U 58.01 68.93 44.19 77.94 46.53 68.72      64.63         CoT       0.05 2.62 2.05 55.30 1.73 76.86 1.61 45.34
+                                                                3
+                 Llama-3.3 70B Zero-Shot                       TD        0.08 0.43 1.46 46.62 2.73 84.73 1.75 44.91
+CoT      67.63 70.57 30.66 13.35 38.09 16.21     54.24         T3        0.23 16.5 1.48 34.16 2.39 51.91 1.76 35.62
+                                                               M&M - U   0.03 1.85 0.81 31.06 1.96 68.10 1.19 32.94
+T3 - D   63.60 74.88 33.43 34.23 40.56 33.14     52.41         M&M - 3S 0.07 3.44 0.63 25.48 0.93 32.34 0.71 21.77
+M&M - U 61.15 72.32 27.78 14.61 33.55 17.88      59.17                                 Gemini-2.0 One-Shot
+                    GPT-4o One-Shot                            CoT       0.01 0.63 1.69 58.31 2.23 82.80 1.68 48.32
+CoT      80.23 86.74 56.26 57.74 64.34 65.57     41.42          3
+                                                               TD        0.01 0.54 1.21 49.63 2.34 85.12 1.49 46.44
+T3 - D   80.24 87.56 56.12 64.34 64.09 70.84     38.08         T3        0.19 9.26 0.93 26.32 2.51 54.72 1.59 29.10
+T3       81.65 85.39 46.43 60.66 56.05 66.61     39.46         M&M - U   0.04 1.45 0.89 36.64 1.98 69.93 1.21 34.65
+M&M - U 66.28 86.16 77.65 88.15 69.56 85.85      69.51         M&M - 3S 0.10 4.58 0.60 23.72 0.89 33.13 0.70 21.37
+M&M - 3S 48.78 74.22 61.43 87.34 51.01 78.56     80.38
+                   Gemini-2.0 One-Shot                         Table 4: Performance comparison using string similarity
+CoT      82.91 91.51 63.50 75.89 69.72 81.06     60.52         metrics across different categories showing Error Rates (in %)
+T3 - D   81.86 91.08 65.18 76.27 70.01 80.92     47.94         and RMSE scores of GPT-4o and Gemini-2.0-flash-exp for
+T3       75.70 87.22 61.75 82.07 64.93 82.68     56.58
+M&M - U 75.27 91.17 77.47 92.92 74.80 91.36      64.88
+                                                               Livesum
+M&M - 3S 65.89 83.54 79.49 92.43 69.95 86.71     71.21
+                 Llama-3.3 70B One-Shot
+CoT      80.93 80.41 59.33 47.79 66.33 47.29     54.20
+                                                               nifying lack of generalization across a schema-
+T3 - D   69.54 80.86 48.57 45.32 55.21 45.92     46.57         agnostic setting. However we see consistent im-
+T3       65.31 70.66 64.38 36.38 61.13 33.03     53.49         provement across T3 from CoT baselines, as it uses
+M&M - U 74.33 76.47 71.87 43.34 70.57 39.53      55.96
+M&M - 3S 47.92 57.12 53.59 34.04 48.21 31.34     64.61         code-generation to integrate, or count the events
+                                                               before generating the final table. On comparing per-
+Table 3: Performance comparison using TabEval and Au-          formance of zero-shot - vs one-shot methods, we
+toQA on Rotowire across strategies on various models.
+                                                               see our methods consistently improve performance
+                                                               across all methods and models. This finding is
+the table level, we observe up to 42% improvement
+                                                               consistent across both benchmarks, hence showcas-
+in TabEval scores (Table 3) for the Team tables and
+                                                               ing emergent capabilities as an adaptable one-shot
+22% for the Player table. A bigger improvement is
+                                                               framework.
+seen in the Team Tables as the global set of column
+headers for team tables is larger, introducing more            5.3   Performance Across LLMs:
+variety in the team schemas. Also, we observe a
+                                                               In the Zero-Shot setting, GPT-4o and Gemini 2.0
+decrease in the Tab-Eval Correctness. This is dis-
+                                                               Flash Exp demonstrate largely comparable perfor-
+cussed in detail in the Appendix B.1, as the Ground
+                                                               mances across most metrics, with only minor varia-
+Truth tables in the RotoWire dataset consist only of
+                                                               tions. The largest observed difference is a 4.8-point
+statistical values, and M&M being a loosely super-
+                                                               delta in Column CHRF score for CoT prompting,
+vised method also extracts non-statistical columns
+                                                               where GPT slightly outperforms Gemini, and a 6-
+( such as Injury Status and Average Player Perfor-
+                                                               point delta in Column CHRF for M&M prompting,
+mance, etc.), attributes not present in the Ground
+                                                               favoring Gemini. In the One-Shot setting, Gemini
+Truth, leading to decreased correctness scores. We
+                                                               exhibits a slight edge, with improvements of up to
+validate the precision of our generated tables using
+                                                               4.8 in CHRF Column score for CoT prompting, and
+the Auto-QA metric and observe an improvement
+                                                               2.1 in Cell-level coverage for M&M Multistep. The
+of up to 15% in coverage from CoT baselines.
+                                                               overall TabEval score difference remains minimal,
+                                                               with a delta of just 0.2 in favor of Gemini. These
+5.2   Performance on Livesum
+                                                               results highlight the robustness and adaptability of
+Table 4 compares the difficulty wise and overall per-          our framework, maintaining stable and consistent
+formance of M&M with other techniques. M&M                     performance across diverse datasets and evaluation
+significantly enhances performance by reducing                 metrics.
+overall error rate by upto 35% and RMSE by upto
+29% in zero shot setting, and by upto 55% in er-               5.4   Error Analysis
+ror and 57% in RMSE in one-shot setting. CoT                   To qualitatively analyze and pinpoint exactly where
+also outperforms T3 -D in most experiments, sig-               information loss occurs in table generation, we
+
+                                                           6
+                               CoT M&M                                 Livesum: We further segregate instances of over-
+                   Extra Information
+                                                                    counting and undercounting of events separately to
+            Team Rows          0.05      0
+            Player Rows        0.41   0.06                          analyze where LLMs miss out on information (un-
+            Team Column            0  0.09                          dercounting) and hallucinate (overcount). Figure
+            Player Columns     0.07   1.93
+                  Missing Information
+                                                                    3 shows the segregated RMSE scores across both
+            Team Rows         0.019      0                          instances. We observe over 67% of the total errors
+            Player Rows        0.11   0.04                          for CoT are hallucinations. These findings align
+            Team Columns       1.04      0
+            Player Columns       2.6  0.21
+                                                                    with other research the demonstrate LLM’s struggle
+                                                                    with counting tasks.(Ball et al., 2024);(Zhang et al.,
+Table 5: Average Per-Table Error Counts Across Rows                 2024). Contrastively, our methodology shows sta-
+and Columns for Rotowire                                            ble performance across all difficulty levels with
+                                                                    overcounting RMSE decreasing by a big margin.
+employ a table-transformation agent to transform
+CoT and M&M generated outputs to exactly match                      5.5 Analysis on Efficiency and Table Planning
+the Row and Column headers of the Ground
+Truth tables. The agent first maps the given
+rows and columns of the inputs with the Ground
+Truth schema and subsequently populates the ta-
+ble. Rows and Columns that occur in the model
+outputs but are not present in the ground truth are
+reported separately (extra information) and vice
+versa (missing information). This agent facilitates
+a more granular analysis of each table giving in-
+sights into what information a strategy misses out
+on.
+                                                                    Figure 4: Comparison of Schema-Coverage with Increasing
+   Rotowire: As shown in Table 5. Row-wise cov-                     Table Sizes for Rotowire.
+erage improves from the CoT baseline when em-
+ploying Map&Make reducing missing rows from                            Figure 4 describes the schemas coverage of CoT
+0.05 to 0 per table for Teams, and from 0.41 to 0.06                and our method’s extracted schemas. We see a
+per table for players. We also observe a substantial                very high correlation between missing columns
+improvement in Column level coverage. CoT base-                     and Ground Truth tables for CoT, showcasing poor
+lines miss out on covering columns both in Team                     performance as schema size increases. We show
+and Player tables, averaging 1.04 and 2.6 columns                   stable performance across larger table sizes for both
+per table respectively. Map&Make, in contrast,                      player and team tables.
+misses out on 0 and 0.21 columns in the Team and                       The facets of information coverage and accu-
+Player tables respectively. Map&Make also pro-                      rate extraction in structured summarization tasks
+duces extra columns for every table capturing the                   are challenging due to the high variability of lin-
+non-statistical aspects of entities, which are absent               guistic structures, implicit relationships, and con-
+in the Ground Truths.                                               textual dependencies present in unstructured text.
+                                                                    These complexities, including syntactic ambigui-
+                                                                    ties, coreference resolution challenges, and implicit
+                                                                    entity attributions, make it difficult for models to
+                                                                    reliably infer and represent structured information
+                                                                    while preserving the fidelity of the original con-
+                                                                    tent. Rotowire tests the capabilities of models in
+                                                                    planning exhaustive Table schemas from highly
+                                                                    contexualised narratives where as Livesum tests
+                                                                    exacting occurrences of different events. M&M
+Figure 3: RMSE of Overcounting and Undercounting In-
+stances for Livesum. Uncercounted refers to cell values less        prompting shows significant improvements across
+than the ground truth, Overcounted refers to cell values more       both datasets and hence, is a more reliable and
+than the ground truths.                                             exhaustive table generation strategy.
+
+                                                                7
+                    Correctness    Completeness              Overall               iterative structure step for this study. We see a
+      M&M
+                   Team Player Team Player                Team Player
+                              Unified                                              significant decrease in performance without the it-
+ No Ablation       75.27 91.17 77.47 92.92                 74.80      91.36        erative table-filling step across both Unified and
+ - Atomization     72.91 82.80 77.37 85.61                 73.28      82.42
+ - Iterative
+                                                                                   3-step settings. This underscores the importance
+       Schema      69.74       80.45 70.75        86.42    68.50      81.73        of iterative table filling as models can more accu-
+       Table       70.58       83.38 69.18        89.05    67.55      84.79
+                                   3-Step
+                                                                                   rately track dynamic updates without hallucinating
+ No Ablation       65.89       83.54 79.49        92.43    69.95      86.71        or missing out on events. Interestingly, we see a
+ - Atomization     73.43       84.39 77.62        88.52    73.41      84.87        small performance increase after removing the uni-
+ - Iterative
+       Schema      69.48       80.72    67.99     90.63    65.85      83.91        fied variant’s atomization step. This is because in
+       Table       63.98       77.39    80.26     93.69    68.84      83.12        a one-shot setting, removing the atomization part
+                                                                                   boils the problem down to a fixed schema updation.
+                Table 6: Ablations on Rotowire.
+
+6     Ablation Study                                                               7   On Broader Domain Generalization &
+                                                                                       Multi-Table Generation - A study on
+To understand different components our method,                                         Wiki40B
+we conducted some additional studies, where we
+focused on removing a key step from our method,                                    As the livesum and rotowire benchmarks both be-
+showcased in Table 6 & 7.                                                          long to the sports domain, we conduct a study to
+                                                                                   validate the effectiveness of M&M to open domain
+6.1    Rotowire                                                                    texts. Taking inspiration from the pioneering work
+We observed that removing Atomization step leads                                   of (Jain et al., 2024), we extend our evaluation to
+to a drop in the Completeness of both the Team                                     Wiki40B, a large-scale, open-domain, multilingual
+and the Player table across both Unfied and 3-Step                                 (40 languages) corpus of Wikipedia articles from
+variation. This demonstrates that breaking down                                    several domains. Wiki40B poses a significant chal-
+multi-entity complex statements is essential for in-                               lenge for text-to-table generation due to its wide
+formation coverage. Ablating the Iterative Schema                                  topical range and the unstructured nature of its con-
+Generation step consistently degrades the perfor-                                  tent. Articles span a wide variety of topics, from
+mance, which illustrates that it is a crucial step in                              historical revolutions to astrophysics, each with a
+our method, as this is effective for tabular struc-                                distinct narrative style. Specifically:
+ture and enables better table filling as manifested.
+Furthermore, removing Iterative Table Generation                                       • We sample 500 English articles, each contain-
+step, we observe a significant drop in the Correct-                                      ing at least 30 numerical values and 3+ sen-
+ness and Overall metrics, however it is to be noted                                      tences, to ensure sufficient complexity.
+that there is slight increase in the Completeness for
+3-Step. This suggests that without iterative updates                                   • Due to the absence of gold-standard tables,
+there is less information captured and introduces                                        we adopt AutoQA, a reference-less evalua-
+redundancy.                                                                              tion metric that tests whether the generated
+                                                                                         table can accurately answer factoid questions
+6.2    Livesum                                                                           derived from the original article.
+                  Easy            Medium           Hard          Average
+    M&M
+                RMSE ER        RMSE      ER     RMSE    ER     RMSE    ER          In the table below, we report AutoQA scores on
+                                   Unified
+No Ablation      0.08   3.84    0.87    31.34   2.63   80.29   1.47    35.00
+                                                                                   Wiki40B for different methods.
+- Atomization    0.05   2.73    0.53    18.58   1.15   44.37   0.75    21.06
+- Iterative      0.02   0.93    1.52    54.33   3.41   86.20   2.08    48.94
+                                    3-Step                                                  Method                AutoQA-Score
+No Ablation      0.1    4.54    0.6     23.74   0.89   33.14   0.70    21.37
+- Atomization    0.05   2.90    0.64    20.36   1.59   47.89   1.01    22.96                Chain of Thoughts        63.68
+- Iterative      0.08   3.73    1.47    37.44   2.81   65.67   1.85    36.07                Text-Tuple-Table         67.07
+                                                                                            Map & Make (3-step)      76.40
+                Table 7: Ablations on Livesum
+                                                                                   Table 8: AutoQA scores using GPT-4o in zero-shot
+   We perform the following ablations of our 3-                                    settings.
+step (M&M - 3S) and unified (M&M - U) ap-
+proach. Since the schema for every table is the                                      Map&Make achieves a 14% improvement over
+same for every test sample, we don’t ablate the                                    CoT and a 9% gain over T3 , demonstrating its
+
+                                                                               8
+generalization capacity to open-domain, non-                 ogy. Our work builds upon these foundations while
+synthetic text. Moreover, as compared to gen-                addressing key limitations. We introduce a schema-
+erating a fixed number of tables, we observe our             agnostic approach that can dynamically infer table
+framework dynamically adapts to multiple table               structures from open-domain text. Our method
+generation (Range 1-13; Mean: 6.02; Std: 4.33)               aims to provide a more flexible and comprehensive
+to improve comprehension. These results suggest              solution to the text-to-table generation task.
+that our modular framework, especially the atom-
+ization and iterative schema construction, scales            9   Conclusion
+effectively to structurally diverse open-domain text,        We introduce Map&Make, a versatile approach to
+making it a generalised and interpreted framework.           extract complex information from unstructured text.
+                                                             M&M tackles the challenges by breaking down
+8   Related Works                                            the text into its atomic statements, this decompo-
+                                                             sition then helps extract the latent schema, which
+With the advent of Large Language Models
+                                                             ultimately aids in populating the tables. M&M’s
+(LLMs), numerous methods for information ex-
+                                                             core strength lies in its ability to dynamically in-
+traction and summarization have been developed.
+                                                             fer schema from open-domain language, as well
+For extraction tasks that involve structured data,
+                                                             as its ability to handle complex information such
+two fields have been researched; Table-to-Text and
+                                                             as numerical aggregation and detailed qualitative
+Text-to-Table have been researched, with the latter
+                                                             descriptions. Furthermore, our corrections of the
+being less explored.
+                                                             Rotowire benchmark provides a more reliable and
+   Table-to-Text Prior works have been referred              fairer evaluation platform for future research in this
+to as data-to-text in a more general sense. Former           domain. Our meticulous evaluation on Rotowire,
+works in table-to-text traditionally uses sequence-          Livesum, and Wiki40B showcases improvements
+to-sequence (seq2seq) models to generate table de-           in information coverage and localization. M&M
+scriptions (Lebret et al., 2016), (Wiseman et al.,           mitigates information loss and maintains stable per-
+2017), (Liu et al., 2018), (Wang et al., 2020b).             formance even with a larger input context length.
+Since there exists a bidirectional relationship be-
+tween structural data and unstructured text, the
+inverse task text-to-table has also started gained           Limitations
+attention.
+   Text-to-Table Recent studies investigates di-             While Map&Make demonstrates significant ad-
+verse methods to transform unstructured text into            vancements in schema-guided text-to-table genera-
+structured tables while addressing the underlying            tion, it is important to acknowledge certain limita-
+issues of schema inference, handling complex data            tions.
+relations, and knowledge integration. A key contri-          Reliance on LLMs M&M’s performance is tied
+bution to this area has been covered by (Wu et al.,          to the text generation capabilities of the LLMs, the
+2022), who introduced the approach of information            quality of atomization, schema extraction, and ta-
+extraction. They developed a seq2seq model with a            ble generation/filling is directly proportional to the
+fine-tuned version of BART for text-to-table trans-          LLM’s reasoning abilities. This leads to several de-
+lation using the Rotowire dataset. Additionally,             pendencies such as handling highly ambiguous text,
+studies like (Li et al., 2023b); (Sundar et al., 2024)       grammatical errors, and contradictory information.
+have explored more sophisticated methods recog-              Computational Cost While the iterative nature
+nising challenges of interpreting 2-d structures as a        helps in information coverage as seen in Table 6
+linearized sequence object. While these methods              and Table 3, but becomes computationally ex-
+outperforms traditional methods that employ rela-            pensive due to lengthy outputs, such as those in
+tion extraction (Zheng et al., 2017), (Zeng et al.,          Livesum. We explore fine-tuning smaller models
+2018), (Luan et al., 2019), (Zhong and Chen, 2021)           like Llama 8B to reduce computational overhead,
+and named entity recognition (NER) (Huang et al.,            and we find that, while it improves performance,
+2015), (Ma and Hovy, 2016), (Lample et al., 2016),           there is a significant gap between smaller fine-
+(Devlin et al., 2019), there has been less exploration       tuned models and larger SoTA LLMs like GPT-40,
+of this task on leveraging the emergent capabilities         Gemini-2.0-flash. More details about results and
+of LLMs in developing a generalisable methodol-              experiments can be found in appendix C.
+
+                                                         9
+Evaluation metric limitation While we cover a                   Proceedings of the AAAI Conference on Artificial
+wide range of metrics, these metrics may not per-               Intelligence, 32(1).
+fectly capture all nuanced aspects of the informa-
+                                                              Tom Brown, Benjamin Mann, Nick Ryder, Melanie
+tion in the table, thus a subjective human evaluation           Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind
+is needed to test the practicality of our method.               Neelakantan, Pranav Shyam, Girish Sastry, Amanda
+Hierarchial Structures This methodology does                    Askell, et al. 2020. Language models are few-shot
+not apply to tabular structures with free-form struc-           learners. Advances in neural information processing
+                                                                systems, 33:1877–1901.
+tural complexities such as hierarchical headers,
+cells with merged cells. (Cheng et al., 2021). These          Sihao Chen, Senaka Buthpitiya, Alex Fabrikant, Dan
+limitations highlight areas for future research and             Roth, and Tal Schuster. 2022. Propsegment: A large-
+development to further enhance the robustness, effi-            scale corpus for proposition-level segmentation and
+ciency, and generalizability of schema-guided text-             entailment recognition. In Annual Meeting of the
+                                                                Association for Computational Linguistics.
+to-table generation frameworks like Map&Make.
+                                                              Wenhu Chen, Hanwen Zha, Zhiyu Chen, Wenhan Xiong,
+Ethics Statement                                                Hong Wang, and William Wang. 2020. Hybridqa: A
+                                                                dataset of multi-hop question answering over tabular
+The authors ensure that this work meets the high-               and textual data. arXiv preprint arXiv:2004.07347.
+est ethical standards in research and publication.
+We have carefully addressed ethical considerations            Zhoujun Cheng, Haoyu Dong, Zhiruo Wang, Ran Jia,
+                                                                Jiaqi Guo, Yan Gao, Shi Han, Jian-Guang Lou, and
+to guarantee appropriate behavior and fair use of
+                                                                Dongmei Zhang. 2021. Hitab: A hierarchical table
+computational linguistics methods. Our assertions               dataset for question answering and natural language
+are consistent with experimental data. While some               generation. arXiv preprint arXiv:2108.06712.
+stochasticity is predicted with black-box Large Lan-
+guage Models, we minimize it by keeping a con-                Zheye Deng, Chunkit Chan, Weiqi Wang, Yuxi Sun,
+                                                                Wei Fan, Tianshi Zheng, Yauwai Yim, and Yangqiu
+stant temperature, top_p, top_k. Furthermore, the               Song. 2024. Text-Tuple-Table: Towards Information
+use of LLMs such as GPT-4o, Gemini, and Llama                   Integration in Text-to-Table Generation via Global
+in this study adheres to their policies of usage. We            Tuple Extraction. In Proceedings of the 2024 Con-
+have used AI assistants (Grammarly and ChatGPT)                 ference on Empirical Methods in Natural Language
+                                                                Processing, pages 9300–9322, Miami, Florida, USA.
+to address the grammatical errors and rephrase the
+                                                                Association for Computational Linguistics.
+sentences. Finally, to the best of our knowledge,
+we believe that this work introduces no additional            Jacob Devlin, Ming-Wei Chang, Kenton Lee, and
+risk.                                                            Kristina Toutanova. 2019. BERT: Pre-training of
+                                                                 deep bidirectional transformers for language under-
+Acknowledgments                                                  standing. In Proceedings of the 2019 Conference of
+                                                                 the North American Chapter of the Association for
+We thank the Complex Data Analysis and Reason-                  Computational Linguistics: Human Language Tech-
+                                                                 nologies, Volume 1 (Long and Short Papers), pages
+ing Lab at Arizona State University for computa-                4171–4186, Minneapolis, Minnesota. Association for
+tional support.We thank the anonymous reviewers                  Computational Linguistics.
+for their helpful feedback.
+                                                              Zhiheng Huang, Wei Xu, and Kai Yu. 2015. Bidirec-
+                                                                tional lstm-crf models for sequence tagging. arXiv
+                                                                preprint arXiv:1508.01991.
+References
+Tosin Adewumi, Nudrat Habib, Lama Alkhaled, and               Aaron Hurst, Adam Lerer, Adam P Goucher, Adam
+  Elisa Barney. 2024. On the limitations of large               Perelman, Aditya Ramesh, Aidan Clark, AJ Os-
+  language models (llms): False attribution. arXiv              trow, Akila Welihinda, Alan Hayes, Alec Radford,
+  preprint arXiv:2404.04631.                                    et al. 2024. Gpt-4o system card. arXiv preprint
+                                                                arXiv:2410.21276.
+Thomas Ball, Shuo Chen, and Cormac Herley. 2024.
+  Can we count on llms? the fixed-effect fallacy              Parag Jain, Andreea Marzoca, and Francesco Piccinno.
+  and claims of gpt-4 capabilities. arXiv preprint              2024. STRUCTSUM generation for faster text com-
+  arXiv:2409.07638.                                             prehension. In Proceedings of the 62nd Annual Meet-
+                                                                ing of the Association for Computational Linguis-
+Junwei Bao, Duyu Tang, Nan Duan, Zhao Yan, Yuanhua              tics (Volume 1: Long Papers), pages 7876–7896,
+  Lv, Ming Zhou, and Tiejun Zhao. 2018. Table-to-               Bangkok, Thailand. Association for Computational
+  text: Describing table region with natural language.          Linguistics.
+
+
+                                                         10
+Tushar Khot, Harsh Trivedi, Matthew Finlayson, Yao                 pages 201–206, Saarbrücken, Germany. Association
+  Fu, Kyle Richardson, Peter Clark, and Ashish Sab-                for Computational Linguistics.
+  harwal. 2022. Decomposed prompting: A modular
+  approach for solving complex tasks. arXiv preprint             Nilay Patel, Shivashankar Subramanian, Siddhant Garg,
+  arXiv:2210.02406.                                                Pratyay Banerjee, and Amita Misra. 2024. Towards
+                                                                   improved multi-source attribution for long-form an-
+Guillaume Lample, Miguel Ballesteros, Sandeep Sub-                 swer generation. In Proceedings of the 2024 Con-
+  ramanian, Kazuya Kawakami, and Chris Dyer. 2016.                 ference of the North American Chapter of the Asso-
+  Neural architectures for named entity recognition.               ciation for Computational Linguistics: Human Lan-
+  In Proceedings of the 2016 Conference of the North               guage Technologies (Volume 1: Long Papers), pages
+  American Chapter of the Association for Computa-                 3906–3919, Mexico City, Mexico. Association for
+  tional Linguistics: Human Language Technologies,                 Computational Linguistics.
+  pages 260–270, San Diego, California. Association
+  for Computational Linguistics.                                 Ethan Perez, Douwe Kiela, and Kyunghyun Cho. 2021.
+                                                                   True few-shot learning with language models. In
+Rémi Lebret, David Grangier, and Michael Auli. 2016.               Advances in Neural Information Processing Systems.
+  Neural text generation from structured data with ap-
+  plication to the biography domain. In Proceedings of           Michał Pietruszka, Michał Turski, Łukasz Borchmann,
+  the 2016 Conference on Empirical Methods in Natu-                Tomasz Dwojak, Gabriela Nowakowska, Karolina
+  ral Language Processing, pages 1203–1213, Austin,                Szyndler, Dawid Jurkiewicz, and Łukasz Garncarek.
+  Texas. Association for Computational Linguistics.                2024. Stable: Table generation framework for
+                                                                   encoder-decoder models. In Proceedings of the 18th
+Peng Li, Yeye He, Dror Yashar, Weiwei Cui, Song Ge,                Conference of the European Chapter of the Associa-
+  Haidong Zhang, Danielle Rifinski Fainman, Dong-                  tion for Computational Linguistics (Volume 1: Long
+  mei Zhang, and Surajit Chaudhuri. 2023a. Table-gpt:              Papers), pages 2454–2472.
+  Table-tuned gpt for diverse table tasks. arXiv preprint
+  arXiv:2310.09263.                                              Maja Popović. 2015. chrF: character n-gram F-score
+                                                                  for automatic MT evaluation. In Proceedings of the
+Tong Li, Zhihao Wang, Liangying Shao, Xuling Zheng,               Tenth Workshop on Statistical Machine Translation,
+  Xiaoli Wang, and Jinsong Su. 2023b. A sequence-                 pages 392–395, Lisbon, Portugal. Association for
+  to-sequence&set model for text-to-table generation.             Computational Linguistics.
+  In Findings of the Association for Computational
+  Linguistics: ACL 2023, pages 5358–5370.                        Pritika Ramu, Aparna Garimella, and Sambaran Bandy-
+Tianyu Liu, Kexiang Wang, Lei Sha, Baobao Chang,                    opadhyay. 2024. Is this a bad table? a closer look at
+  and Zhifang Sui. 2018. Table-to-text generation by                the evaluation of table generation from text. In Pro-
+  structure-aware seq2seq learning. Proceedings of the              ceedings of the 2024 Conference on Empirical Meth-
+  AAAI Conference on Artificial Intelligence, 32(1).                ods in Natural Language Processing, pages 22206–
+                                                                    22216, Miami, Florida, USA. Association for Com-
+Yi Luan, Dave Wadden, Luheng He, Amy Shah, Mari                     putational Linguistics.
+   Ostendorf, and Hannaneh Hajishirzi. 2019. A general
+   framework for information extraction using dynamic            Yuan Sui, Mengyu Zhou, Mingjie Zhou, Shi Han, and
+   span graphs. In Proceedings of the 2019 Conference              Dongmei Zhang. 2024. Table meets llm: Can large
+   of the North American Chapter of the Association for            language models understand structured table data?
+  Computational Linguistics: Human Language Tech-                  a benchmark and empirical study. In Proceedings
+   nologies, Volume 1 (Long and Short Papers), pages               of the 17th ACM International Conference on Web
+   3036–3046, Minneapolis, Minnesota. Association for              Search and Data Mining, pages 645–654.
+   Computational Linguistics.                                    Anirudh Sundar, Christopher Richardson, and Larry
+Xuezhe Ma and Eduard Hovy. 2016. End-to-end se-                    Heck. 2024. gtbls: Generating tables from text
+  quence labeling via bi-directional LSTM-CNNs-CRF.                by conditional question answering. arXiv preprint
+  In Proceedings of the 54th Annual Meeting of the As-             arXiv:2403.14457.
+  sociation for Computational Linguistics (Volume 1:
+  Long Papers), pages 1064–1074, Berlin, Germany.                Xiangru Tang, Yiming Zong, Jason Phang, Yilun Zhao,
+  Association for Computational Linguistics.                       Wangchunshu Zhou, Arman Cohan, and Mark Ger-
+                                                                   stein. 2024. Struc-bench: Are large language models
+Joshua Maynez, Shashi Narayan, Bernd Bohnet, and                   good at generating complex structured tabular data?
+  Ryan McDonald. 2020. On faithfulness and factu-                  In Proceedings of the 2024 Conference of the North
+  ality in abstractive summarization. In Proceedings               American Chapter of the Association for Computa-
+  of the 58th Annual Meeting of the Association for                tional Linguistics: Human Language Technologies
+  Computational Linguistics, pages 1906–1919, On-                  (Volume 2: Short Papers), pages 12–34, Mexico City,
+  line. Association for Computational Linguistics.                 Mexico. Association for Computational Linguistics.
+Jekaterina Novikova, Ondřej Dušek, and Verena Rieser.           Fabián Villena, Luis Miranda, and Claudio Aracena.
+   2017. The E2E dataset: New challenges for end-                  2024. llmner:(zero| few)-shot named entity recogni-
+   to-end generation. In Proceedings of the 18th An-               tion, exploiting the power of large language models.
+   nual SIGdial Meeting on Discourse and Dialogue,                 arXiv preprint arXiv:2406.04528.
+
+
+                                                            11
+Lucy Lu Wang, Kyle Lo, Yoganand Chandrasekhar, Rus-              of the Association for Computational Linguistics (Vol-
+  sell Reas, Jiangjiang Yang, Douglas Burdick, Darrin            ume 1: Long Papers), pages 1227–1236, Vancouver,
+  Eide, Kathryn Funk, Yannis Katsis, Rodney Kinney,              Canada. Association for Computational Linguistics.
+  et al. 2020a. Cord-19: The covid-19 open research
+  dataset. ArXiv.                                              Zexuan Zhong and Danqi Chen. 2021. A frustratingly
+                                                                 easy approach for entity and relation extraction. In
+Zhenyi Wang, Xiaoyang Wang, Bang An, Dong Yu,                    Proceedings of the 2021 Conference of the North
+  and Changyou Chen. 2020b. Towards faithful neu-                American Chapter of the Association for Computa-
+  ral table-to-text generation with content-matching             tional Linguistics: Human Language Technologies,
+  constraints. In Proceedings of the 58th Annual Meet-           pages 50–61, Online. Association for Computational
+  ing of the Association for Computational Linguistics,          Linguistics.
+  pages 1072–1086, Online. Association for Computa-
+  tional Linguistics.                                          Fengbin Zhu, Ziyang Liu, Fuli Feng, Chao Wang,
+                                                                 Moxin Li, and Tat Seng Chua. 2024. Tat-llm: A
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten                 specialized language model for discrete reasoning
+   Bosma, brian ichter, Fei Xia, Ed H. Chi, Quoc V Le,           over financial tabular and textual data. In Proceed-
+   and Denny Zhou. 2022. Chain of Thought Prompting              ings of the 5th ACM International Conference on AI
+   Elicits Reasoning in Large Language Models. In                in Finance, pages 310–318.
+  Advances in Neural Information Processing Systems.
+
+Sam Wiseman, Stuart Shieber, and Alexander Rush.
+  2017. Challenges in data-to-document generation.
+  In Proceedings of the 2017 Conference on Empiri-
+  cal Methods in Natural Language Processing, pages
+  2253–2263, Copenhagen, Denmark. Association for
+  Computational Linguistics.
+
+Xueqing Wu, Jiacheng Zhang, and Hang Li. 2022. Text-
+  to-Table: A New Way of Information Extraction. In
+  Proceedings of the 60th Annual Meeting of the As-
+  sociation for Computational Linguistics (Volume 1:
+  Long Papers), pages 2518–2533, Dublin, Ireland. As-
+  sociation for Computational Linguistics.
+
+Xiang Yue, Boshi Wang, Ziru Chen, Kai Zhang, Yu Su,
+  and Huan Sun. 2023. Automatic evaluation of at-
+  tribution by large language models. arXiv preprint
+  arXiv:2305.06311.
+
+Xiangrong Zeng, Daojian Zeng, Shizhu He, Kang Liu,
+  and Jun Zhao. 2018. Extracting relational facts by
+  an end-to-end neural model with copy mechanism.
+  In Proceedings of the 56th Annual Meeting of the
+  Association for Computational Linguistics (Volume 1:
+  Long Papers), pages 506–514, Melbourne, Australia.
+  Association for Computational Linguistics.
+
+Tianyi Zhang*, Varsha Kishore*, Felix Wu*, Kilian Q.
+  Weinberger, and Yoav Artzi. 2020. Bertscore: Eval-
+   uating text generation with bert. In International
+  Conference on Learning Representations.
+
+Xiang Zhang, Juntai Cao, and Chenyu You. 2024.
+  Counting ability of large language models and impact
+  of tokenization. arXiv preprint arXiv:2410.19730.
+
+Zhuosheng Zhang, Aston Zhang, Mu Li, and Alex
+  Smola. 2022. Automatic chain of thought prompt-
+  ing in large language models. arXiv preprint
+  arXiv:2210.03493.
+
+Suncong Zheng, Feng Wang, Hongyun Bao, Yuexing
+  Hao, Peng Zhou, and Bo Xu. 2017. Joint extraction
+  of entities and relations based on a novel tagging
+  scheme. In Proceedings of the 55th Annual Meeting
+
+
+                                                          12
+                      Appendices                                      728 test samples. During our experiments, we ob-
+                                                                      served multiple table entries with no grounding in
+A     Datasets
+                                                                      the corresponding text, which we corrected to have
+In this section, we present more details about the                    a clean and reliable benchmark.
+datasets used in this study.
+                                                                      A.2.1 Dataset Corrections
+A.1    Livesum                                                        The match summaries often contain information
+This benchmark was created by scraping live com-                      about player and team performances outside the
+mentory of football games played in the English                       scope of the match in question. For example, the
+Premier League. Player Names and Team Names                           recent performance trends of teams, upcoming fix-
+were anonymised and summary tables were anno-                         tures, players on impressive streaks, etc. To distill
+tated manually. The difficulty level of each event                    relevant information, we operate the instruction to
+(columns in a table) is determined by the number                      keep only statistical values of Teams and Players
+of different descriptions that are present for each                   pertinent to the match in question.
+event, as shown in figure 5. Goals and Red Cards                      First, we extract the global column headers from
+are classified as easy due to their rare occurrences                  the complete test set for the Team and Player tables.
+and straightforward descriptions. Shots and Fouls                     We further add two column headers to the global
+are classified as Hard as they have the most vary-                    set "Points in the Paint" and "Half-Time Score".
+ing descriptions. The remaining four events are                       The former represents the points made by the team
+classified as Medium difficulty.                                      through 2-point shots, and the latter represents the
+                                                                      score of both teams at half-time, hence relevant
+                                                                      to the team performance summary. Row Headers
+                                                                      require no correction at the global level as they
+                                                                      contain Player Names and Team Names, hence are
+                                                                      validated for every sample individually.
+                                                                         Every table follows the same structure with Row
+                                                                      Headers as the teams (Home Team, Away Team)
+                                                                      and 8 columns, one for each event. As our problem
+                                                                      statement involves generating summary tables with-
+                                                                      out any schematic constraints, we find extra events
+                                                                      such as Passes, Assists, Through Balls that are
+                                                                      contextually relevant but cannot be evaluated using
+                                                                      the ground truth. Hence, we employ a paraphrasing
+                                                                      agent to transform our outputs as per the ground
+                                                                      truth’s structure. Full prompt used for paraphrasing
+                                                                      can be found in appendix E.4.1
+Figure 5: Eight types of event information (inner circle) that
+require summarization in Livesum dataset, along with their            B     Additional Results
+common expressions (outer circle) in the commentary. (Deng
+et al., 2024)                                                         B.1    Rotowire
+
+                                                                                          EM                    CHRF                     BERT
+                                                                       Method
+                                                                                  Cell    Row     Col      Cell  Row      Col    Cell     Row    Col
+A.2    Rotowire                                                                                             GPT-4o Zero-Shot
+                                                                      CoT         18.52   47.28   27.89   34.10 77.60 46.06      34.92   57.19   66.58
+The Rotowire dataset was originally introduced                        M&M - U     15.07   46.43   21.73   29.92 74.59 41.48      34.34   57.54   59.56
+                                                                                                            GPT-4o One-Shot
+by (Wiseman et al., 2017) for table-to-text gener-                    CoT         56.62   88.44   61.20   76.16 92.36 79.50      83.01   91.41   87.20
+                                                                      M&M - U     45.41   88.39   50.38   61.24 91.38 68.77      68.52   93.37   74.50
+ation, comprising NBA game summaries paired                           M&M - 3S    23.30   58.33   34.69   40.17 79.36 53.71      43.05   67.41   60.87
+with detailed box and line scores. It was later re-                                                       Gemini-2.0 Zero-Shot
+                                                                      CoT         33.56   21.90   51.85   37.71 76.49 49.09      40.46   58.64   79.93
+purposed by (Wu et al., 2022) for text-to-table gen-                  M&M - U     16.85   45.41   28.03   36.39 71.97 48.98      36.91   56.66   61.78
+                                                                                                          Gemini-2.0 One-Shot
+eration by filtering the original tables to retain only               CoT         56.27   91.79   59.85   75.56 94.13 79.10      84.18   95.95   85.90
+                                                                      M&M - U     57.00   90.32   61.61   71.77 93.20 77.64      77.90   94.76   80.38
+records that could be grounded in the textual sum-                    M&M - 3S    49.90   86.11   55.95   62.49 89.82 71.86      69.86   91.52   74.65
+maries. For each sample summary, a team-level and
+a player-level table were constructed. The bench-                                Table 9: Rotowire Correctness Scores
+mark consists of 3,398 training, 727 validation, and
+
+                                                                 13
+                           Figure 6: Instances of hallucinations and missing information in Rotowire.
+
+                   EM                    CHRF                     BERT
+ Method
+           Cell    Row     Col      Cell  Row      Col    Cell     Row    Col          the correctness of the extra columns generated in
+                                     GPT-4o Zero-Shot
+CoT        18.93   48.71   28.36   35.56 78.90 46.87      35.49   58.92   61.74
+                                                                                       our tables we employ AutoQA (shown in Table 3).
+M&M - U    16.61   47.79   24.69   33.72 76.16 45.87      37.20   59.25   61.29        M&M’s consistent improvement on this metric val-
+                                     GPT-4o One-Shot
+CoT        38.93   87.99   42.22   53.22 91.95 58.93      65.69   91.09   69.47        idates the faithfulness of extra information to the
+M&M - U    46.85   89.05   51.71   63.08 92.01 70.21      70.33   93.92   75.47
+M&M - 3S   26.66   60.28   40.20   46.60 81.37 60.41      48.05   69.48   66.81        gold text.
+                                   Gemini-2.0 Zero-Shot
+CoT        20.72   49.02   30.30   35.68 77.91 45.55      38.33   60.34   64.07
+M&M - U    17.71   46.09   28.91   38.00 72.82 50.24      37.97   57.81   60.42        C    Fine-Tuning Study on Smaller LLMs
+                                   Gemini-2.0 One-Shot
+CoT        45.65   91.36   48.71   61.78 93.75 66.89      71.66   95.59   73.46
+M&M - U    56.03   90.24   60.63   70.75 93.08 76.56      76.44   94.66   78.89        To evaluate whether our modular Map&Make
+M&M - 3S   53.63   87.14   59.89   66.88 90.82 75.61      73.32   92.30   77.74        framework can be used to train smaller language
+           Table 10: Rotowire Overall Scores
+                                                                                       models with improved reasoning and structured
+                                                                                       generation capabilities, we conducted a fine-tuning
+                                                                                       study. We used our pipeline on the ROTOWIRE
+                                                                                       training corpora to generate high-quality supervi-
+   In Table 9 and 10, we provide the Correctness
+                                                                                       sion data using Gemini 2.0. These structured table-
+(Precision) and Overall Scores (F1) for Rotowire on
+                                                                                       text pairs were then used to fine-tune a LLaMA 3
+GPT-4o, and Gemini-2.0-flash-exp. We see mini-
+                                                                                       8B Instruct model.
+mal to no improvement in correctness scores across
+                                                                                          We evaluated the fine-tuned model on the RO -
+similarity metrics due to the lack of any statisti-
+                                                                                       TOWIRE test set using the TAB E VAL and AUTO QA
+cal attributes in the ground-truths. Map & Make,
+                                                                                       metrics. We compare its performance with a Chain-
+being an unsupervised designed to enhance cover-
+                                                                                       of-Thought (CoT) baseline and our M&M (3-step)
+age of information produces descriptive columns
+                                                                                       framework. Results are shown below.
+such as Injury Status, categorical columns such
+as Starting 5 player/ Off the Bench Player (used                                          These results show that fine-tuning smaller
+to describe whether a player is present in the game                                    LLMs with data generated by Gemini 2.0 can mod-
+from the start of the match or is substituted mid-                                     estly improve performance on structured prediction.
+game). Also, columns that represent attributes                                         However, limitations remain:
+not directly relevant to the game such as Average                                         • Instruction alignment: Smaller LLMs strug-
+Points Scored past 3 games, Win Streak have no                                               gle with consistent table formatting and multi-
+reference in ground truths which leads to penali-                                            row outputs.
+sation of our methodology. However, to validate                                           • Context limitations: Shorter context lengths
+
+                                                                                  14
+ Method        Precision         Recall                F1
+             Team    Player   Team    Player   Team     Player
+ Fine-tune   60.16   59.84    41.61   61.58    45.62    58.23
+ CoT         80.23   86.74    56.26   57.74    64.34    65.57
+ M&M-3S      48.78   74.22    61.43   87.34    51.01    78.56
+
+Table 11: TabEval scores on ROTOWIRE. Player
+columns reflect per-entity evaluation; Team reflects ag-
+gregated rows.
+
+             Method        AutoQA Accuracy
+             Fine-tune           48.65
+             CoT                 41.42
+             M&M-3S              80.38
+
+Table 12: AutoQA scores using QA pairs generated by
+Gemini 2.0.
+
+
+      hinder long-document comprehension and
+      global reasoning.
+   • Training quality: Datasets like Rotowire con-
+      tain hallucinations. Gemini 2.0 outputs of-
+      fered improved fidelity during fine-tuning.
+   This study illustrates that M&M can bootstrap
+fine-tuning for smaller models and serve as a scal-
+able foundation for schema-agnostic table genera-
+tion in low-resource or multilingual settings.
+
+
+
+
+                                                             15
+D     M&M Sample Outputs
+D.1      Rotowire
+D.1.1     Propositional Atomization
+    M&M Rotowire Model Output - Atomic
+    ***REASONING STEPS***:
+    For each sentence, identify the entities and their corresponding events.
+
+    **Sentence 1**: The Hornets (5 - 15) snapped a 10 - game winning streak and sent the Knicks (4 - 17) to their seventh
+    ,→  straight loss with Friday’s 103 - 102 victory.
+    - Entities: The Hornets, The Knicks
+    - Events: Team records, game result, winning streak, losing streak
+    *Atomic sentences*:
+    The Hornets' record is 5 wins.
+    The Hornets' record is 15 losses.
+    The Hornets snapped a 10-game winning streak.
+    The Knicks' record is 4 wins.
+    The Knicks' record is 17 losses.
+    The Knicks have a seven-game losing streak.
+    The Hornets defeated the Knicks 103-102 on Friday.
+
+    **Sentence 2**: Charlotte, which led by 14 entering the fourth quarter, allowed the Knicks to creep back into the game in
+    ,→  the final four minutes.
+    - Entities: Charlotte, The Knicks
+    - Events: Lead, game progression
+    *Atomic sentences*:
+    Charlotte led by 14 points entering the fourth quarter.
+    The Knicks reduced Charlotte's lead in the final four minutes.
+
+    **Sentence 3**: Back-to-back threes from J.R. Smith and Carmelo Anthony brought New York within two, and another Anthony
+    ,→  three less than a minute later gave the Knicks a one - point advantage with 40 seconds to play.
+    - Entities: J.R. Smith, Carmelo Anthony, The Knicks
+    - Events: Three-point shots, score change
+    *Atomic sentences*:
+    J.R. Smith made a three-point shot.
+    Carmelo Anthony made a three-point shot.
+    The Knicks were within two points of Charlotte.
+    Carmelo Anthony made another three-point shot.
+    The Knicks had a one-point advantage with 40 seconds to play.
+
+    **Sentence 4**: Following missed baskets on both ends, the Hornets had the ball with four seconds to play with a chance to
+    ,→  win.
+    - Entities: The Hornets
+    - Events: Missed baskets, possession
+    *Atomic sentences*:
+    Both teams missed baskets.
+    The Hornets had possession of the ball with four seconds to play.
+
+    **Sentence 5**: The ball was inbounded to Kemba Walker, who drove into the paint and laid it in at the buzzer for his 11th
+    ,→  point of the game.
+    - Entities: Kemba Walker
+    - Events: Inbound pass, scoring
+    *Atomic sentences*:
+    The ball was inbounded to Kemba Walker.
+    Kemba Walker drove into the paint.
+    Kemba Walker scored at the buzzer.
+    Kemba Walker scored his 11th point of the game.
+
+    **Sentence 6**: The Hornets were led by 22 points from Gerald Henderson and 16 points and 13 boards from Al Jefferson.
+    - Entities: Gerald Henderson, Al Jefferson
+    - Events: Scoring, rebounds
+    *Atomic sentences*:
+    Gerald Henderson scored 22 points.
+    Al Jefferson scored 16 points.
+    Al Jefferson had 13 rebounds.
+
+    **Sentence 7**: Lance Stephenson added 16 points (7 - 15 FG) to go with six assists and six rebounds, and Gary Neal
+    ,→  chipped in 13 points off the bench.
+    - Entities: Lance Stephenson, Gary Neal
+    - Events: Scoring, assists, rebounds
+    *Atomic sentences*:
+    Lance Stephenson scored 16 points.
+    Lance Stephenson made 7 of 15 field goal attempts.
+    Lance Stephenson had six assists.
+    Lance Stephenson had six rebounds.
+    Gary Neal scored 13 points off the bench.
+
+    **Sentence 8**: The Hornets shot 48 percent from the floor but made just 22 percent of their three - point attempts (4 -
+    ,→  18 3Pt).
+    - Entities: The Hornets
+    - Events: Shooting percentages
+
+
+
+
+                                                               16
+*Atomic sentences*:
+The Hornets shot 48 percent from the floor.
+The Hornets made 22 percent of their three-point attempts.
+The Hornets made 4 of 18 three-point attempts.
+
+**Sentence 9**: New York got 32 points from Anthony to go with seven rebounds and four assists.
+- Entities: Carmelo Anthony
+- Events: Scoring, rebounds, assists
+*Atomic sentences*:
+Carmelo Anthony scored 32 points.
+Carmelo Anthony had seven rebounds.
+Carmelo Anthony had four assists.
+
+**Sentence 10**: The only other Knicks to score in double figures were Tim Hardaway, Jr. and J.R. Smith, who had 13 and 14
+,→  points, respectively.
+- Entities: Tim Hardaway, Jr., J.R. Smith
+- Events: Scoring
+*Atomic sentences*:
+Tim Hardaway, Jr. scored 13 points.
+J.R. Smith scored 14 points.
+
+**Sentence 11**: Smith also added five assists and four boards.
+- Entities: J.R. Smith
+- Events: Assists, rebounds
+*Atomic sentences*:
+J.R. Smith had five assists.
+J.R. Smith had four rebounds.
+
+**Sentence 12**: The Knicks were out - rebounded 41 - 34 but committed only six turnovers, three of which were charged to
+,→  Samuel Dalembert.
+- Entities: The Knicks, Samuel Dalembert
+- Events: Rebounds, turnovers
+*Atomic sentences*:
+The Knicks were out-rebounded 41 to 34.
+The Knicks committed six turnovers.
+Samuel Dalembert committed three turnovers.
+
+**Sentence 13**: Up next, the Knicks host the Blazers on Sunday.
+- Entities: The Knicks, The Blazers
+- Events: Upcoming game
+*Atomic sentences*:
+The Knicks will host the Blazers on Sunday.
+
+**Sentence 14**: Charlotte is off until Wednesday, when they face the Celtics.
+- Entities: Charlotte, The Celtics
+- Events: Upcoming game
+*Atomic sentences*:
+Charlotte is off until Wednesday.
+Charlotte will face the Celtics on Wednesday.
+
+### Atomic Statements:
+The Hornets' record is 5 wins.
+The Hornets' record is 15 losses.
+The Hornets snapped a 10-game winning streak.
+The Knicks' record is 4 wins.
+The Knicks' record is 17 losses.
+The Knicks have a seven-game losing streak.
+The Hornets defeated the Knicks 103-102 on Friday.
+Charlotte led by 14 points entering the fourth quarter.
+The Knicks reduced Charlotte's lead in the final four minutes.
+J.R. Smith made a three-point shot.
+Carmelo Anthony made a three-point shot.
+The Knicks were within two points of Charlotte.
+Carmelo Anthony made another three-point shot.
+The Knicks had a one-point advantage with 40 seconds to play.
+Both teams missed baskets.
+The Hornets had possession of the ball with four seconds to play.
+The ball was inbounded to Kemba Walker.
+Kemba Walker drove into the paint.
+Kemba Walker scored at the buzzer.
+Kemba Walker scored his 11th point of the game.
+Gerald Henderson scored 22 points.
+Al Jefferson scored 16 points.
+Al Jefferson had 13 rebounds.
+Lance Stephenson scored 16 points.
+Lance Stephenson made 7 of 15 field goal attempts.
+Lance Stephenson had six assists.
+Lance Stephenson had six rebounds.
+Gary Neal scored 13 points off the bench.
+The Hornets shot 48 percent from the floor.
+The Hornets made 22 percent of their three-point attempts.
+The Hornets made 4 of 18 three-point attempts.
+Carmelo Anthony scored 32 points.
+Carmelo Anthony had seven rebounds.
+Carmelo Anthony had four assists.
+
+
+
+
+                                                             17
+   Tim Hardaway, Jr. scored 13 points.
+   J.R. Smith scored 14 points.
+   J.R. Smith had five assists.
+   J.R. Smith had four rebounds.
+   The Knicks were out-rebounded 41 to 34.
+   The Knicks committed six turnovers.
+   Samuel Dalembert committed three turnovers.
+   The Knicks will host the Blazers on Sunday.
+   Charlotte is off until Wednesday.
+   Charlotte will face the Celtics on Wednesday.
+
+
+
+D.1.2   Schema Generation
+   M&M Rotowire Model Output - Schema Generation
+   **Step 1 - Identify the context from all the statements to generate a short description**
+   Thought: The text provides a summary of a basketball game between the Hornets and the Knicks, including team records, game
+  ,→ events, and individual player statistics. It is appropriate to create two separate tables: one for team-related data
+  ,→ and another for player-related data.
+
+   **Step 2 - Create an empty list of row and column headers for the tables. This list will be updated as we process the
+  ,→   statements and add relevant column and row headers.**
+   *Intermediate output*:
+   ```json
+   {
+       "Team": {
+           "row_headers": [],
+           "column_headers": []
+       },
+       "Player": {
+           "row_headers": [],
+           "column_headers": []
+       }
+   }
+   ```
+
+   **Step 3 - Process statements one by one and add relevant headers if not already present in the list.**
+
+   *Statements processed*:
+
+   1. The Hornets' record is 5 wins.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: "Hornets"
+           - Column added: "Wins"
+
+   2. The Hornets' record is 15 losses.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: None ("Hornets" is already present in the schema)
+           - Column added: "Losses"
+
+   3. The Hornets snapped a 10-game winning streak.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: None
+           - Column added: "Winning streak"
+
+   4. The Knicks' record is 4 wins.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: "Knicks"
+           - Column added: None ("Wins" is already present in the schema)
+
+   5. The Knicks' record is 17 losses.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: None ("Knicks" is already present in the schema)
+           - Column added: None ("Losses" is already present in the schema)
+
+   6. The Knicks have a seven-game losing streak.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: None
+           - Column added: "Losing streak"
+
+   7. The Hornets defeated the Knicks 103-102 on Friday.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: None
+           - Column added: "Points scored"
+
+   8. Charlotte led by 14 points entering the fourth quarter.
+
+
+
+
+                                                                18
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Lead entering fourth quarter"
+
+9. The Knicks reduced Charlotte's lead in the final four minutes.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: None
+
+10. J.R. Smith made a three-point shot.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "J.R. Smith"
+        - Column added: "Three-point shots made"
+
+11. Carmelo Anthony made a three-point shot.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Carmelo Anthony"
+        - Column added: None ("Three-point shots made" is already present in the schema)
+
+12. The Knicks were within two points of Charlotte.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: None
+
+13. Carmelo Anthony made another three-point shot.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None ("Carmelo Anthony" is already present in the schema)
+        - Column added: None
+
+14. The Knicks had a one-point advantage with 40 seconds to play.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Advantage with 40 seconds"
+
+15. Both teams missed baskets.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: None
+
+16. The Hornets had possession of the ball with four seconds to play.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Possession with 4 seconds"
+
+17. The ball was inbounded to Kemba Walker.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Kemba Walker"
+        - Column added: None
+
+18. Kemba Walker drove into the paint.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None ("Kemba Walker" is already present in the schema)
+        - Column added: None
+
+19. Kemba Walker scored at the buzzer.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: "Buzzer beater"
+
+20. Kemba Walker scored his 11th point of the game.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: "Points"
+
+21. Gerald Henderson scored 22 points.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Gerald Henderson"
+        - Column added: None ("Points" is already present in the schema)
+
+22. Al Jefferson scored 16 points.
+*Schema update*:
+
+
+
+
+                                                          19
+   - Update in "Player" table
+       - Row added: "Al Jefferson"
+       - Column added: None ("Points" is already present in the schema)
+
+23. Al Jefferson had 13 rebounds.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: "Rebounds"
+
+24. Lance Stephenson scored 16 points.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Lance Stephenson"
+        - Column added: None ("Points" is already present in the schema)
+
+25. Lance Stephenson made 7 of 15 field goal attempts.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: "Field goal attempts"
+
+26. Lance Stephenson had six assists.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: "Assists"
+
+27. Lance Stephenson had six rebounds.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: None ("Rebounds" is already present in the schema)
+
+28. Gary Neal scored 13 points off the bench.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Gary Neal"
+        - Column added: None ("Points" is already present in the schema)
+
+29. The Hornets shot 48 percent from the floor.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Shooting percentage"
+
+30. The Hornets made 22 percent of their three-point attempts.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Three-point percentage"
+
+31. The Hornets made 4 of 18 three-point attempts.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Three-point attempts"
+
+32. Carmelo Anthony scored 32 points.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None ("Carmelo Anthony" is already present in the schema)
+        - Column added: None ("Points" is already present in the schema)
+
+33. Carmelo Anthony had seven rebounds.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: None ("Rebounds" is already present in the schema)
+
+34. Carmelo Anthony had four assists.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: None ("Assists" is already present in the schema)
+
+35. Tim Hardaway, Jr. scored 13 points.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Tim Hardaway, Jr."
+        - Column added: None ("Points" is already present in the schema)
+
+36. J.R. Smith scored 14 points.
+*Schema update*:
+    - Update in "Player" table
+
+
+
+
+                                                          20
+        - Row added: None ("J.R. Smith" is already present in the schema)
+        - Column added: None ("Points" is already present in the schema)
+
+37. J.R. Smith had five assists.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: None ("Assists" is already present in the schema)
+
+38. J.R. Smith had four rebounds.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: None
+        - Column added: None ("Rebounds" is already present in the schema)
+
+39. The Knicks were out-rebounded 41 to 34.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Rebounds"
+
+40. The Knicks committed six turnovers.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Turnovers"
+
+41. Samuel Dalembert committed three turnovers.
+*Schema update*:
+    - Update in "Player" table
+        - Row added: "Samuel Dalembert"
+        - Column added: "Turnovers"
+
+42. The Knicks will host the Blazers on Sunday.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: "Next game"
+
+43. Charlotte is off until Wednesday.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: None
+
+44. Charlotte will face the Celtics on Wednesday.
+*Schema update*:
+    - Update in "Team" table
+        - Row added: None
+        - Column added: None
+
+### Final Schema:
+```json
+{
+    "Team": {
+        "row_headers": ["Hornets", "Knicks"],
+        "column_headers": [
+            "Wins", "Losses", "Winning streak", "Losing streak", "Points scored",
+            "Lead entering fourth quarter", "Advantage with 40 seconds", "Possession with 4 seconds",
+            "Shooting percentage", "Three-point percentage", "Three-point attempts", "Rebounds", "Turnovers", "Next game"
+        ]
+    },
+    "Player": {
+        "row_headers": [
+            "J.R. Smith", "Carmelo Anthony", "Kemba Walker", "Gerald Henderson", "Al Jefferson",
+            "Lance Stephenson", "Gary Neal", "Tim Hardaway, Jr.", "Samuel Dalembert"
+        ],
+        "column_headers": [
+            "Three-point shots made", "Buzzer beater", "Points", "Rebounds", "Field goal attempts", "Assists", "Turnovers"
+        ]
+    }
+}
+```
+
+
+
+
+                                                           21
+D.1.3   Iterative Generation
+   M&M Rotowire Model Output - Table Generation
+   ***REASONING STEPS***:
+
+   **Step 1**: Initialize the tables based on the given schema.
+
+   ### Team:
+   | Team | Wins | Losses | Winning streak | Losing streak | Points scored | Lead entering fourth quarter | Advantage with 40
+  ,→ seconds | Possession with 4 seconds | Shooting percentage | Three-point percentage | Three-point attempts | Rebounds |
+  ,→ Turnovers | Next game |
+   | Hornets | None | None | None | None | None | None | None | None | None | None | None | None | None | None |
+   | Knicks | None | None | None | None | None | None | None | None | None | None | None | None | None | None |
+
+   ### Player:
+   | Player | Three-point shots made | Buzzer beater | Points | Rebounds | Field goal attempts | Assists | Turnovers |
+   | J.R. Smith | None | None | None | None | None | None | None |
+   | Carmelo Anthony | None | None | None | None | None | None | None |
+   | Kemba Walker | None | None | None | None | None | None | None |
+   | Gerald Henderson | None | None | None | None | None | None | None |
+   | Al Jefferson | None | None | None | None | None | None | None |
+   | Lance Stephenson | None | None | None | None | None | None | None |
+   | Gary Neal | None | None | None | None | None | None | None |
+   | Tim Hardaway, Jr. | None | None | None | None | None | None | None |
+   | Samuel Dalembert | None | None | None | None | None | None | None |
+
+   **Step 2**: Process each statement and update the tables accordingly.
+
+   1. **Statement**: The Hornets' record is 5 wins.
+      - **Update**:
+        - Table: Team
+        - Row: Hornets
+        - Column: Wins
+        - Value: 5
+
+   2. **Statement**: The Hornets' record is 15 losses.
+      - **Update**:
+        - Table: Team
+        - Row: Hornets
+        - Column: Losses
+        - Value: 15
+
+   3. **Statement**: The Hornets snapped a 10-game winning streak.
+      - **Update**:
+        - Table: Team
+        - Row: Hornets
+        - Column: Winning streak
+        - Value: 10
+
+   4. **Statement**: The Knicks' record is 4 wins.
+      - **Update**:
+        - Table: Team
+        - Row: Knicks
+        - Column: Wins
+        - Value: 4
+
+   5. **Statement**: The Knicks' record is 17 losses.
+      - **Update**:
+        - Table: Team
+        - Row: Knicks
+        - Column: Losses
+        - Value: 17
+
+   6. **Statement**: The Knicks have a seven-game losing streak.
+      - **Update**:
+        - Table: Team
+        - Row: Knicks
+        - Column: Losing streak
+        - Value: 7
+
+   7. **Statement**: The Hornets defeated the Knicks 103-102 on Friday.
+      - **Update**:
+        - Table: Team
+        - Row: Hornets
+        - Column: Points scored
+        - Value: 103
+
+   8. **Statement**: Charlotte led by 14 points entering the fourth quarter.
+      - **Update**:
+        - Table: Team
+        - Row: Hornets
+        - Column: Lead entering fourth quarter
+        - Value: 14
+
+
+
+
+                                                              22
+9. **Statement**: The Knicks had a one-point advantage with 40 seconds to play.
+   - **Update**:
+     - Table: Team
+     - Row: Knicks
+     - Column: Advantage with 40 seconds
+     - Value: 1
+
+10. **Statement**: The Hornets had possession of the ball with four seconds to play.
+    - **Update**:
+      - Table: Team
+      - Row: Hornets
+      - Column: Possession with 4 seconds
+      - Value: Yes
+
+11. **Statement**: Kemba Walker scored at the buzzer.
+    - **Update**:
+      - Table: Player
+      - Row: Kemba Walker
+      - Column: Buzzer beater
+      - Value: Yes
+
+12. **Statement**: Kemba Walker scored his 11th point of the game.
+    - **Update**:
+      - Table: Player
+      - Row: Kemba Walker
+      - Column: Points
+      - Value: 11
+
+13. **Statement**: Gerald Henderson scored 22 points.
+    - **Update**:
+      - Table: Player
+      - Row: Gerald Henderson
+      - Column: Points
+      - Value: 22
+
+14. **Statement**: Al Jefferson scored 16 points.
+    - **Update**:
+      - Table: Player
+      - Row: Al Jefferson
+      - Column: Points
+      - Value: 16
+
+15. **Statement**: Al Jefferson had 13 rebounds.
+    - **Update**:
+      - Table: Player
+      - Row: Al Jefferson
+      - Column: Rebounds
+      - Value: 13
+
+16. **Statement**: Lance Stephenson scored 16 points.
+    - **Update**:
+      - Table: Player
+      - Row: Lance Stephenson
+      - Column: Points
+      - Value: 16
+
+17. **Statement**: Lance Stephenson made 7 of 15 field goal attempts.
+    - **Update**:
+      - Table: Player
+      - Row: Lance Stephenson
+      - Column: Field goal attempts
+      - Value: 15
+
+18. **Statement**: Lance Stephenson had six assists.
+    - **Update**:
+      - Table: Player
+      - Row: Lance Stephenson
+      - Column: Assists
+      - Value: 6
+
+19. **Statement**: Lance Stephenson had six rebounds.
+    - **Update**:
+      - Table: Player
+      - Row: Lance Stephenson
+      - Column: Rebounds
+      - Value: 6
+
+20. **Statement**: Gary Neal scored 13 points off the bench.
+    - **Update**:
+      - Table: Player
+      - Row: Gary Neal
+      - Column: Points
+      - Value: 13
+
+21. **Statement**: The Hornets shot 48 percent from the floor.
+
+
+
+
+                                                          23
+   - **Update**:
+     - Table: Team
+     - Row: Hornets
+     - Column: Shooting percentage
+     - Value: 48
+
+22. **Statement**: The Hornets made 22 percent of their three-point attempts.
+    - **Update**:
+      - Table: Team
+      - Row: Hornets
+      - Column: Three-point percentage
+      - Value: 22
+
+23. **Statement**: The Hornets made 4 of 18 three-point attempts.
+    - **Update**:
+      - Table: Team
+      - Row: Hornets
+      - Column: Three-point attempts
+      - Value: 18
+
+24. **Statement**: Carmelo Anthony scored 32 points.
+    - **Update**:
+      - Table: Player
+      - Row: Carmelo Anthony
+      - Column: Points
+      - Value: 32
+
+25. **Statement**: Carmelo Anthony had seven rebounds.
+    - **Update**:
+      - Table: Player
+      - Row: Carmelo Anthony
+      - Column: Rebounds
+      - Value: 7
+
+26. **Statement**: Carmelo Anthony had four assists.
+    - **Update**:
+      - Table: Player
+      - Row: Carmelo Anthony
+      - Column: Assists
+      - Value: 4
+
+27. **Statement**: Tim Hardaway, Jr. scored 13 points.
+    - **Update**:
+      - Table: Player
+      - Row: Tim Hardaway, Jr.
+      - Column: Points
+      - Value: 13
+
+28. **Statement**: J.R. Smith scored 14 points.
+    - **Update**:
+      - Table: Player
+      - Row: J.R. Smith
+      - Column: Points
+      - Value: 14
+
+29. **Statement**: J.R. Smith had five assists.
+    - **Update**:
+      - Table: Player
+      - Row: J.R. Smith
+      - Column: Assists
+      - Value: 5
+
+30. **Statement**: J.R. Smith had four rebounds.
+    - **Update**:
+      - Table: Player
+      - Row: J.R. Smith
+      - Column: Rebounds
+      - Value: 4
+
+31. **Statement**: The Knicks were out-rebounded 41 to 34.
+    - **Update**:
+      - Table: Team
+      - Row: Knicks
+      - Column: Rebounds
+      - Value: 34
+
+32. **Statement**: The Knicks committed six turnovers.
+    - **Update**:
+      - Table: Team
+      - Row: Knicks
+      - Column: Turnovers
+      - Value: 6
+
+33. **Statement**: Samuel Dalembert committed three turnovers.
+    - **Update**:
+
+
+
+
+                                                             24
+         - Table: Player
+         - Row: Samuel Dalembert
+         - Column: Turnovers
+         - Value: 3
+
+   34. **Statement**: The Knicks will host the Blazers on Sunday.
+       - **Update**:
+         - Table: Team
+         - Row: Knicks
+         - Column: Next game
+         - Value: Blazers on Sunday
+
+   35. **Statement**: Charlotte is off until Wednesday.
+       - **Update**:
+         - Table: Team
+         - Row: Hornets
+         - Column: Next game
+         - Value: Celtics on Wednesday
+
+   ### Final Output Tables:
+
+   ### Team
+   | Team | Wins | Losses | Winning streak | Losing streak | Points scored | Lead entering fourth quarter | Advantage with 40
+  ,→ seconds | Possession with 4 seconds | Shooting percentage | Three-point percentage | Three-point attempts | Rebounds |
+  ,→ Turnovers | Next game |
+   | Hornets | 5 | 15 | 10 | None | 103 | 14 | None | Yes | 48 | 22 | 18 | None | None | Celtics on Wednesday |
+   | Knicks | 4 | 17 | None | 7 | None | None | 1 | None | None | None | None | 34 | 6 | Blazers on Sunday |
+
+   ### Player
+   | Player | Three-point shots made | Buzzer beater | Points | Rebounds | Field goal attempts | Assists | Turnovers |
+   | J.R. Smith | None | None | 14 | 4 | None | 5 | None |
+   | Carmelo Anthony | None | None | 32 | 7 | None | 4 | None |
+   | Kemba Walker | None | Yes | 11 | None | None | None | None |
+   | Gerald Henderson | None | None | 22 | None | None | None | None |
+   | Al Jefferson | None | None | 16 | 13 | None | None | None |
+   | Lance Stephenson | None | None | 16 | 6 | 15 | 6 | None |
+   | Gary Neal | None | None | 13 | None | None | None | None |
+   | Tim Hardaway, Jr. | None | None | 13 | None | None | None | None |
+   | Samuel Dalembert | None | None | None | None | None | None | 3 |
+
+
+
+D.2     Livesum
+D.2.1    Propositional Atomization
+   M&M Livesum Example - Atomic
+   ### Atomic Statements:
+   The game is underway with the start of the first half.
+   Player8 from the Home Team commits a foul.
+   Player26 from the Away Team wins a free kick in the attacking half.
+   Offside is called against the Home Team as Player10 from the Home Team attempts a through ball.
+   Player7 from the Home Team is caught offside.
+   Player28 from the Away Team commits a foul.
+   Player9 from the Home Team earns a free kick on the right side of the field.
+   Player8 from the Home Team attempts a through ball.
+   Player7 from the Home Team is offside.
+   Player28 from the Away Team earns a free kick in the opponent's half.
+   Player11 from the Home Team committed a foul.
+   Player29 from the Away Team attempts a through ball.
+   Player24 from the Away Team is flagged for offside.
+   Player28 from the Away Team attempts a through ball.
+   Player27 from the Away Team is offside for the Away Team.
+   Player7 from the Home Team misses a close shot from the right side of the six yard box.
+   Player10 from the Home Team assists Player7's shot with a cross.
+   Player22 from the Away Team commits a foul.
+   Player4 from the Home Team earns a free kick in the opponent's half.
+   Player2 from the Home Team's shot from outside the box is blocked.
+   Player11 from the Home Team misses the goal with a left-footed shot from outside the box.
+   Player10 from the Home Team assists Player11's shot.
+   Player28 from the Away Team commits a foul.
+   Player4 from the Home Team wins a free kick in their own defensive half.
+   Player7 from the Home Team's shot from the right side of the box is just too high.
+   Player8 from the Home Team assists Player7's shot.
+   Player11 from the Home Team's right footed shot from outside the box misses to the left.
+   Player4 from the Home Team assists Player11's shot.
+   Player28 from the Away Team's left footed shot from a difficult angle on the left is saved in the bottom right corner.
+   Player5 from the Home Team receives a yellow card for a rough tackle.
+   Player27 from the Away Team commits a foul.
+   Player1 from the Home Team earns a free kick in their own defensive half.
+   Player7 from the Home Team's left-footed shot from the left side of the box narrowly misses to the left.
+   Player11 from the Home Team assists Player7's shot.
+   Player28 from the Away Team commits a foul.
+
+
+
+
+                                                              25
+ Player8 from the Home Team earns a free kick in their own half.
+ Player25 from the Away Team is causing a delay in the match due to an injury.
+ The delay is finished and they are prepared to resume play.
+ Player10 from the Home Team's left footed shot from outside the box is blocked.
+ Player7 from the Home Team assists Player10's shot.
+ Player21 from the Away Team earns a free kick in their own half.
+ Player7 from the Home Team commits a foul.
+ Player28 from the Away Team's shot from outside the box is blocked.
+ Player27 from the Away Team set up Player28's shot.
+ Player25 from the Away Team attempted a shot with their left foot from outside the box, but it went high and wide to the
+,→ left.
+ Player27 from the Away Team assists Player25's shot.
+ Offside is called against the Away Team as Player24 from the Away Team attempts a through ball to Player27 from the Away
+,→ Team.
+ Player27 from the Away Team is offside.
+ Player11 from the Home Team's shot from the left side of the box is blocked.
+ Player10 from the Home Team set up Player11's shot.
+ The Home Team wins a corner kick.
+ Player27 from the Away Team earns a free kick on the right side of the field.
+ Player4 from the Home Team commits a foul.
+ The Home Team wins a corner kick.
+ The first half concludes with both teams scoreless, Home Team 0, Away Team 0.
+ The second half kicks off with the score tied at 0-0 between the home team and the away team.
+ Player28 from the Away Team's shot from outside the box is blocked.
+ Player21 from the Away Team assists Player28's shot.
+ Player2 from the Home Team misses the goal with a high and wide left-footed shot from outside the box.
+ The Home Team wins a corner kick.
+ Player9 from the Home Team's left footed shot from the left side of the box is blocked.
+ Player3 from the Home Team assists Player9's shot.
+ Player7 from the Home Team's right footed shot from the center of the box is saved in the top right corner.
+ Player6 from the Home Team assisted Player7's shot with a headed pass following a corner kick by the Home Team.
+ Player24 from the Away Team commits a foul.
+ Player7 from the Home Team earns a free kick on the right side of the field.
+ Player24 from the Away Team receives a yellow card for a rough tackle.
+ The Home Team wins a corner kick.
+ Player7 from the Home Team misses the goal with a right footed shot from outside the box after a corner.
+ The Home Team wins a corner kick.
+ Player22 from the Away Team commits a foul.
+ Player10 from the Home Team wins a free kick in the attacking half.
+ This leads to a set piece opportunity for the attacking team.
+ Player28 from the Away Team earns a free kick in their own half.
+ Player8 from the Home Team commits a foul.
+ Player19 from the Away Team receives a yellow card.
+ The Away Team earns a corner kick.
+ Player10 from the Home Team's left footed shot from the left side of the box hits the left post.
+ Player3 from the Home Team assists Player10's shot.
+ The Home Team earns a corner kick.
+ Player28 from the Away Team is delaying the match due to an injury.
+ The delay has ended and they are prepared to resume play.
+ Player15 from the Home Team's header from the center of the box was blocked.
+ Player7 from the Home Team assisted Player15's header with a cross.
+ Player5 from the Home Team misses a close header to the left from the center of the box.
+ Player7 from the Home Team assists Player5's header with a cross after a corner.
+ The Home Team wins a corner kick.
+ Player5 from the Home Team's header from the center of the box hits the left post.
+ Player7 from the Home Team set up Player5's header with a cross from a corner kick.
+ The Home Team earns a corner kick.
+ Player5 from the Home Team's header from the centre of the box was blocked by a defender.
+ Player7 from the Home Team assisted Player5's header with a cross.
+ This resulted in a corner kick for the Home Team.
+ Player10 from the Home Team misses the target with a left-footed shot from outside the box.
+ Player11 from the Home Team's shot from outside the box is saved in the bottom left corner.
+ Player13 from the Home Team assists Player11's shot.
+ Player25 from the Away Team commits a foul.
+ Player10 from the Home Team earns a free kick in the attacking half.
+ Player7 from the Home Team's attempt with his right foot from outside the box is just slightly too high.
+ Player26 from the Away Team committed a foul.
+ Player5 from the Home Team earns a free kick in their own half.
+ Player26 from the Away Team misses the goal with a high and wide shot from outside the box.
+ Player34 from the Away Team assists Player26's shot.
+ Player35 from the Away Team's attempt from outside the box is blocked.
+ This resulted in a corner kick for the Away Team.
+ Player23 from the Away Team misses a high right-footed shot from the center of the box.
+ Player11 from the Home Team's left-footed shot from the left side is blocked.
+ Player10 from the Home Team assists Player11's shot.
+ Player15 from the Home Team misses a close-range header to the left.
+ Player7 from the Home Team assists Player15's header with a cross.
+ The Home Team wins a corner kick.
+ Player6 from the Home Team's header from the center of the box is blocked by the defense.
+ Player11 from the Home Team assists Player6's header with a cross.
+ This resulted in a corner kick for the Home Team.
+ Player11 from the Home Team's left footed shot from outside the box was saved in the top center of the goal.
+ Player8 from the Home Team assists Player11's shot.
+ Player7 from the Home Team misses the target with a shot from the right side of the box.
+ Player15 from the Home Team assists Player7's shot.
+
+
+
+
+                                                           26
+   Player26 from the Away Team commits a foul.
+   Player6 from the Home Team wins a free kick in the defensive half.
+   Player13 from the Home Team's through ball to Player15 from the Home Team is caught offside for the Home Team.
+   Player2 from the Home Team's shot from the center of the box is saved in the bottom right corner.
+   Player15 from the Home Team scores with a right-footed shot from the right side of the six-yard box.
+   The Home Team now leads 1-0 over the Away Team.
+   Player15 from the Home Team is holding up the game due to injury.
+   The delay is over and they are ready to resume play.
+   Player35 from the Away Team commits a foul.
+   Player5 from the Home Team earns a free kick in their own half.
+   Player7 from the Home Team scores with a right-footed shot from the right side of the box.
+   Player10 from the Home Team assists Player7's shot.
+   Home Team now leads 2-0 against Away Team.
+   Player21 from the Away Team earns a free kick on the left wing.
+   Player13 from the Home Team fouled Player21.
+   The goalkeeper makes a great save from Player23 from the Away Team's close-range shot with his right foot.
+   The home team is winning 2-0 as the second half comes to a close.
+   The game is over with the Home Team winning 2-0 against the Away Team.
+
+
+
+D.2.2   Schema Generation
+   M&M Livesum Example - Schema Generation
+   ```json
+   {
+       "Football Match": {
+            "row_headers": ["Home Team", "Away Team"],
+            "column_headers": ["Team", "Fouls", "Offsides", "Free Kicks", "Shots", "Shots on Target", "Corner Kicks", "Yellow
+           ,→ Cards", "Goals"]
+       }
+   }
+   ```
+
+
+
+D.2.3 Table Generation
+   M&M Livesum Example - Schema Generation
+   ```
+   Total Atomic Statements: 98
+   Updates from ATOMIC STATEMENT 2
+   Update: Home Team Fouls: 1
+   Updates from ATOMIC STATEMENT 3
+   Updates: Away Team Free Kicks: 1
+   Updates from ATOMIC STATEMENT 4
+   Update: Home Team Offsides: 1
+   Updates from ATOMIC STATEMENT 5
+   Update: Away Team Fouls: 1
+   Updates from ATOMIC STATEMENT 6
+   Update: Home Team Free Kicks: 1
+   Updates from ATOMIC STATEMENT 7
+   Update: Home Team Offsides: 2
+   Updates from ATOMIC STATEMENT 8
+   Update: Away Team Free Kicks: 2
+   Updates from ATOMIC STATEMENT 9
+   Update: Home Team Fouls: 2
+   Updates from ATOMIC STATEMENT 10
+   Update: Away Team Offsides: 1
+   Updates from ATOMIC STATEMENT 11
+   Update: Away Team Offsides: 2
+   Updates from ATOMIC STATEMENT 12
+   Update: Home Team Shots: 1
+   Updates from ATOMIC STATEMENT 13
+   Update: Away Team Fouls: 2
+   Updates from ATOMIC STATEMENT 14
+   Update: Home Team Free Kicks: 2
+   Updates from ATOMIC STATEMENT 15
+   Update: Home Team Shots: 2
+   Updates from ATOMIC STATEMENT 16
+   Update: Home Team Shots: 3
+   Updates from ATOMIC STATEMENT 17
+   Update: Away Team Fouls: 3
+   Updates from ATOMIC STATEMENT 18
+   Update: Home Team Free Kicks: 3
+   Updates from ATOMIC STATEMENT 19
+   Update: Home Team Shots: 4
+   Updates from ATOMIC STATEMENT 20
+   Update: Home Team Shots on Target: 1
+   Updates from ATOMIC STATEMENT 21
+   Update: Away Team Shots: 1
+   Updates from ATOMIC STATEMENT 22
+   Update: Home Team Yellow Cards: 1
+
+
+
+
+                                                              27
+Updates from ATOMIC STATEMENT 23
+Update: Away Team Fouls: 4
+Updates from ATOMIC STATEMENT 24
+Update: Home Team Free Kicks: 4
+Updates from ATOMIC STATEMENT 25
+Update: Home Team Shots: 5
+Updates from ATOMIC STATEMENT 26
+Update: Away Team Fouls: 5
+Updates from ATOMIC STATEMENT 27
+Update: Home Team Free Kicks: 5
+Updates from ATOMIC STATEMENT 29
+Update: Away Team Injury Delay: 1
+Updates from ATOMIC STATEMENT 31
+Update: Home Team Shots: 6
+Updates from ATOMIC STATEMENT 32
+Update: Away Team Free Kicks: 3
+Updates from ATOMIC STATEMENT 33
+Update: Home Team Fouls: 3
+Updates from ATOMIC STATEMENT 34
+Update: Away Team Shots: 2
+Updates from ATOMIC STATEMENT 35
+Update: Away Team Shots: 3
+Updates from ATOMIC STATEMENT 36
+Update: Away Team Offsides: 3
+Updates from ATOMIC STATEMENT 37
+Update: Home Team Shots: 7
+Updates from ATOMIC STATEMENT 38
+Update: Home Team Corner Kicks: 1
+Updates from ATOMIC STATEMENT 39
+Update: Away Team Free Kicks: 4
+Updates from ATOMIC STATEMENT 40
+Update: Home Team Fouls: 4
+Updates from ATOMIC STATEMENT 41
+Update: Home Team Corner Kicks: 2
+Updates from ATOMIC STATEMENT 44
+Update: Away Team Shots: 4
+Updates from ATOMIC STATEMENT 45
+Update: Home Team Shots: 8
+Updates from ATOMIC STATEMENT 46
+Update: Home Team Corner Kicks: 3
+Updates from ATOMIC STATEMENT 47
+Update: Home Team Shots: 9
+Updates from ATOMIC STATEMENT 48
+Update: Home Team Shots on Target: 2
+Updates from ATOMIC STATEMENT 49
+Update: Away Team Fouls: 6
+Updates from ATOMIC STATEMENT 50
+Update: Home Team Free Kicks: 6
+Updates from ATOMIC STATEMENT 51
+Update: Away Team Yellow Cards: 2
+Updates from ATOMIC STATEMENT 52
+Update: Home Team Corner Kicks: 4
+Updates from ATOMIC STATEMENT 53
+Update: Home Team Shots: 10
+Updates from ATOMIC STATEMENT 54
+Update: Home Team Corner Kicks: 5
+Updates from ATOMIC STATEMENT 55
+Update: Away Team Fouls: 7
+Updates from ATOMIC STATEMENT 56
+Update: Home Team Free Kicks: 7
+Updates from ATOMIC STATEMENT 57
+Update: Away Team Free Kicks: 5
+Updates from ATOMIC STATEMENT 58
+Update: Home Team Fouls: 5
+Updates from ATOMIC STATEMENT 59
+Update: Away Team Yellow Cards: 3
+Updates from ATOMIC STATEMENT 60
+Update: Away Team Corner Kicks: 1
+Updates from ATOMIC STATEMENT 61
+Update: Home Team Shots: 11
+Updates from ATOMIC STATEMENT 62
+Update: Home Team Corner Kicks: 6
+Updates from ATOMIC STATEMENT 64
+Update: Home Team Shots: 12
+Updates from ATOMIC STATEMENT 65
+Update: Home Team Corner Kicks: 7
+Updates from ATOMIC STATEMENT 66
+Update: Home Team Shots: 13
+Updates from ATOMIC STATEMENT 67
+Update: Home Team Corner Kicks: 8
+Updates from ATOMIC STATEMENT 68
+Update: Home Team Corner Kicks: 9
+Updates from ATOMIC STATEMENT 69
+Update: Home Team Shots: 14
+Updates from ATOMIC STATEMENT 70
+
+
+
+
+                                       28
+      Update: Home Team Shots: 15
+      Updates from ATOMIC STATEMENT 70
+      Update: Home Team Shots on Target: 3
+      Updates from ATOMIC STATEMENT 71
+      Update: Away Team Fouls: 8
+      Updates from ATOMIC STATEMENT 72
+      Update: Home Team Free Kicks: 8
+      Updates from ATOMIC STATEMENT 73
+      Update: Away Team Fouls: 9
+      Updates from ATOMIC STATEMENT 74
+      Update: Home Team Free Kicks: 9
+      Updates from ATOMIC STATEMENT 75
+      Update: Away Team Shots: 5
+      Updates from ATOMIC STATEMENT 76
+      Update: Away Team Corner Kicks: 2
+      Updates from ATOMIC STATEMENT 77
+      Update: Away Team Shots: 6
+      Updates from ATOMIC STATEMENT 78
+      Update: Home Team Shots: 16
+      Updates from ATOMIC STATEMENT 79
+      Update: Home Team Corner Kicks: 10
+      Updates from ATOMIC STATEMENT 80
+      Update: Home Team Corner Kicks: 11
+      Updates from ATOMIC STATEMENT 81
+      Update: Home Team Shots: 17
+      Updates from ATOMIC STATEMENT 81
+      Update: Home Team Shots on Target: 4
+      Updates from ATOMIC STATEMENT 82
+      Update: Home Team Shots: 18
+      Updates from ATOMIC STATEMENT 83
+      Update: Away Team Fouls: 10
+      Updates from ATOMIC STATEMENT 84
+      Update: Home Team Free Kicks: 10
+      Updates from ATOMIC STATEMENT 85
+      Update: Home Team Offsides: 3
+      Updates from ATOMIC STATEMENT 86
+      Update: Home Team Shots: 19
+      Updates from ATOMIC STATEMENT 86
+      Update: Home Team Shots on Target: 5
+      Updates from ATOMIC STATEMENT 87
+      Update: Home Team Goals: 1
+      Updates from ATOMIC STATEMENT 89
+      Update: Away Team Fouls: 11
+      Updates from ATOMIC STATEMENT 90
+      Update: Home Team Free Kicks: 11
+      Updates from ATOMIC STATEMENT 91
+      Update: Home Team Goals: 2
+      Updates from ATOMIC STATEMENT 91
+      Update: Home Team Shots on Target: 6
+      Updates from ATOMIC STATEMENT 92
+      Update: Home Team Shots: 20
+      Updates from ATOMIC STATEMENT 93
+      Update: Away Team Free Kicks: 6
+      Updates from ATOMIC STATEMENT 94
+      Update: Away Team Shots on Target: 1
+      ### Final Table:
+      | Team | Fouls | Offsides | Free Kicks | Shots | Shots on Target | Corner Kicks | Yellow Cards | Goals |
+      | Home Team | 5 | 3 | 11 | 20 | 6 | 11 | 1 | 2 |
+      | Away Team | 11 | 3 | 6 | 6 | 1 | 2 | 3 | 0 |
+      ```
+
+
+
+E      Prompts
+E.1      CoT - One Shot
+      Baseline One-Shot Rotowire
+      You are expert at converting text to tables.
+
+      Task: Given a text description, generate and fill tables.
+
+      Think step by step and output the Team table and the Player Table.
+
+      Sample Illustration:
+      Input:
+      The Oklahoma City Thunder (16 - 17) defeated the Phoenix Suns (18 - 16) 137 - 134 in overtime
+      ,→ on Wednesday. Oklahoma City has won three of their last four games. Kevin Durant returned
+      ,→ from a six - game absence due to an ankle sprain and put up a season - high 44 points in 40
+      ,→ minutes.
+
+
+
+
+                                                                29
+      Output:
+      ### Team
+      | Team | Wins | Losses | Total Points |
+      | Thunder | 16 | 17| None |
+      | Suns | 18 | None | 134 |
+
+      ### Player
+      | Player | Points | Minutes Played |
+      | Kevin Durant | 44 | 40 |
+
+
+      Output format:
+      ### Team
+      | Team | <Column Header 1> | ... |
+      | <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+      ...
+
+      ### Player
+      | Player | <Column Header 1> | ... |
+      | <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+      ...
+
+      Table name leads with a ###, followed by the table where values are separated by the symbol '|'
+      ,→ and rows are separated by '\n'.
+      Use '|' as the only separator/delimiter.
+      Empty cell values are filled as "None".
+
+      Provide the output in the specified format only.
+
+
+
+E.2     Text-Tuple-Table
+
+  T3 Text-Tuple
+
+      Instruction: You are now required to extract team and player information from the following
+      ,→ input. Please focus on the
+      table format and extract all relevant tuples in (team or player name, attribute, value) format:
+
+      Example Illustration:
+      Sample Input: The Oklahoma City Thunder (16 - 17) defeated the Phoenix Suns (18 - 16) 137 - 134
+      ,→ in overtime on Wednesday. Oklahoma City has won three of their last four games. Kevin
+      ,→ Durant returned from a six - game absence due to an ankle sprain and put up a season - high
+      ,→ 44 points in 40 minutes.
+
+
+      Tuples:
+      1. (Oklahoma City Thunder, Record, 16-17)
+      2. (Phoenix Suns, Record, 18-16)
+      3. (Oklahoma City Thunder, Points Scored, 137)
+      4. (Phoenix Suns, Points Scored, 134)
+      5. (Oklahoma City Thunder, Game Outcome, Win)
+      6. (Phoenix Suns, Game Outcome, Loss)
+      7. (Oklahoma City Thunder, Recent Performance, Won 3 of last 4 games)
+      8. (Kevin Durant, Injury, Ankle Sprain)
+      9. (Kevin Durant, Games Missed, 6)
+      10. (Kevin Durant, Points Scored, 44)
+      11. (Kevin Durant, Minutes Played, 40)
+      12. (Kevin Durant, Season-High, 44 points)
+
+      Provide tuples for the given table in the following output:
+
+
+
+  T3 Tuple Integrate
+
+      Instruction: According to the live text, please count the number of events of both teams.
+
+
+
+                                                    30
+Note that goals and saved attempts and blocked attempts and missed attempts are considered
+,→ shots. Handball and dangerous play are also considered foul. The second yellow card is also
+,→ considered a red card. Penalty is also considered as free kicks.
+
+
+Task:
+Write valid, executable Python code that defines and runs a function
+,→ `consolidate_events(event_tuples)` which:
+- Accepts the list of tuples as input.
+- Returns a structured dictionary (or another data structure) mapping each team (e.g., "Home
+,→ Team" and "Away Team") to a count of each event.
+
+
+Final Output Instructions:
+- The output must be *pure Python code* with no markdown delimiters (i.e., do not include
+,→ triple backticks in your output).
+- Do not output any additional text or explanation.
+- Ensure you call the function within the code to execute it.
+- Include any necessary error handling to ensure the code executes without issues.
+
+
+
+T3 Tuple-Table
+
+Instruction: You are now required to extract team and player information from the following
+,→ input.
+Please only output tables in the specified format based on the given tuples.
+
+Illustration:
+
+Sample Input:
+
+Tuples:
+1. (Oklahoma City Thunder, Record, 16-17)
+2. (Phoenix Suns, Record, 18-16)
+3. (Oklahoma City Thunder, Points Scored, 137)
+4. (Phoenix Suns, Points Scored, 134)
+5. (Oklahoma City Thunder, Game Outcome, Win)
+6. (Phoenix Suns, Game Outcome, Loss)
+7. (Oklahoma City Thunder, Recent Performance, Won 3 of last 4 games)
+8. (Kevin Durant, Injury, Ankle Sprain)
+9. (Kevin Durant, Games Missed, 6)
+10. (Kevin Durant, Points Scored, 44)
+11. (Kevin Durant, Minutes Played, 40)
+12. (Kevin Durant, Season-High, 44 points)
+
+
+Output:
+### Team
+| Team | Wins | Losses | Total Points |
+| Thunder | 16 | 17| None |
+| Suns | 18 | None | 134 |
+
+### Player
+| Player | Points | Minutes Played |
+| Kevin Durant | 44 | 40 |
+
+
+**Output Format**:
+
+### Team
+| Team | <Column Header 1> | ... |
+| <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+...
+
+### Player
+| Player | <Column Header 1> | ... |
+| <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+...
+
+
+
+
+                                             31
+      Table name leads with a ###, followed by the table where values are separated by the symbol '|'
+      ,→ and rows are separated by '\n'.
+      Use '|' as the only separator/delimiter.
+      Empty cell values are filled as "None".
+
+      Provide the output in the specified format only.
+
+
+
+
+E.3     T3-Merged
+
+
+
+
+  T3 Merged One-Shot Rotowire
+
+      Instruction: Process the given text and generate Player and Team tables.
+
+      Let’s do the following tasks:
+      1. Extract team and player information from the following input. Please focus on the
+      table format and extract all relevant tuples in (team or player name, attribute, value) format:
+      2. Integrate these tuples into two tables in the output format given below.
+
+
+      Illustration :
+
+      Input: The Oklahoma City Thunder (16 - 17) defeated the Phoenix Suns (18 - 16) 137 - 134 in
+      ,→ overtime on Wednesday. Oklahoma City has won three of their last four games. Kevin Durant
+      ,→ returned from a six - game absence due to an ankle sprain and put up a season - high 44
+      ,→ points in 40 minutes.
+
+
+      Output:
+      ### Team
+      | Team | Wins | Losses | Total Points |
+      | Thunder | 16 | 17| None |
+      | Suns | 18 | None | 134 |
+
+      ### Player
+      | Player | Points | Minutes Played |
+      | Kevin Durant | 44 | 40 |
+
+      **Output Format**:
+
+      ### Team
+      | Team | <Column Header 1> | ... |
+      | <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+      ...
+
+      ### Player
+      | Player | <Column Header 1> | ... |
+      | <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+      ...
+
+      Table name leads with a ###, followed by the table where values are separated by the symbol '|'
+      ,→ and rows are separated by '\n'.
+      Use '|' as the only separator/delimiter.
+      Empty cell values are filled as "None".
+
+      Provide the output in the specified format only.
+
+
+
+                                                    32
+33
+E.4     Map & Make
+E.4.1     Propositional Atomization
+      M&M Atomization for Rotowire
+
+      You are an expert at converting unstructured, detailed textual inputs into highly structured
+      ,→ and organized atomic statements.
+
+
+      ***TASK***:
+      Decompose the given paragraphs or sentences into clear, self-contained, and highly detailed
+      ,→ short atomic statements without losing any information. Each atomic statement should
+      ,→ capture a single fact or action with maximum granularity.
+
+
+      ***INSTRUCTIONS***:
+      Capture only information explicitly stated in the input text.
+      No detail should be assumed, inferred, or added that is not present in the text.
+      Each atomic statement should contain only one key entity and one action or attribute.
+      If a sentence contains multiple pieces of information, decompose it further into more granular
+      ,→ statements.
+      Eliminate ambiguity by resolving pronouns and ensuring each statement stands alone.
+      Preserve necessary context so each statement is meaningful on its own.
+      Represent numerical data and units exactly as given in the input text.
+      Ensure each statement conveys unique information without overlapping others.
+      Ensure statements are clear, direct, and free from unnecessary complexity.
+      Resolve pronouns to their corresponding nouns for clarity.
+      Maintain relationships between entities without combining multiple facts.
+
+      ***OUTPUT FORMAT***:
+      <REASONING STEPS>
+
+      ### Atomic Statements:
+      <ATOMIC STATEMENT 1>
+      <ATOMIC STATEMENT 2>
+      ...
+
+      ***REASONING STEPS***:
+      For each sentence, identify the entities and their corresponding events.
+
+      **Sample Input**:
+      The Oklahoma City Thunder (16 - 17) defeated the Phoenix Suns (18 - 16) 137 - 134 in overtime
+      ,→ on Wednesday. Oklahoma City has won three of their last four games. Kevin Durant returned
+      ,→ from a six - game absence due to an ankle sprain and put up a season - high 44 points in 40
+      ,→ minutes.
+
+
+      **Step 1 - Sentence analysis**:
+
+      Sentence 1: The Oklahoma City Thunder (16 - 17) defeated the Phoenix Suns (18 - 16) 137 - 134
+      ,→ in overtime on Wednesday.
+      Here the entities are Oklahoma City Thunder and Phoenix Suns.
+      Events are team records, game result, and total points.
+      *Atomic sentences*:
+      The Oklahoma City Thunder's record is 16 wins.
+      The Oklahoma City Thunder's record is 17 losses.
+      The Phoenix Suns' record is 18 wins.
+      ...
+
+      Repeat **Step 1** for all sentences in **Sample Input**
+
+      ***FINAL CHECKLIST***:
+      All information from the input text is included.
+      No information or calculation is added that is not present in the text.
+      Every fact and detail is accurately represented.
+      Statements are clear and can be understood independently.
+      Numerical data and units are formatted exactly as provided in the text.
+      Each statement directly reflects the input text without inferred details.
+      Pronouns are resolved; statements are unambiguous.
+      Each statement contains only one key entity and one action or attribute.
+
+      Do not number the statements or add extra formatting.
+      Provide the *OUTPUT* with *REASONING STEPS* in the specified format only.
+
+                                                   34
+E.4.2   Schema Extraction
+   M&M Schema Extraction for Rotowire
+   You are an expert at defining structural tables by identifying the relevant column headers and
+   ,→ row headers from text.
+
+
+   ***TASK***:
+   Given a set of atomic text statements, extract row and column headers to create a table schema.
+
+   ***INSTRUCTIONS***:
+   Read the statements carefully to identify all attributes, entities, and data points mentioned,
+   ,→ whether explicitly stated or implicitly implied.
+   Determine the row headers (primary keys) and column headers required to represent the data
+   ,→ comprehensively and concisely:
+   Row headers are the unique identifiers for individual rows (key entities).
+   Column headers are the attributes of the primary keys that represent different aspects or data
+   ,→ points.
+   Include all explicit and implicit data points, ensuring no relevant information is overlooked.
+   Pay close attention to numerical data, even if it is presented within comparative statements or
+   ,→ descriptions of events or related to specific categories or time periods mentioned in the
+   ,→ text.
+   Explicit numerical data must always be captured as attributes where appropriate.
+   Implicit data points or recurring attributes must also be included.
+   Avoid adding actions as column headers but extract any data points associated with them.
+   Ensure that all numerical values are captured as attributes, even if they are related to
+   ,→ specific time periods or events within the context. When encountering comparative
+   ,→ statements or ratios like "X of Y", ensure you capture both 'X' and 'Y' as potentially
+   ,→ distinct and relevant data points if they represent different aspects of an attribute.
+   Be attentive to granular details and avoid focusing solely on general or aggregate values if
+   ,→ more specific data points are available in the text.
+
+
+   ***OUTPUT FORMAT***:
+   <REASONING STEPS>
+
+   ### Final Schema:
+   {
+       "<Table name>": {
+           "row_headers": ["Row Header 1", ...],
+           "column_headers": ["Column Header 1", ...]
+       }
+       ...
+   }
+
+
+   ***REASONING STEPS***:
+   **Sample input**:
+   The Oklahoma City Thunder's record is 16 wins.
+   The Oklahoma City Thunder's record is 17 losses.
+   The Phoenix Suns' record is 18 wins.
+   ...
+
+   **Step1 - Identify the context from all the statements to generate a short description**
+   Thought: This is a summary of a basketball game played between the Oklahoma City Thunder and
+   ,→ the Phoenix Suns and gives all the relevant statistics about the players and the games.
+   ,→ Every statement is either about the team or one of the players hence it would be ideal to
+   ,→ create to separate tables for them. One table for the teams, and one for the players.
+
+
+   **Step2 - Create a empty list of row and column headers for the tables. This list would be
+   ,→ updated as we keep on processing the statements and will keep adding relevant column and
+   ,→ row headers to the list.**
+   *Intermediate output*:
+   {
+       "Team": {
+       "row_headers": [],
+       "column_headers": [],
+       }
+       "Player": {
+           "row_headers": [],
+
+
+
+                                                 35
+           "col_headers": []
+       }
+   }
+
+   **Step 3 - Process statements one by one and add relevant headers if not already present in the
+   ,→ list.**
+
+
+   *Statements processed*:
+   1. The Oklahoma City Thunder's record is 16 wins.
+   *Schema update*:
+       - Update in "Team" table
+           - Row added: "Thunder"
+           - Column added: "Wins"
+   ...
+
+   ### Final Schema:
+   {
+       "Team": {
+       "row_headers": ["Thunder", "Suns"],
+       "column_headers": ["Wins", "Losses", "Total points"]
+       }
+       "Player": {
+           "row_headers": ["Kevin Durant"],
+           "col_headers": ["Points", "Minutes played"]
+       }
+   }
+
+   ***Final Output Instructions***:
+   1. As shown in the illustration above, for *every given statement* return the updates done to
+   ,→ the schema and generate the Team Table and Player Table schema.
+   2. Do not return schema directly in any case.
+   3. Provide the *OUTPUT* with *REASONING STEPS* in the specified format only.
+
+
+
+E.4.3 M&M Table Generation
+   M&M Table Generation for Rotowire
+   You are an expert in converting unstructured text into structured tables. Your task is to
+   ,→ process a series of atomic statements and update a set of pre-defined table schemas. Note
+   ,→ that you can be given more than one table to update.
+   Follow the steps below to ensure accurate and complete table updates.
+
+   ***TASK***:
+   **Given**:
+   *Statements*: A sequence of atomic statements.
+   *Schema*: A json object with table names and their row headers and column headers of the
+   ,→ respective tables.
+
+
+   **Your goal is to**:
+   Process each statement one by one.
+   Identify the correct set of table, row and column headers and the cell at that index to update
+   ,→ based on the statement.
+   Update or add values to the tables accordingly.
+
+   ***OUTPUT FORMAT***:
+   <REASONING STEPS>
+
+   ### Final Output Tables:
+   ### <TABLE NAME>
+   | | <Column Header 1> | ... |
+   | <Row Header 1> | <Cell Value for (Row Header 1, Column Header 1)> | ... |
+   ...
+
+   ***REASONING STEPS***:
+   Follow the given algorithm thoroughly,
+
+   **ALGORITHM**
+
+
+
+                                                 36
+For each statement in the input:
+    Identify Table:
+        Determine the correct table to be updated based on the table.
+    Identify Row and Column:
+        Determine which set of row and columns headers have to be updated based on this table.
+    Update the Table:
+        If no value exists, update the value of the cell as per the statement.
+
+**Sample Input**:
+Statements:
+The Oklahoma City Thunder's record is 16 wins.
+The Oklahoma City Thunder's record is 17 losses.
+...
+
+Schema:
+{
+    "Team": {
+    "row_headers": ["Thunder", "Suns"],
+    "column_headers": ["Wins", "Losses", "Total points"]
+    }
+    "Player": {
+        "row_headers": ["Kevin Durant"],
+        "col_headers": ["Points", "Minutes played"]
+    }
+}
+
+**Step 1**:
+Initial tables (Empty Tables):
+
+### Team:
+| Team | Wins | Losses | Total Points |
+| Thunder | None | None | None |
+| Suns | None | None | None |
+
+### Player:
+| Player | Points | Minutes Played |
+| Kevin Durant | None | None |
+
+**Step 2**:
+*Statement processed*:
+The Oklahoma City Thunder's record is 16 wins.
+*Updates*:
+    Table: Team
+    Row: Thunder
+    Column: Wins
+    Value: 16
+...
+
+### Final Output Tables:
+
+### Team
+| Team | Wins | Losses | Total Points |
+| Thunder | 16 | 17| None |
+| Suns | 18 | None | 134 |
+
+### Player
+| Player | Points | Minutes Played |
+| Kevin Durant | 44 | 40 |
+
+***FINAL CHECKLIST***:
+Follow these guidelines to generate tables and return the final state of the table after
+,→ processing all the statements.
+Ensure all sentences are processed and for every statement return the update and revised state
+,→ of the updated cells as shown in the example. Return the final table in the exact specified
+,→ format starting with ### Final Table.
+Do not generate the final table directly in any case.
+No need to generate the intermediate table states, just return the final table at the end.
+Ensure the table is concise, well-structured, and contains all information from the input.
+
+
+
+
+                                             37
+***Final Output Instructions***:
+1. Handle Missing Data:
+    If a column value is not present in the statements, keep it as None.
+2. Structural Integrity:
+    Do not add or remove any rows or columns unless explicitly instructed by the data.
+    Ensure uniformity in the format of data across the table.
+3. Table formatting:
+    Use "|" to separate cells
+
+Provide the *OUTPUT* with *REASONING STEPS* in the specified format only.
+
+
+
+
+                                             38
+

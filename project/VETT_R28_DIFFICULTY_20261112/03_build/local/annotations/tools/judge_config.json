@@ -1,0 +1,67 @@
+{
+  "schema": "vett-judge-config/v1",
+  "judge_id": "alpha",
+  "judge_role": "云端独立标注员（盲标），in-session model，不调用任何外部 API、不联网",
+  "round": "vett-t16-alpha-20261112",
+  "protocol_binding": {
+    "protocol_json": "VETT_R28_DIFFICULTY_20261112/02_design/protocol.json",
+    "protocol_json_sha256": "5d88c48f25f04060ec28a5334285abe99dc1cc75bdb27c67c811081c62a7c82c",
+    "protocol_md_sha256": "a725f6e31a9b7c951862d54e171c02f35e36778e6f17d0844783d1dc2214a1d3",
+    "preregistration": "VETT_R28_DIFFICULTY_20261112/preregistration.json",
+    "build_index_sha256_observed": "dd6de16a4001d414aa3503126f9447c93d571ce64524df9dc38c24f00c9ac0ee",
+    "contract_sha256": "7f10f9833ec0edc88a713fc77e34833a1503b2573a77e7ed0d7407782075a94b"
+  },
+  "task_templates": {
+    "T1_factor_visibility": "T1.factor_visibility.v1",
+    "T2_naturalness": "T2.naturalness_pair.v1",
+    "T3_adjudication": "T3.adjudication.metric_contract.v1"
+  },
+  "T1_rubric": {
+    "claim": "The passage records that an earlier recorded value or item was superseded, retracted, cancelled, withdrawn, overridden, or replaced by a later authority, so the earlier value must not be carried forward on its own.",
+    "labels": ["supported", "not_supported"],
+    "rules": [
+      "A passage that merely copies, transcribes, inherits or supplies a first provisional value does NOT support the claim.",
+      "A passage that says another item carries no independent value or adds no separate verification does NOT support the claim.",
+      "Merely mentioning docket or revision identifiers does NOT support the claim.",
+      "Unsure when the passage is truncated/ambiguous about whether the earlier value is displaced."
+    ]
+  },
+  "T2_rubric": {
+    "scale": {"5": "fluent, natural, grammatical", "4": "mostly natural, minor awkwardness", "3": "understandable but awkward", "2": "clearly broken or error-prone", "1": "ungrammatical, scrambled, nonsensical"},
+    "rule": "Score each text independently on the 1-5 scale, then name which text is the more natural one (a or b). Use the whole scale; the pair is expected to differ."
+  },
+  "T3_rubric": {
+    "dimensions": ["fields", "span", "edge", "abstain", "conformance"],
+    "fields": "每一字段是否由卷宗+规则集支持；逐字段给 OK/WRONG/UNSURE，并给出正确值（若可确定）。",
+    "span": "提交的 evidence_spans 是否全部存在于卷宗、且合起来足以支持整个记录（最小充分证据）。",
+    "edge": "边界条件是否正确处理：No ball 后 dismissal 限制(21.17)/Wide 后限制(22.9)、No ball 覆盖 Wide(21.12)、No ball/Wide 不计入 over、投球分析只扣 batter runs+NB/Wide、byes/leg-byes/penalty 不扣投手、overthrow 19.8 累积、wicket 后到界外不计、按接触分类、revision 策略取较大 signed revision、authority 以 signed 为准。",
+    "abstain": "output_schema 明确 abstain 不允许；出现弃权/不可解析/缺失即缺陷；confidence 必须在 [0,1]。",
+    "conformance": "12 字段齐全且仅 12 字段、类型正确、delivery_status 与 dismissal 在冻结枚举内、ledger 字段非负整数。",
+    "verdict_scale": ["PASS", "DEFECT", "UNSURE"],
+    "overall": "任一维度 DEFECT 即 overall=DEFECT；出现 UNSURE 且无 DEFECT 则 overall=UNSURE；全 PASS 才 ACCEPT。",
+    "note": "T3 是活不是包（protocol 第4节）：云端看整份公开卷宗+一条提交，不允许看 gold。"
+  },
+  "acceptance": {
+    "cloud_agreement_threshold": 0.90,
+    "t3_gate_capability": "DESCRIPTIVE_ONLY (n=12 < 30, R-C4)",
+    "kappa": "不估计（n<30 不满足前置条件）"
+  },
+  "budget": {
+    "T1_cross_check": 24,
+    "T2_cross_check": 16,
+    "T3_adjudication": 12,
+    "total": 52,
+    "hard_cap": 80,
+    "paid_api_cny": 0.0,
+    "network_calls": 0
+  },
+  "unsure_policy": "不确定即标 unsure 并给 ≤2 句理由；禁止猜、禁止为一致性改判。",
+  "forbidden": [
+    "读取 private/ 下 gold 或 certificate",
+    "读取 t14 以外的本地中间产物",
+    "从路径/文件名/match_id/JSON 字段顺序推断答案",
+    "修改 packet",
+    "调用任何外部 API 或联网"
+  ]
+}
+

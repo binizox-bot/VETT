@@ -1,0 +1,5 @@
+| Level | Field / Evidence Type | Design Purpose | Example Evidence |
+| --- | --- | --- | --- |
+| L1 | Direct extraction | Basic entity and score reading | Delta A Women made 142/7; Peninsula Women finished 58/9; Hannah Cole was Player of the Match. |
+| L2 | Cricket-rule arithmetic | Requires reconciling totals, extras, partnerships, wickets and balls | Delta batting runs add to 131 and extras add 11, matching 142; Peninsula batting runs add to 55 and extras add 3, matching 58; 20.0 overs equals 120 legal balls. |
+| L3 | Commentary-hidden inference | Requires mapping narrative phases to table evidence | “Early opening spark, Sarah Reed’s double check, Hannah’s spine, Zoe’s late lift, first-ball chase damage, boundary-starved reply” maps to 24/1, 26/2, Hannah 54*, 44-run late stand, 0/1, and Peninsula’s 58/9. |

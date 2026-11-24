@@ -1,0 +1,67 @@
+{
+  "version": "0.1",
+  "common_output_contract": {
+    "format": "json",
+    "top_level": {
+      "instance_id": "string",
+      "tables": [
+        {
+          "table_id": "string",
+          "columns": ["string"],
+          "rows": [{"row_id": "string", "<column>": "<value>"}]
+        }
+      ]
+    },
+    "rules": [
+      "Do not invent unsupported values.",
+      "Preserve cricket over notation as x.y legal-ball notation, not a decimal.",
+      "Use the final valid claim after resolving revisions and source authority.",
+      "Return JSON only."
+    ]
+  },
+  "direct_cot": {
+    "system": "You convert cricket documents into internally consistent tables. Resolve entities, innings scope, revisions, source authority and arithmetic constraints before producing the final JSON.",
+    "user_template": "TASK\\n{{instruction}}\\n\\nDOCUMENTS\\n{{documents}}\\n\\nTARGET CONTRACT\\n{{output_contract}}\\n\\nWork through the evidence and constraints, then return only the final JSON object.",
+    "notes": "Reasoning may remain hidden when the model API does not expose chain-of-thought. Evaluation uses only final output."
+  },
+  "t3_cricket_adapted": {
+    "stage_1_text_to_tuple": {
+      "system": "Extract globally linkable cricket tuples. Every tuple must be supported by a document span. Preserve source, innings scope, arrival order, version and claim status.",
+      "user_template": "DOCUMENTS\\n{{documents}}\\n\\nReturn JSON tuples with fields: tuple_id, document_id, evidence_quote, source_tier, innings, entity, attribute, value, unit, arrival_index, version, claim_status, revises_tuple_id."
+    },
+    "stage_2_integration": {
+      "system": "Integrate the extracted tuples into a final state. Generate executable Python that may use only the tuple JSON, cricket rules and the requested schema. It may not read the original documents.",
+      "user_template": "TUPLES\\n{{tuples}}\\n\\nTASK\\n{{instruction}}\\n\\nGenerate Python that resolves duplicates, revisions, stale claims and arithmetic dependencies, then emits the output contract."
+    },
+    "stage_3_tuple_to_table": {
+      "system": "Project the integrated final cricket state into the requested table JSON without adding facts.",
+      "user_template": "INTEGRATED STATE\\n{{integrated_state}}\\n\\nOUTPUT CONTRACT\\n{{output_contract}}"
+    },
+    "ablations": [
+      "paper_style_tuple_without_source_scope_version",
+      "provenance_enhanced_tuple",
+      "code_integration",
+      "direct_integration"
+    ]
+  },
+  "mapmake_cricket_adapted": {
+    "stage_1_atomization": {
+      "system": "Rewrite the documents into well-formed, atomic, self-contained and supported propositions. Resolve pronouns but retain source, innings, arrival order and revision language.",
+      "user_template": "DOCUMENTS\\n{{documents}}\\n\\nReturn JSON atomic propositions with proposition_id, document_id, evidence_quote, source_tier, innings, arrival_index and proposition."
+    },
+    "stage_2_schema_extraction": {
+      "system": "Infer the cricket tables, columns, row keys and relations needed to represent the atomic propositions. Do not invent a column solely because it appears in a hidden gold schema.",
+      "user_template": "ATOMIC PROPOSITIONS\\n{{atoms}}\\n\\nTASK\\n{{instruction}}\\n\\nReturn a JSON schema with tables, columns, row keys and cross-table constraints."
+    },
+    "stage_3_iterative_generation": {
+      "system": "Update the inferred tables proposition by proposition. Record NEW, DUPLICATE, REVISE, RETRACT or IGNORE for every update. Produce only the final valid tables in the output contract.",
+      "user_template": "ATOMS\\n{{atoms}}\\n\\nSCHEMA\\n{{schema}}\\n\\nOUTPUT CONTRACT\\n{{output_contract}}"
+    },
+    "ablations": [
+      "monotonic_update",
+      "version_aware_update",
+      "fixed_schema",
+      "latent_schema"
+    ]
+  }
+}
