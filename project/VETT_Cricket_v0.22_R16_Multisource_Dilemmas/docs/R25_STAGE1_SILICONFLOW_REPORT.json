@@ -1,0 +1,88 @@
+{
+  "dataset_version": "VETT-Cricket-v0.35-R25.2-diagnostic-pilot",
+  "stage": "SiliconFlow targeted model screening, stage 1",
+  "protocol": {
+    "name": "C2_TABLE",
+    "instances": 5,
+    "questions": 25,
+    "scenario_families": 25,
+    "instance_ids": ["match_0066", "match_0067", "match_0021", "match_0162", "match_0220"],
+    "target_batch_size": 5
+  },
+  "scoreable_models": {
+    "zai-org/GLM-5.3-Flash": {
+      "status": "COMPLETE",
+      "actual_cost_cny": 0.241791,
+      "factual_record_macro_accuracy": 0.32,
+      "decision_field_macro_accuracy": 0.706667,
+      "minimal_evidence_f1": 0.468085,
+      "counterfactual_full_record_exact_match": 0.20,
+      "paired_factual_counterfactual_exact": 0.20,
+      "latent_state_accuracy": 0.714286,
+      "full_record_exact_by_level": {"L1": 0.8, "L2": 0.4, "L3": 0.2, "L4": 0.2, "L5": 0.0}
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash": {
+      "status": "COMPLETE",
+      "actual_cost_cny": 1.231608,
+      "factual_record_macro_accuracy": 0.40,
+      "decision_field_macro_accuracy": 0.763333,
+      "minimal_evidence_f1": 0.580180,
+      "counterfactual_full_record_exact_match": 0.28,
+      "paired_factual_counterfactual_exact": 0.28,
+      "latent_state_accuracy": 0.857143,
+      "full_record_exact_by_level": {"L1": 0.8, "L2": 0.2, "L3": 0.6, "L4": 0.2, "L5": 0.2}
+    }
+  },
+  "cross_model_overlap": {
+    "both_correct": 6,
+    "both_wrong": 13,
+    "deepseek_only_correct": 4,
+    "glm_only_correct": 2
+  },
+  "compatibility_screen": {
+    "XingChenAGI/Xing4.0-29B": {
+      "status": "NOT_SCOREABLE",
+      "reason": "Five-question response was truncated in both schema and text modes; the final text-mode response stopped after 1344 output tokens with incomplete JSON.",
+      "cost_cny": 0.0
+    },
+    "stepfun-ai/Step-3.5-Flash": {
+      "status": "NOT_SCOREABLE",
+      "reason": "Strict JSON mode was rejected; thinking and non-thinking text attempts exhausted output budgets without final message content.",
+      "known_captured_cost_cny": 0.094781,
+      "unmetered_completed_attempts": 2
+    },
+    "Qwen/Qwen3.6-35B-A3B": {
+      "status": "PARTIAL_NOT_SCOREABLE",
+      "reason": "One non-thinking match completed; a second repeated evidence IDs until the 16384-token limit and the remaining requests hit the provider TPM limit.",
+      "known_cost_cny": 0.907783
+    }
+  },
+  "cost_accounting": {
+    "scoreable_runs_total_cny": 1.473399,
+    "new_known_cost_excluding_preexisting_glm_cny": 2.234172,
+    "known_total_including_captured_failed_or_partial_runs_cny": 2.475963,
+    "exact_provider_bill_available": false,
+    "note": "The known total is a lower bound because early DeepSeek and Step responses completed before raw usage preservation was added. HTTP 400/429 requests are not counted."
+  },
+  "gates": {
+    "two_model_families_scored": true,
+    "both_factual_record_macro_le_65pct": true,
+    "all_models_monotonic_by_level": false,
+    "all_adjacent_level_gaps_ge_8pct": false,
+    "safe_to_expand_220": false
+  },
+  "artifacts": {
+    "glm_analysis": "eval_runs/r25_2_siliconflow_flash_calibration5/glm53_flash_r25_2_calibration5/ANALYSIS.json",
+    "deepseek_analysis": "eval_runs/r25_2_siliconflow_stage1_calibration5/deepseek_v41_flash_r25_2_calibration5/ANALYSIS.json",
+    "deepseek_error_analysis": "eval_runs/r25_2_siliconflow_stage1_calibration5/deepseek_v41_flash_r25_2_calibration5/ERROR_ANALYSIS.json",
+    "xing_metadata": "eval_runs/r25_2_siliconflow_stage1_calibration5/xing4_29b_r25_2_calibration5/RUN_METADATA.json",
+    "step_metadata": "eval_runs/r25_2_siliconflow_stage1_calibration5/step35_flash_nothink_r25_2_calibration5/RUN_METADATA.json",
+    "qwen_partial_metadata": "eval_runs/r25_2_siliconflow_stage1_calibration5/qwen36_35b_nothink_r25_2_calibration5/RUN_METADATA.json"
+  },
+  "verification": {
+    "unit_tests": "95/95 passed",
+    "release_manifest_audit": "PASS",
+    "secret_scan_outside_dot_secrets": "0 files"
+  },
+  "decision": "STAGE1_COMPLETE_REVISE_LEVELS_BEFORE_220"
+}
