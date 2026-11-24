@@ -17,7 +17,7 @@
 
 ## 文件说明
 
-- `project/`：本地项目的展开文件树；按用户要求排除 `DeepTutor/`，其余 35,246 个文件均纳入版本控制。
+- `project/`：本地项目的展开文件树；按用户要求排除 `DeepTutor/`，并出于凭据安全排除 `.secrets/siliconflow.env`；其余 35,247 个本地文件均纳入版本控制。
 - `PROJECT_PACKAGING_REPORT_20261124.md`：项目结构、现有基础、研究结论、风险和打包边界。
 - `PROJECT_FILE_INVENTORY_20261124.csv`：151,380 条打包前文件元数据记录；不包含清单自身。
 - `archive/*.part001`、`archive/*.part002`：完整 ZIP 的二进制分卷，由 Git LFS 管理。
@@ -66,11 +66,11 @@ origin: https://github.com/HKUDS/DeepTutor.git
 
 该 `.git` 目录完整包含在 ZIP 内。解压后可在 `DeepTutor` 中运行 `git status`、`git log` 和 `git remote -v` 查看原历史。
 
-展开上传阶段按用户后续要求不提交 `project/DeepTutor/`。因此，GitHub 文件树中的 `project/` 是“原项目减 DeepTutor”的可浏览快照；先前上传的全量归档 ZIP 仍保留最初打包边界。
+展开上传阶段按用户后续要求不提交 `project/DeepTutor/`。同时，疑似有效凭据 `.secrets/siliconflow.env` 不写入永久 Git 历史。因此，GitHub 文件树中的 `project/` 是“原项目减 DeepTutor 与一个凭据文件”的可浏览快照；先前上传的全量归档 ZIP 仍保留最初打包边界。
 
 ## 安全边界
 
-本归档包含 public、private、audit、金标、评分器、聊天数据库、日志、本地依赖和历史备份，只适合作为受控的私有全量归档。不要把整个仓库转为公开，也不要把完整归档直接提供给待测模型。
+本归档包含 public、private、audit、金标、评分器、聊天数据库、日志、本地依赖和历史备份，只适合作为受控的私有全量归档。不要把整个仓库转为公开，也不要把完整归档直接提供给待测模型。完整 ZIP 在排除决定之前生成，可能仍包含 `.secrets/siliconflow.env`；如该凭据有效，应立即轮换，并考虑重建无凭据归档。
 
 ## 许可证
 
