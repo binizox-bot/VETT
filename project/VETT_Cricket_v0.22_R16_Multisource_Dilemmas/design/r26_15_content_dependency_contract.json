@@ -1,0 +1,82 @@
+{
+  "protocol_version": "VETT-R26.15-CONTENT-DEPENDENCY-CONTRACT-3",
+  "status": "FROZEN_AFTER_DECLARED_UNIQUENESS_AMENDMENT_BEFORE_V3_BUILD",
+  "parent_version": "VETT-Cricket-v0.36.14-R26.14-answer-blind-shadow",
+  "candidate_version": "VETT-Cricket-v0.36.15-R26.15-content-dependency-shadow",
+  "new_relation": "conditions_rule",
+  "direction": "fact_span_to_rule_span",
+  "selection": "Take counterfactual.changed_field as the sole source fact. Add one edge from that fact to every applicable rule key whose registered dependency list contains the changed field. Add no fallback edge to a rule that does not depend on the intervention field.",
+  "amendment_from_contract_1": {
+    "trigger": "A post-feasibility semantic audit found that the priority-only rule left the counterfactual intervention fact without any direct rule edge in 28 of 100 pilot questions, even though every intervention field was a registered dependency of at least one applicable rule.",
+    "scope": "Only the source fact chosen for a conditions_rule edge may change. Edge counts, rule targets, public text, questions, answers, evidence membership and inherited edges remain fixed.",
+    "pre_v2_build_measurement": {
+      "questions": 100,
+      "questions_with_intervention_field_applicable_to_at_least_one_rule": 100,
+      "questions_with_intervention_field_selected_by_priority_only_rule": 72
+    },
+    "reason": "The amended rule makes every counterfactual chain expose at least one fact-to-rule dependency and removes an arbitrary priority artifact without using any model result."
+  },
+  "amendment_from_contract_2": {
+    "trigger": "A pre-freeze uniqueness audit found that the fallback priority still selected one among several semantically valid facts for rules not affected by the intervention. The hidden priority was not uniquely inferable from public evidence. Adding every valid fact-rule dependency would exceed the 48-edge output limit in 40 of 100 pilot questions and reach 59 total edges.",
+    "scope": "Remove fallback content edges. Retain exactly the complete set of links from the one counterfactual changed-field fact to all applicable rules registered as depending on that field.",
+    "pre_v3_build_measurement": {
+      "pilot_questions": 100,
+      "projected_intervention_to_affected_rule_edges": 324,
+      "minimum_edges_per_question": 1,
+      "maximum_edges_per_question": 7,
+      "maximum_total_graph_edges_per_question": 38,
+      "all_fact_rule_design_maximum_total_edges": 59,
+      "all_fact_rule_design_questions_over_48": 40
+    },
+    "reason": "The intervention-only set is complete, public-semantics-identifiable, cheaper to emit, and directly measures counterfactual evidence-chain construction without an arbitrary private tie-break."
+  },
+  "invariants": {
+    "public_text_changes": 0,
+    "question_changes": 0,
+    "fact_or_state_changes": 0,
+    "counterfactual_changes": 0,
+    "positive_or_rejected_span_membership_changes": 0,
+    "existing_edge_removals_or_mutations": 0,
+    "each_rule_dependent_on_the_counterfactual_changed_field_has_exactly_one_content_dependency_edge": true,
+    "rules_not_dependent_on_the_counterfactual_changed_field_have_no_content_dependency_edge": true,
+    "each_counterfactual_changed_field_has_at_least_one_content_dependency_edge": true,
+    "all_new_edge_endpoints_are_existing_minimum_evidence_spans": true,
+    "augmented_graph_is_acyclic": true,
+    "maximum_edges_per_question": 48
+  },
+  "rule_dependency_priority": {
+    "APPEAL": ["appeal_made", "appeal_in_time", "dismissal_candidate"],
+    "BAT_CREDIT": ["contact", "completed_runs", "boundary_mode", "boundary_allowance", "crossed_at_throw"],
+    "BOUNDARY_NORMAL": ["boundary_mode", "boundary_allowance", "contact"],
+    "BOWLED_TEST": ["wicket_broken_by_delivery", "dismissal_candidate", "no_ball_called", "contact"],
+    "BOWLER_DEBIT": ["contact", "no_ball_called", "wide_called", "completed_runs", "boundary_allowance"],
+    "CAUGHT_CONTROL": ["catch_complete", "ball_grounded_before_control", "boundary_contact_before_completion", "contact", "dismissal_candidate"],
+    "DEAD_SEQUENCE": ["dead_before_wicket", "boundary_mode", "dismissal_candidate", "boundary_allowance"],
+    "DECEPTION": ["wilful_deception", "completed_runs", "dismissal_candidate"],
+    "EARLY_DEAD": ["early_dead_reball", "contact", "completed_runs"],
+    "LBW_TEST": ["lbw_pitch_valid", "lbw_impact_valid", "lbw_would_hit_wicket", "dismissal_candidate", "no_ball_called"],
+    "LEGAL_COUNT": ["early_dead_reball", "no_ball_called", "wide_called", "contact", "wilful_deception"],
+    "NB_COUNT": ["no_ball_called"],
+    "NB_DISMISSAL_GATE": ["no_ball_called", "dismissal_candidate"],
+    "NB_KEEPER_RUNOUT_EXCEPTION": ["keeper_only", "attempting_run", "no_ball_called", "out_of_ground"],
+    "NB_PRECEDENCE": ["no_ball_called", "wide_called"],
+    "NB_SCORE": ["no_ball_called", "contact", "completed_runs", "boundary_mode", "boundary_allowance"],
+    "OVERTHROW": ["crossed_at_throw", "boundary_mode", "completed_runs", "boundary_allowance"],
+    "RUNOUT_TEST": ["out_of_ground", "wicket_fair", "dismissal_candidate", "dead_before_wicket", "keeper_only", "attempting_run"],
+    "STUMPED_TEST": ["keeper_only", "attempting_run", "out_of_ground", "wicket_fair", "dismissal_candidate", "wide_called"],
+    "WIDE_CONTACT": ["contact", "wide_called"],
+    "WIDE_COUNT": ["wide_called", "contact"],
+    "WIDE_DISMISSAL_GATE": ["wide_called", "dismissal_candidate"],
+    "WIDE_SCORE": ["wide_called", "contact", "completed_runs", "boundary_mode", "boundary_allowance"]
+  },
+  "admission": {
+    "all_registered_rule_keys_mapped": true,
+    "all_questions_receive_the_complete_intervention_to_affected_rule_edge_set": true,
+    "all_questions_link_the_counterfactual_changed_field_to_an_applicable_rule": true,
+    "maximum_edges_at_most_contract_limit": true,
+    "old_role_only_template_content_edge_recall_must_equal": 0.0,
+    "pilot_expected_content_dependency_edges": 324,
+    "facts_and_existing_proofs_byte_semantically_unchanged": true
+  },
+  "provider_requests_authorized": false
+}

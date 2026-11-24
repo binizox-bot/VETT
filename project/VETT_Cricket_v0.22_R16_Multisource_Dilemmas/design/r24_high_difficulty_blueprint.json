@@ -1,0 +1,226 @@
+{
+  "version": "VETT-Cricket-R24-design-1.0",
+  "status": "IMPLEMENTED_FULL_220_STATIC_PASS_EMPIRICAL_CALIBRATION_PENDING",
+  "implementation": {
+    "release_directory": "dataset_r24_220",
+    "instances": 220,
+    "static_audit": "PASS",
+    "oracle_primary_metrics": 1.0,
+    "empirical_strong_model_calibration": "PENDING"
+  },
+  "inherits": [
+    "R22 table reconstruction and five-family evidence probes",
+    "R23 open grounded reasoning",
+    "R23.1 reversible sparse rule-evidence embedding"
+  ],
+  "authoritative_ruleset": {
+    "authority": "Marylebone Cricket Club",
+    "title": "Laws of Cricket 2017 Code, 4th Edition 2026",
+    "effective_date": "2026-10-01",
+    "overview_url": "https://www.lords.org/mcc/about-the-laws-of-cricket",
+    "source_url": "https://www.lords.org/getattachment/e8b12929-1e84-4927-af4e-2a5875b53589/Laws-of-Cricket-2017-Code-4th-Edition-(2026).pdf"
+  },
+  "mutation_budget_per_match": {
+    "replace_unreferenced_routing_spans_max": 7,
+    "insert_rule_spans_max": 9,
+    "touch_base_spans_percent_max": 1.2,
+    "must_be_reversible": true,
+    "r22_table_gold_must_be_unchanged": true,
+    "r22_probe_gold_must_be_unchanged": true
+  },
+  "difficulty_levels": [
+    {
+      "level": "L1",
+      "mechanism": "single law with one explicit but paraphrased decisive clue",
+      "reasoning_components_min": 1,
+      "decisive_spans": [1, 1],
+      "misleading_spans": [0, 1],
+      "target_fact_accuracy_band": [0.78, 0.86]
+    },
+    {
+      "level": "L2",
+      "mechanism": "one law plus exception or two complementary clues split across documents",
+      "reasoning_components_min": 2,
+      "decisive_spans": [2, 2],
+      "misleading_spans": [0, 1],
+      "target_fact_accuracy_band": [0.67, 0.75]
+    },
+    {
+      "level": "L3",
+      "mechanism": "two-law or rule-state chain with temporal or scope resolution",
+      "reasoning_components_min": 2,
+      "decisive_spans": [2, 3],
+      "misleading_spans": [1, 2],
+      "target_fact_accuracy_band": [0.56, 0.64]
+    },
+    {
+      "level": "L4",
+      "mechanism": "credible conflict, authority/scope discrimination and a later correction",
+      "reasoning_components_min": 3,
+      "decisive_spans": [3, 4],
+      "misleading_spans": [1, 2],
+      "target_fact_accuracy_band": [0.43, 0.52]
+    },
+    {
+      "level": "L5",
+      "mechanism": "three-law composition with counterfactual twin and answer-changing condition",
+      "reasoning_components_min": 3,
+      "decisive_spans": [3, 5],
+      "misleading_spans": [2, 3],
+      "target_fact_accuracy_band": [0.28, 0.4]
+    }
+  ],
+  "scenario_clusters": [
+    {
+      "cluster_id": "delivery_no_ball",
+      "scenarios": [
+        {"id": "NB_VALID_BALL", "level": "L1", "laws": ["21"], "answer_type": "validity", "mechanism": "no-ball and over count"},
+        {"id": "NB_WIDE_PRECEDENCE", "level": "L2", "laws": ["21", "22"], "answer_type": "precedence", "mechanism": "two apparent calls, one surviving call"},
+        {"id": "NB_DISMISSAL_GATE", "level": "L3", "laws": ["21", "32-40"], "answer_type": "set", "mechanism": "filter dismissal modes after no-ball"},
+        {"id": "NB_BAT_BOUNDARY_ALLOCATION", "level": "L4", "laws": ["18", "19", "21"], "answer_type": "structured_score", "mechanism": "bat boundary, penalty and misleading total"},
+        {"id": "NB_RUNOUT_OVERTHROW_COMPOSITION", "level": "L5", "laws": ["18", "19", "21", "38"], "answer_type": "event_ledger", "mechanism": "no-ball, attempted run-out, overthrow and completed runs"}
+      ]
+    },
+    {
+      "cluster_id": "delivery_wide",
+      "scenarios": [
+        {"id": "WIDE_VALID_BALL", "level": "L1", "laws": ["22"], "answer_type": "validity", "mechanism": "wide and over count"},
+        {"id": "WIDE_BOUNDARY_CLASSIFICATION", "level": "L2", "laws": ["19", "22"], "answer_type": "structured_score", "mechanism": "untouched wide reaching boundary"},
+        {"id": "WIDE_DISMISSAL_GATE", "level": "L3", "laws": ["22", "32-40"], "answer_type": "set", "mechanism": "filter dismissal modes after wide"},
+        {"id": "WIDE_REVOCATION_ON_CONTACT", "level": "L4", "laws": ["22", "23"], "answer_type": "state_transition", "mechanism": "provisional wide and later contact evidence"},
+        {"id": "WIDE_STUMPING_KEEPER_POSITION", "level": "L5", "laws": ["22", "27", "29", "39"], "answer_type": "dismissal_class", "mechanism": "wide, keeper position, ground state and stumping"}
+      ]
+    },
+    {
+      "cluster_id": "dead_ball_and_over",
+      "scenarios": [
+        {"id": "BALL_DEAD_BASIC", "level": "L1", "laws": ["20"], "answer_type": "event_state", "mechanism": "identify when play has ended"},
+        {"id": "OVER_LEGAL_BALL_COUNT", "level": "L2", "laws": ["17", "20-22"], "answer_type": "count", "mechanism": "separate deliveries from valid balls"},
+        {"id": "DEAD_BALL_TIMING_STATE", "level": "L3", "laws": ["20", "31"], "answer_type": "timeline", "mechanism": "call timing relative to event and appeal"},
+        {"id": "DEAD_BALL_DISMISSAL_NULLIFICATION", "level": "L4", "laws": ["20", "32-40"], "answer_type": "dismissal_validity", "mechanism": "apparent dismissal after a decisive dead-ball state"},
+        {"id": "CALL_CHAIN_OVER_COMPLETION", "level": "L5", "laws": ["17", "20", "21", "22"], "answer_type": "timeline_count", "mechanism": "wide/no-ball/dead-ball sequence and over completion"}
+      ]
+    },
+    {
+      "cluster_id": "runs_and_boundaries",
+      "scenarios": [
+        {"id": "BOUNDARY_FOUR_SIX", "level": "L1", "laws": ["19"], "answer_type": "score", "mechanism": "grounded versus full-pitch boundary"},
+        {"id": "SHORT_RUN_SCORING", "level": "L2", "laws": ["18"], "answer_type": "score", "mechanism": "ordinary short run and completed-run count"},
+        {"id": "DELIBERATE_SHORT_PENALTY", "level": "L3", "laws": ["18"], "answer_type": "structured_score", "mechanism": "deliberate finding changes ordinary short-run handling"},
+        {"id": "OVERTHROW_BOUNDARY_ACCOUNTING", "level": "L4", "laws": ["18", "19"], "answer_type": "structured_score", "mechanism": "completed runs, crossing state and overthrow boundary"},
+        {"id": "RUN_BOUNDARY_DISMISSAL_COMPOSITION", "level": "L5", "laws": ["18", "19", "20", "38"], "answer_type": "event_ledger", "mechanism": "runs, boundary, wicket state and dismissal timing"}
+      ]
+    },
+    {
+      "cluster_id": "dismissals_batter_ball",
+      "scenarios": [
+        {"id": "BOWLED_PREREQUISITES", "level": "L1", "laws": ["32"], "answer_type": "dismissal_validity", "mechanism": "ball puts wicket down"},
+        {"id": "CAUGHT_COMPLETION", "level": "L2", "laws": ["19", "33"], "answer_type": "dismissal_validity", "mechanism": "fair catch and boundary contact"},
+        {"id": "HIT_BALL_TWICE_EXCEPTION", "level": "L3", "laws": ["34"], "answer_type": "exception", "mechanism": "second contact and permitted protection exception"},
+        {"id": "HIT_WICKET_TIMING", "level": "L4", "laws": ["20", "35"], "answer_type": "timeline", "mechanism": "wicket broken at different phases of stroke/run"},
+        {"id": "LBW_MULTI_CONDITION", "level": "L5", "laws": ["21", "36"], "answer_type": "condition_vector", "mechanism": "delivery validity, pitching, impact, interception and projected wicket"}
+      ]
+    },
+    {
+      "cluster_id": "dismissals_running",
+      "scenarios": [
+        {"id": "RUN_OUT_WICKET_PUT_DOWN", "level": "L1", "laws": ["29", "38"], "answer_type": "dismissal_validity", "mechanism": "out of ground and wicket properly put down"},
+        {"id": "STUMPED_VS_RUNOUT", "level": "L2", "laws": ["38", "39"], "answer_type": "dismissal_class", "mechanism": "no attempted run and keeper action"},
+        {"id": "OBSTRUCTING_FIELD_SCOPE", "level": "L3", "laws": ["37"], "answer_type": "dismissal_validity", "mechanism": "wilful obstruction versus accidental contact"},
+        {"id": "TIMED_OUT_READINESS", "level": "L4", "laws": ["40"], "answer_type": "timeline", "mechanism": "readiness deadline, appeal and local time condition"},
+        {"id": "DISMISSAL_PRECEDENCE_COMPOSITE", "level": "L5", "laws": ["21", "22", "37-39"], "answer_type": "dismissal_class", "mechanism": "delivery call and multiple apparent dismissal routes"}
+      ]
+    },
+    {
+      "cluster_id": "appeal_and_wicket_state",
+      "scenarios": [
+        {"id": "APPEAL_REQUIRED", "level": "L1", "laws": ["31"], "answer_type": "procedure", "mechanism": "dismissal requiring an appeal"},
+        {"id": "APPEAL_DEADLINE", "level": "L2", "laws": ["17", "20", "31"], "answer_type": "timeline", "mechanism": "appeal before next delivery or innings closure"},
+        {"id": "UMPIRE_DECISION_REVOCATION", "level": "L3", "laws": ["31"], "answer_type": "state_transition", "mechanism": "initial decision and permitted correction"},
+        {"id": "WICKET_DOWN_REMAKE", "level": "L4", "laws": ["28", "29"], "answer_type": "wicket_state", "mechanism": "already-broken wicket and later valid putting down"},
+        {"id": "APPEAL_RUNOUT_SCOPE_CHAIN", "level": "L5", "laws": ["20", "29", "31", "38"], "answer_type": "timeline_scope", "mechanism": "which end, which batter, wicket state and appeal timing"}
+      ]
+    },
+    {
+      "cluster_id": "fielders_keeper_substitutes",
+      "scenarios": [
+        {"id": "KEEPER_POSITION", "level": "L1", "laws": ["27"], "answer_type": "legality", "mechanism": "keeper position until ball reaches striker"},
+        {"id": "SUBSTITUTE_FIELDER_PERMISSIONS", "level": "L2", "laws": ["24"], "answer_type": "permission_set", "mechanism": "fielding substitute permissions and exclusions"},
+        {"id": "FIELDER_ABSENCE_PENALTY_TIME", "level": "L3", "laws": ["24"], "answer_type": "eligibility_timeline", "mechanism": "absence, return and penalty-time state"},
+        {"id": "ILLEGAL_FIELDING_BALL", "level": "L4", "laws": ["28", "41"], "answer_type": "structured_score", "mechanism": "illegal contact, ball state and penalty accounting"},
+        {"id": "SUBSTITUTION_CATCH_ELIGIBILITY_CHAIN", "level": "L5", "laws": ["19", "24", "28", "33"], "answer_type": "dismissal_validity", "mechanism": "substitute status, field position, boundary and catch completion"}
+      ]
+    },
+    {
+      "cluster_id": "batters_runners_practice",
+      "scenarios": [
+        {"id": "BATTER_INNINGS_ELIGIBILITY", "level": "L1", "laws": ["25"], "answer_type": "eligibility", "mechanism": "who may begin or resume innings"},
+        {"id": "RUNNER_ALLOWED_CONDITIONS", "level": "L2", "laws": ["25"], "answer_type": "permission", "mechanism": "runner eligibility and nominated participants"},
+        {"id": "BATTER_RETIRED_STATUS", "level": "L3", "laws": ["25"], "answer_type": "state_transition", "mechanism": "retirement reason and return status"},
+        {"id": "PRACTICE_ON_FIELD_PENALTY", "level": "L4", "laws": ["26", "41"], "answer_type": "penalty", "mechanism": "practice location, timing and penalty consequence"},
+        {"id": "RUNNER_RUNOUT_STUMPED_CHAIN", "level": "L5", "laws": ["25", "29", "38", "39"], "answer_type": "dismissal_class", "mechanism": "runner, striker ground, attempted run and keeper action"}
+      ]
+    },
+    {
+      "cluster_id": "match_lifecycle_result",
+      "scenarios": [
+        {"id": "TOSS_INNINGS_CHOICE", "level": "L1", "laws": ["13"], "answer_type": "procedure", "mechanism": "toss result and innings choice"},
+        {"id": "DECLARATION_FORFEITURE", "level": "L2", "laws": ["15"], "answer_type": "state_transition", "mechanism": "declaration versus forfeiture"},
+        {"id": "FOLLOW_ON_TRIGGER", "level": "L3", "laws": ["14"], "answer_type": "eligibility", "mechanism": "match length and first-innings lead"},
+        {"id": "RESULT_TIE_WIN_FORFEIT", "level": "L4", "laws": ["16"], "answer_type": "result_class", "mechanism": "final state, winning condition and misleading summary"},
+        {"id": "INTERRUPTION_RESULT_SCOPE", "level": "L5", "laws": ["12-16", "LOCAL_PC"], "answer_type": "authority_scope", "mechanism": "MCC baseline versus explicitly versioned local playing condition"}
+      ]
+    },
+    {
+      "cluster_id": "pitch_creases_equipment",
+      "scenarios": [
+        {"id": "WICKET_DIMENSIONS_STATE", "level": "L1", "laws": ["8", "29"], "answer_type": "wicket_state", "mechanism": "wicket components and put-down state"},
+        {"id": "GROUND_BEHIND_CREASE", "level": "L2", "laws": ["7", "29", "30"], "answer_type": "ground_state", "mechanism": "person or bat grounded behind popping crease"},
+        {"id": "BAT_BALL_EQUIPMENT_VALIDITY", "level": "L3", "laws": ["4-6"], "answer_type": "equipment_legality", "mechanism": "approved ball/bat condition and replacement record"},
+        {"id": "PITCH_DAMAGE_REPAIR", "level": "L4", "laws": ["10", "41"], "answer_type": "procedure_penalty", "mechanism": "damage source, repair authority and unfair-play consequence"},
+        {"id": "OBJECT_GROUND_BOUNDARY_CATCH", "level": "L5", "laws": ["19", "28", "33"], "answer_type": "dismissal_validity", "mechanism": "object contact, fielder grounding, boundary and catch"}
+      ]
+    },
+    {
+      "cluster_id": "unfair_play_penalties",
+      "scenarios": [
+        {"id": "HELMET_CONTACT_PENALTY", "level": "L1", "laws": ["28"], "answer_type": "penalty", "mechanism": "ball contacts protective helmet on ground"},
+        {"id": "DISTRACTION_DECEPTION", "level": "L2", "laws": ["41"], "answer_type": "penalty", "mechanism": "deliberate distraction or deception finding"},
+        {"id": "TIME_WASTING_STATE", "level": "L3", "laws": ["41"], "answer_type": "procedure_penalty", "mechanism": "warning, repetition and responsible side"},
+        {"id": "DANGEROUS_BOWLING_SEQUENCE", "level": "L4", "laws": ["21", "41"], "answer_type": "timeline_penalty", "mechanism": "delivery call, warning sequence and bowler suspension"},
+        {"id": "MULTIPLE_PENALTIES_PRECEDENCE", "level": "L5", "laws": ["18", "20-23", "41"], "answer_type": "structured_score", "mechanism": "simultaneous delivery extras, completed runs and unfair-play penalties"}
+      ]
+    }
+  ],
+  "primary_metrics": [
+    "fact_answer_macro_accuracy",
+    "rule_application_atom_micro_f1",
+    "decisive_span_micro_f1",
+    "misleading_span_micro_f1",
+    "scope_assignment_accuracy",
+    "reasoning_edge_micro_f1",
+    "counterfactual_pair_consistency",
+    "answer_reasoning_evidence_joint_exact",
+    "confidence_brier_score"
+  ],
+  "acceptance_gates": {
+    "independent_scenario_count_min": 60,
+    "scenarios_per_level": 12,
+    "strong_model_fact_macro_max": 0.65,
+    "adjacent_level_fact_gap_min": 0.08,
+    "oracle_all_primary_metrics": 1.0,
+    "cross_document_rate_l2_l5_min": 1.0,
+    "exact_embedded_text_duplicate_rate": 0.0,
+    "counterfactual_answer_flip_rate": 1.0,
+    "unresolved_gold_rate": 0.0,
+    "r22_no_regression": true
+  },
+  "split_policy": {
+    "unit": "scenario_family",
+    "development": 30,
+    "calibration": 15,
+    "held_out_test": 15,
+    "same_family_cross_split_forbidden": true,
+    "final_test_prompt_tuning_forbidden": true
+  }
+}

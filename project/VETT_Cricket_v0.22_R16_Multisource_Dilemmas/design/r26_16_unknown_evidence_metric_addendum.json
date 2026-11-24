@@ -1,0 +1,53 @@
+{
+  "contract_version": "VETT-R26.16-UNKNOWN-EVIDENCE-METRIC-ADDENDUM-1.0",
+  "status": "FROZEN_BEFORE_ANY_EDGE7_PROVIDER_RESULT",
+  "dataset_version": "VETT-Cricket-v0.36.15-R26.15-content-dependency-shadow",
+  "parent_contracts": [
+    "design/r26_9_metric_contract.json",
+    "design/r26_14_metric_validity_addendum.json",
+    "design/r26_15_content_metric_addendum.json",
+    "design/r26_16_unknown_evidence_preregistration.json"
+  ],
+  "primary_metrics_unchanged": true,
+  "purpose": "Measure syntactically valid but non-public evidence citations as semantic grounding errors without discarding otherwise scoreable questions or changing the factual target.",
+  "population": "Every returned R26 decision question in an Edge7 run, including questions with zero predicted evidence references.",
+  "definitions": {
+    "public_span_universe": "The exact set of documents[].spans[].span_id strings in the same public match dossier supplied to the model.",
+    "well_formed_unknown_span": "A string matching ^s_[0-9a-f]{24}$ that is absent from the public_span_universe.",
+    "unknown_evidence_span_count": "Number of distinct well_formed_unknown_span strings across the scored run.",
+    "unknown_evidence_span_reference_count": "Number of occurrences of well_formed_unknown_span in predicted positive plus rejected evidence span lists; repeated occurrences in different questions are counted separately.",
+    "unknown_evidence_edge_count": "Number of predicted typed edges whose source_id or target_id is a well_formed_unknown_span; one edge is counted once even when both endpoints are unknown.",
+    "questions_with_unknown_evidence": "Number of questions with at least one unknown span-list reference or an edge incident to an unknown span.",
+    "unknown_evidence_question_rate": "questions_with_unknown_evidence divided by all scored questions.",
+    "unknown_evidence_reference_rate": "unknown evidence span-list references divided by all predicted positive plus rejected span-list references; zero when the denominator is zero.",
+    "unknown_evidence_edge_rate": "unknown-evidence edges divided by all predicted evidence edges; zero when the denominator is zero."
+  },
+  "scoring_effect": {
+    "positive_span_list": "Each occurrence participates as a false positive under the existing set-based evidence score, and exact match fails for that question.",
+    "rejected_span_list": "Each occurrence participates as a false positive under the existing rejected-evidence score, and exact match fails for that question.",
+    "typed_edge": "An incident edge is a false positive; any omitted intended gold edge remains a false negative.",
+    "factual_record_and_state": "Scored unchanged and independently.",
+    "counterfactual_record_and_state": "Scored unchanged and independently.",
+    "joint_chain": "Fails for every affected question because its evidence set or edge set cannot exactly match gold.",
+    "unaffected_questions": "Scored normally even when another question in the same request contains an unknown citation."
+  },
+  "reporting_requirements": [
+    "unknown_evidence_span_count",
+    "unknown_evidence_span_reference_count",
+    "unknown_evidence_edge_count",
+    "questions_with_unknown_evidence",
+    "unknown_evidence_question_rate",
+    "unknown_evidence_reference_rate",
+    "unknown_evidence_edge_rate",
+    "unknown_evidence_by_level"
+  ],
+  "interpretation_rules": [
+    "Unknown citation rates are diagnostics of evidence grounding and transcription; they are not factual accuracy metrics.",
+    "No unknown citation may be fuzzy-mapped, silently deleted, prefix-corrected, or replaced before scoring.",
+    "A close edit distance to a public ID is non-scoring diagnostic evidence only.",
+    "Malformed identifiers, foreign query nodes, foreign decision nodes, incomplete question sets, invalid JSON and truncation remain protocol or transport failures.",
+    "Edge6 artifacts retain their original official validity status; counterfactual replay under Edge7 is non-publishable diagnostic evidence.",
+    "Rates must be reported with raw numerators and denominators and must not replace the frozen primary and companion metrics."
+  ],
+  "provider_requests_made": 0
+}
